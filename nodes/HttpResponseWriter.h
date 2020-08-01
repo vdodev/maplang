@@ -1,0 +1,41 @@
+/*
+ * Copyright 2020 VDO Dev Inc <support@maplang.com>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+#include "../INode.h"
+#include "../ISink.h"
+#include "../ISource.h"
+
+namespace dgraph {
+
+class HttpResponseWriter : public INode, public ISink, public ISource {
+ public:
+  ~HttpResponseWriter() override = default;
+
+  void handlePacket(const Packet* packet) override;
+  void setPacketPusher(
+      const std::shared_ptr<IPacketPusher>& packetPusher) override;
+
+  ISink* asSink() override { return this; }
+  ISource* asSource() override { return this; }
+  IPathable* asPathable() override { return nullptr; }
+
+ private:
+  std::shared_ptr<IPacketPusher> mPacketPusher;
+};
+
+}  // namespace dgraph
