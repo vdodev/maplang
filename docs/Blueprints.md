@@ -27,56 +27,49 @@ Parts
     * To Instance
     * To Pathable ID (optional)
 
-graphs: [ {name: "Graph 1"}, {name: "Graph 2"}]
-nodeTypes: [
-    {
-       name: "Send Once",
-       channels: {
-            "on ready": {
-                schemaUri: "noParameters.jsonSchema",
-                bufferCount: 0
-            }
-       },
-       inputSchemaUri: null
-    },
-    {
-        name: "TCP Listen",
-        channels: {
-            "listening": {
-                schemaUri: "tcpListening.jsonSchema",
-                bufferCount: 0
-            },
-            "error": {
-                schemaUri: "tcpError.jsonSchema",
-                bufferCount: 0
-            }
-        },
-        inputSchemaUri: "tcpListenInput.jsonSchema"
-    },
-    {
-        name: "TCP Receiver",
-        channels: {
-            "Data Received": {
-                schemaUri: "dataReceived.jsonSchema"
-                bufferCount: 1
-            }
-        },
-        inputSchemaUri: null
-    },
-    {
-       name: "TCP Send",
-       inputSchemaUri: "tcpSenderInput.jsonSchema"        
-    },
-    {
-        name: "TCP Disconnect",
-        inputSchemaUri: "tcpDisconnectInput.jsonSchema",
-        channels: {
-            "disconnected": {
-                schemaUri: "tcpDisconnectedOutput.jsonSchema",
-            }
-        }
-    }
+Simple example
+```
+"graphs": [ { "name": "Graph 1" } ],
+"nodeTypes": [
+  {
+    "name": "Timer",
+    "channels": [
+      "Timer Fired": {
+        "schemaUri": "timer.jsonSchema",
+        "bufferCount": 0
+      }
+    ]
+  },
+  {
+    "name": "Print Time",
+    "schemaUri": "timer.jsonSchema",
+    "channels": [],
+  }
+],
+"nodeInstances": [
+  {
+    "name": "timer 1",
+    "type": "Timer",
+    "graph": "Graph 1"
+  },
+  {
+    "name": "time logger",
+    "type": "Print Time",
+    "graph": "Graph 1"
+  }
+],
+"nodeImplementations": [
+  { "type": "Timer", "source": "maplang:Timer" }, // Used for all instance of this type
+  { "instance": "time logger", "source": "https://maplang.com/impl/print-time.zip" } // Used for a single instance, overriding anything specified for its type.
+],
+"connections": [
+  {
+    "fromInstance": "timer 1",
+    "fromChannel": "Timer Fired",
+    "toInstance": "time logger"
+  }
 ]
+```
 
 Factory nodes - accept a graphConfig as input, construct and connect.
 
