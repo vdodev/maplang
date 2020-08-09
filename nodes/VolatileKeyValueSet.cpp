@@ -40,7 +40,7 @@ static const string kChannel_ValueNotFound = "Value Not Found";
 static const string kChannel_RemovedValue = "Removed Value";
 static const string kChannel_RemovedAllValuesForKey = "Removed All Values For Key";
 
-namespace dgraph {
+namespace maplang {
 
 using StorageMap = unordered_map<string, unordered_set<string>>;
 
@@ -323,4 +323,4 @@ std::shared_ptr<INode> VolatileKeyValueStore::getNode(
   return mPartitions[partitionName].node;
 }
 
-}  // namespace dgraph
+}  // namespace maplang

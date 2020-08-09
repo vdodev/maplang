@@ -22,7 +22,7 @@
 using namespace std;
 using namespace nlohmann;
 
-namespace dgraph {
+namespace maplang {
 
 static const char* const kChannel_BodyData = "Body Data";
 static const char* const kChannel_RequestEnded = "Request Ended";
@@ -244,4 +244,4 @@ void HttpRequestExtractor::sendEndOfRequestPacketIfRequestPending() {
   }
 }
 
-}  // namespace dgraph
+}  // namespace maplang

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef __MAPLANG_UVTCPCLIENT_H__
+#define __MAPLANG_UVTCPCLIENT_H__
 
 #include "../../ICohesiveNode.h"
 #include "../../ISink.h"
@@ -23,7 +24,7 @@
 #include "UvTcpReceiver.h"
 #include "UvTcpSender.h"
 
-namespace dgraph {
+namespace maplang {
 
 class UvTcpClient : public ICohesiveNode {
  public:
@@ -41,4 +42,6 @@ class UvTcpClient : public ICohesiveNode {
   const std::shared_ptr<UvTcpConnector> mTcpConnector;
 };
 
-}  // namespace dgraph
+}  // namespace maplang
+
+#endif  // __MAPLANG_UVTCPCLIENT_H__

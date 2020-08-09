@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef __MAPLANG_LOGGING_H__
+#define __MAPLANG_LOGGING_H__
 
 #include <stdio.h>
 
 #include <cstdarg>
 
-namespace dgraph {
+namespace maplang {
 __attribute__((__format__(__printf__, 1, 2))) inline void logd(const char* fmt,
                                                                ...) {
   va_list args;
@@ -56,4 +57,6 @@ __attribute__((__format__(__printf__, 1, 2))) inline void loge(const char* fmt,
   printf("\n");
   va_end(args);
 }
-}  // namespace dgraph
+}  // namespace maplang
+
+#endif  // __MAPLANG_LOGGING_H__

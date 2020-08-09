@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef __MAPLANG_ISOURCE_H__
+#define __MAPLANG_ISOURCE_H__
 
 #include <memory>
 #include <vector>
@@ -23,7 +24,7 @@
 #include "ISink.h"
 #include "Packet.h"
 
-namespace dgraph {
+namespace maplang {
 
 class IPacketPusher;
 
@@ -40,4 +41,6 @@ class ISource {
       const std::shared_ptr<IPacketPusher>& pusher) = 0;
 };
 
-}  // namespace dgraph
+}  // namespace maplang
+
+#endif  // __MAPLANG_ISOURCE_H__

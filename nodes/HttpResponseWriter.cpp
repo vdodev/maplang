@@ -21,7 +21,7 @@
 using namespace std;
 using namespace nlohmann;
 
-namespace dgraph {
+namespace maplang {
 
 static const char* const kChannel_HttpData = "Http Data";
 static const char* const kParameter_HttpHeaders = "http-headers";
@@ -76,4 +76,4 @@ void HttpResponseWriter::handlePacket(const Packet* packet) {
   mPacketPusher->pushPacket(&httpBytesPacket, kChannel_HttpData);
 }
 
-}  // namespace dgraph
+}  // namespace maplang

@@ -19,7 +19,7 @@
 using namespace std;
 using namespace nlohmann;
 
-namespace dgraph {
+namespace maplang {
 
 static const string kParameter_SipMethod = "sipMethod";
 static const string kParameter_SipRequestUri = "sipRequestUri";
@@ -137,4 +137,4 @@ void SipRequestExtractor::reset() {
   mContentLength = 0;
 }
 
-}  // namespace dgraph
+}  // namespace maplang

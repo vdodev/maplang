@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef __MAPLANG_UVTCPCONNECTOR_H__
+#define __MAPLANG_UVTCPCONNECTOR_H__
 
-namespace dgraph {
+namespace maplang {
 
 class UvTcpConnector : public INode, public IPathable {
  public:
@@ -27,4 +28,6 @@ class UvTcpConnector : public INode, public IPathable {
   ISink* asSink() override { return nullptr; }
 };
 
-}  // namespace dgraph
+}  // namespace maplang
+
+#endif  // __MAPLANG_UVTCPCONNECTOR_H__

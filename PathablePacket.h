@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef __MAPLANG_PATHABLEPACKET_H__
+#define __MAPLANG_PATHABLEPACKET_H__
 
 #include <memory>
 #include <vector>
@@ -23,7 +24,7 @@
 #include "IPacketPusher.h"
 #include "json.hpp"
 
-namespace dgraph {
+namespace maplang {
 
 class IPacketPusher;
 
@@ -33,4 +34,6 @@ struct PathablePacket {
   std::shared_ptr<IPacketPusher> packetPusher;
 };
 
-}  // namespace dgraph
+}  // namespace maplang
+
+#endif  // __MAPLANG_PATHABLEPACKET_H__

@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef __MAPLANG_DATA_GRAPH_H__
+#define __MAPLANG_DATA_GRAPH_H__
 
 #include <memory>
 #include "INode.h"
 
-namespace dgraph {
+namespace maplang {
 
 class DataGraphImpl;
 
@@ -51,4 +52,6 @@ class DataGraph final {
   const std::shared_ptr<DataGraphImpl> impl;
 };
 
-}  // namespace dgraph
+}  // namespace maplang
+
+#endif  // __MAPLANG_DATA_GRAPH_H__

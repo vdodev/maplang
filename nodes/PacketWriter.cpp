@@ -20,7 +20,7 @@
 using namespace std;
 using namespace nlohmann;
 
-namespace dgraph {
+namespace maplang {
 
 static void writeUInt64BE(uint64_t val, uint8_t** where) {
   **where++ = val >> 56;
@@ -70,4 +70,4 @@ void PacketWriter::handlePacket(const PathablePacket* incomingPacket) {
   incomingPacket->packetPusher->pushPacket(&sendPacket, "Message Ready");
 }
 
-}  // namespace dgraph
+}  // namespace maplang

@@ -22,7 +22,7 @@
 using namespace std;
 using namespace nlohmann;
 
-namespace dgraph {
+namespace maplang {
 
 class LambdaPacketPusher : public IPacketPusher {
  public:
@@ -161,4 +161,4 @@ TEST(WhenAnHttpRequestIsProcessed, HeaderFieldsAndBodyAreCorrect) {
   ASSERT_STREQ(requestId.c_str(), requestEndedPacketsRequestId.c_str());
 }
 
-}  // namespace dgraph
+}  // namespace maplang

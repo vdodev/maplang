@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-#ifndef DATA_GRAPH_NODES_SIPREQUESTEXTRACTOR_H_
-#define DATA_GRAPH_NODES_SIPREQUESTEXTRACTOR_H_
+#ifndef __MAPLANG_SIPREQUESTEXTRACTOR_H_
+#define __MAPLANG_SIPREQUESTEXTRACTOR_H_
 
 #include "../INode.h"
 #include "../ISink.h"
 #include "../ISource.h"
 #include "../MemoryStream.h"
 
-namespace dgraph {
+namespace maplang {
 
 class SipRequestExtractor final : public INode, public ISink, public ISource {
  public:
@@ -48,6 +48,6 @@ class SipRequestExtractor final : public INode, public ISink, public ISource {
   void reset();
 };
 
-}  // namespace dgraph
+}  // namespace maplang
 
-#endif //DATA_GRAPH_NODES_SIPREQUESTEXTRACTOR_H_
+#endif //__MAPLANG_SIPREQUESTEXTRACTOR_H_

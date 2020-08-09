@@ -16,7 +16,7 @@
 
 #include "SendOnce.h"
 
-namespace dgraph {
+namespace maplang {
 
 SendOnce::SendOnce(const nlohmann::json& sendOnceData)
     : mSendOnceData(sendOnceData) {}
@@ -27,4 +27,4 @@ void SendOnce::setPacketPusher(const std::shared_ptr<IPacketPusher>& pusher) {
   pusher->pushPacket(&sendOncePacket, "initialized");
 }
 
-}  // namespace dgraph
+}  // namespace maplang

@@ -20,7 +20,7 @@
 
 using namespace std;
 
-namespace dgraph {
+namespace maplang {
 
 static once_flag createRegistrationOnce;
 static NodeRegistration* gDefaultRegistration;
@@ -80,4 +80,4 @@ void NodeRegistration::visitPartitionedNodeNames(
   }
 }
 
-}  // namespace dgraph
+}  // namespace maplang

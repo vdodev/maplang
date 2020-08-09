@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-#ifndef DATA_GRAPH__OBJECTPOOL_H_
-#define DATA_GRAPH__OBJECTPOOL_H_
+#ifndef __MAPLANG_OBJECTPOOL_H__
+#define __MAPLANG_OBJECTPOOL_H__
 
 #include "Buffer.h"
 #include <stack>
 
-namespace dgraph {
+namespace maplang {
 
 template<class T>
 class ObjectPool final {
@@ -57,6 +57,6 @@ class ObjectPool final {
   std::stack<T*> mObjects;
 };
 
-}  // namespace dgraph
+}  // namespace maplang
 
-#endif //DATA_GRAPH__BUFFERPOOL_H_
+#endif // __MAPLANG_OBJECTPOOL_H__

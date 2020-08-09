@@ -19,7 +19,7 @@
 using namespace std;
 using namespace nlohmann;
 
-namespace dgraph {
+namespace maplang {
 
 static const char* const kParameter_HttpHeaders = "http-headers";
 static const char* const kParameter_HttpStatusCode = "http-status-code";
@@ -60,4 +60,4 @@ void HttpResponseWithAddressAsBody::handlePacket(const PathablePacket* incomingP
  * For each node
  */
 
-}  // namespace dgraph
+}  // namespace maplang

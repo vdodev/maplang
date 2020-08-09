@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef __MAPLANG_MEMORYSTREAM_H__
+#define __MAPLANG_MEMORYSTREAM_H__
 
 #include <climits>
 #include <ostream>
@@ -25,7 +26,7 @@
 
 #include "Buffer.h"
 
-namespace dgraph {
+namespace maplang {
 
 class MemoryStream final {
  public:
@@ -112,15 +113,15 @@ class MemoryStream final {
 
 class MemoryIStream final : public std::basic_istream<uint8_t> {
  public:
-  MemoryIStream(const dgraph::MemoryStream& stream);
+  MemoryIStream(const maplang::MemoryStream& stream);
 
 };
 
-}  // namespace dgraph
+}  // namespace maplang
 
 inline std::ostream& operator<<(std::ostream& output,
-                                const dgraph::MemoryStream& memoryStream) {
-  memoryStream.visitBuffers([&output](size_t index, dgraph::Buffer&& buffer) {
+                                const maplang::MemoryStream& memoryStream) {
+  memoryStream.visitBuffers([&output](size_t index, maplang::Buffer&& buffer) {
     output.write(reinterpret_cast<const char*>(buffer.data.get()),
                  buffer.length);
     return true;
@@ -128,3 +129,5 @@ inline std::ostream& operator<<(std::ostream& output,
 
   return output;
 }
+
+#endif  // __MAPLANG_MEMORYSTREAM_H__

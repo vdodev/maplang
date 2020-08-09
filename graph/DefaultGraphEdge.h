@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-#ifndef DATA_GRAPH_GRAPH_DEFAULTGRAPHEDGE_H_
-#define DATA_GRAPH_GRAPH_DEFAULTGRAPHEDGE_H_
+#ifndef __MAPLANG_DEFAULTGRAPHEDGE_H_
+#define __MAPLANG_DEFAULTGRAPHEDGE_H_
 
 #include <string>
 #include <memory>
 
-namespace dgraph {
+namespace maplang {
 
 template<class ItemClass, class EdgeClass>
 struct GraphElement;
@@ -30,6 +30,6 @@ struct DefaultGraphEdge {
   std::shared_ptr<GraphElement<ItemClass, DefaultGraphEdge<ItemClass>>> otherGraphElement;
 };
 
-}  // naemspace dgraph
+}  // namespace maplang
 
-#endif //DATA_GRAPH_GRAPH_DEFAULTGRAPHEDGE_H_
+#endif // __MAPLANG_DEFAULTGRAPHEDGE_H_

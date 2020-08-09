@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef __MAPLANG_ISUBGRAPHCONTEXT_H__
+#define __MAPLANG_ISUBGRAPHCONTEXT_H__
 
 #include <memory>
 
@@ -22,7 +23,7 @@
 
 typedef struct uv_loop_s uv_loop_t;
 
-namespace dgraph {
+namespace maplang {
 
 class INode;
 
@@ -31,4 +32,6 @@ class ISubgraphContext {
   virtual std::shared_ptr<uv_loop_t> getUvLoop() const = 0;
 };
 
-}  // namespace dgraph
+}  // namespace maplang
+
+#endif  // __MAPLANG_ISUBGRAPHCONTEXT_H__

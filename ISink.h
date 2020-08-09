@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef __MAPLANG_ISINK_H__
+#define __MAPLANG_ISINK_H__
 
 #include "Packet.h"
 
-namespace dgraph {
+namespace maplang {
 
 class ISink {
  public:
@@ -35,4 +36,6 @@ class ISinkFactory {
       const nlohmann::json& initParameters) = 0;
 };
 
-}  // namespace dgraph
+}  // namespace maplang
+
+#endif  // __MAPLANG_ISINK_H__

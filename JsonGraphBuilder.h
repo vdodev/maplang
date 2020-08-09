@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef __MAPLANG_JSONGRAPHBUILDER_H__
+#define __MAPLANG_JSONGRAPHBUILDER_H__
 
 #include <memory>
 
 #include "DataGraph.h"
 
-namespace dgraph {
+namespace maplang {
 
 class JsonGraphBuilder {
  public:
   const std::shared_ptr<DataGraph> buildGraph(const std::string& config) const;
 };
 
-}  // namespace dgraph
+}  // namespace maplang
+
+#endif  // __MAPLANG_JSONGRAPHBUILDER_H__

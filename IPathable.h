@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef __MAPLANG_IPATHABLE_H__
+#define __MAPLANG_IPATHABLE_H__
 
 #include "PathablePacket.h"
 
-namespace dgraph {
+namespace maplang {
 
 class IPathable {
  public:
@@ -27,4 +28,6 @@ class IPathable {
   virtual void handlePacket(const PathablePacket* incomingPacket) = 0;
 };
 
-}  // namespace dgraph
+}  // namespace maplang
+
+#endif  // __MAPLANG_IPATHABLE_H__

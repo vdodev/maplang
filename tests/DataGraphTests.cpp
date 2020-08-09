@@ -22,7 +22,7 @@
 
 using namespace std;
 
-namespace dgraph {
+namespace maplang {
 
 class LambdaSink : public INode, public ISink {
  public:
@@ -60,4 +60,4 @@ TEST(WhenSendPacketIsCalledOnce, ThenOnePacketIsDeliveredToTheSink) {
   ASSERT_EQ(1, receivedPacketCount);
 }
 
-}  // namespace dgraph
+}  // namespace maplang

@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef __MAPLANG_IPACKETPUSHER_H__
+#define __MAPLANG_IPACKETPUSHER_H__
 
 #include "Packet.h"
 
-namespace dgraph {
+namespace maplang {
 /**
  * Pushes packets into a DataGraph.
  */
@@ -42,4 +43,6 @@ class IPacketPusher {
                           const std::string &channelName) = 0;
 };
 
-}  // namespace dgraph
+}  // namespace maplang
+
+#endif  // __MAPLANG_IPACKETPUSHER_H__

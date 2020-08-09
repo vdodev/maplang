@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef __MAPLANG_HTTP_RESPONSE_WITH_ADDRESS_AS_BODY_H__
+#define __MAPLANG_HTTP_RESPONSE_WITH_ADDRESS_AS_BODY_H__
 
 #include "../INode.h"
 #include "../IPathable.h"
 
-namespace dgraph {
+namespace maplang {
 
 class HttpResponseWithAddressAsBody final : public INode, public IPathable {
  public:
@@ -32,4 +33,6 @@ class HttpResponseWithAddressAsBody final : public INode, public IPathable {
   ISink* asSink() override { return nullptr; }
 };
 
-}  // namespace dgraph
+}  // namespace maplang
+
+#endif // __MAPLANG_HTTP_RESPONSE_WITH_ADDRESS_AS_BODY_H__

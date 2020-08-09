@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef __MAPLANG_PACKET_H__
+#define __MAPLANG_PACKET_H__
 
 #include "Buffer.h"
 #include "ISubgraphContext.h"
 #include "json.hpp"
 
-namespace dgraph {
+namespace maplang {
 
 struct Packet {
   nlohmann::json parameters;
   std::vector<Buffer> buffers;
 };
 
-}  // namespace dgraph
+}  // namespace maplang
+
+#endif  // __MAPLANG_PACKET_H__

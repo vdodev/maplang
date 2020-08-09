@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-#ifndef DATA_GRAPH_NODES_PACKETREADER_H_
-#define DATA_GRAPH_NODES_PACKETREADER_H_
+#ifndef __MAPLANG_PACKETREADER_H__
+#define __MAPLANG_PACKETREADER_H__
 
 #include "../IPathable.h"
 #include "../INode.h"
 #include "../MemoryStream.h"
 
-namespace dgraph {
+namespace maplang {
 
 class PacketReader : public INode, public IPathable {
  public:
@@ -39,6 +39,6 @@ class PacketReader : public INode, public IPathable {
   static Packet readPacket(const MemoryStream& stream);
 };
 
-}  // namespace dgraph
+}  // namespace maplang
 
-#endif //DATA_GRAPH_NODES_PACKETREADER_H_
+#endif  // __MAPLANG_PACKETREADER_H__

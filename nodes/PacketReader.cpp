@@ -20,7 +20,7 @@
 using namespace std;
 using namespace nlohmann;
 
-namespace dgraph {
+namespace maplang {
 
 static uint64_t readUInt64BE(const uint8_t** where) {
   uint64_t val = 0;
@@ -117,4 +117,4 @@ Packet PacketReader::readPacket(const MemoryStream& stream) {
   return parsedPacket;
 }
 
-}  // namespace dgraph
+}  // namespace maplang

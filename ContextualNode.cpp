@@ -23,7 +23,7 @@
 using namespace std;
 using namespace nlohmann;
 
-namespace dgraph {
+namespace maplang {
 
 static const string kPartitionName_ContextRouter = "Context Router";
 static const string kPartitionName_ContextRemover = "Context Remover";
@@ -238,4 +238,4 @@ shared_ptr<INode> ContextualNode::getNode(const string& nodeName) {
   return it->second;
 }
 
-}  // namespace dgraph
+}  // namespace maplang

@@ -19,7 +19,7 @@
 
 using namespace std;
 
-namespace dgraph {
+namespace maplang {
 
 TEST(WhenNoBuffersAreAdded, VisitBuffersDoesntReturnAnyBuffers) {
   MemoryStream stream;
@@ -735,4 +735,4 @@ TEST(WhenCleared, NoDataIsLeft) {
   });
 }
 
-}  // namespace dgraph
+}  // namespace maplang

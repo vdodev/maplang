@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef __MAPLANG_RESPONSE_WRITER_H__
+#define __MAPLANG_RESPONSE_WRITER_H__
 
 #include "../INode.h"
 #include "../ISink.h"
 #include "../ISource.h"
 
-namespace dgraph {
+namespace maplang {
 
 class HttpResponseWriter : public INode, public ISink, public ISource {
  public:
@@ -38,4 +39,6 @@ class HttpResponseWriter : public INode, public ISink, public ISource {
   std::shared_ptr<IPacketPusher> mPacketPusher;
 };
 
-}  // namespace dgraph
+}  // namespace maplang
+
+#endif  // __MAPLANG_RESPONSE_WRITER_H__

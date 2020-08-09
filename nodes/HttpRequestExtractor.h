@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef __MAPLANG_HTTP_REQUEST_EXTRACTOR_H__
+#define __MAPLANG_HTTP_REQUEST_EXTRACTOR_H__
 
 #include <list>
 #include <random>
@@ -24,7 +25,7 @@
 #include "../MemoryStream.h"
 #include "../json.hpp"
 
-namespace dgraph {
+namespace maplang {
 
 class HttpRequestExtractor final : public INode, public ISink, public ISource {
  public:
@@ -56,4 +57,6 @@ class HttpRequestExtractor final : public INode, public ISink, public ISource {
   void sendEndOfRequestPacketIfRequestPending();
 };
 
-}  // namespace dgraph
+}  // namespace maplang
+
+#endif // __MAPLANG_HTTP_REQUEST_EXTRACTOR_H__

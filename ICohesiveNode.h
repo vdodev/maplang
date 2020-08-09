@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef __MAPLANG_ICOHESIVE_NODE_H__
+#define __MAPLANG_ICOHESIVE_NODE_H__
 
 #include "INode.h"
 
-namespace dgraph {
+namespace maplang {
 
 class ICohesiveNode {
  public:
@@ -30,4 +31,6 @@ class ICohesiveNode {
   virtual std::shared_ptr<INode> getNode(const std::string& nodeName) = 0;
 };
 
-}  // namespace dgraph
+}  // namespace maplang
+
+#endif  // __MAPLANG_ICOHESIVE_NODE_H__

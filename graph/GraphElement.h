@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-#ifndef MAPLANG_GRAPH_GRAPHELEMENT_H_
-#define MAPLANG_GRAPH_GRAPHELEMENT_H_
+#ifndef MAPLANG_GRAPHELEMENT_H_
+#define MAPLANG_GRAPHELEMENT_H_
 
 #include <unordered_map>
 #include "DefaultGraphEdge.h"
 
-namespace dgraph {
+namespace maplang {
 
 template<class ItemClass, class EdgeClass = DefaultGraphEdge<ItemClass>>
 struct GraphElement final {
@@ -41,5 +41,6 @@ struct GraphElement final {
   std::unordered_map<MapKeyType, EdgeClass, MapKeyHasher> forwardEdges;  // channel => edge: All GraphElements this one connects to.
 };
 
-}  // namespace dgraph
-#endif  // MAPLANG_GRAPH_GRAPHELEMENT_H_
+}  // namespace maplang
+
+#endif  // MAPLANG_GRAPHELEMENT_H_

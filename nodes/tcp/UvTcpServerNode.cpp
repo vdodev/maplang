@@ -24,7 +24,7 @@
 using namespace std;
 using namespace nlohmann;
 
-namespace dgraph {
+namespace maplang {
 
 static const string kChannel_DataReceived = "Data Received";
 static const string kChannel_Listening = "Listening";
@@ -568,4 +568,4 @@ shared_ptr<INode> UvTcpServerNode::getNode(const string& nodeName) {
   return mNodes[nodeName];
 }
 
-} // namespace dgraph
+} // namespace maplang

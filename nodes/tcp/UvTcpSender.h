@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef __MAPLANG_UVTCPSENDER_H__
+#define __MAPLANG_UVTCPSENDER_H__
 
 #include "../../ISink.h"
 
-namespace dgraph {
+namespace maplang {
 
 class UvTcpSender final : public INode, public ISink {
  public:
@@ -29,4 +30,6 @@ class UvTcpSender final : public INode, public ISink {
   ISink* asSink() override { return this; }
 };
 
-}  // namespace dgraph
+}  // namespace maplang
+
+#endif  // __MAPLANG_UVTCPSENDER_H__

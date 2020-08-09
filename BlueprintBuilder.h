@@ -14,19 +14,19 @@
  *  limitations under the License.
  */
 
-#ifndef DATA_GRAPH__GRAPHLOADER_H_
-#define DATA_GRAPH__GRAPHLOADER_H_
+#ifndef __MAPLANG_BLUEPRINT_BUILDER_H__
+#define __MAPLANG_BLUEPRINT_BUILDER_H__
 
 #include "DataGraph.h"
 #include "json.hpp"
 
-namespace dgraph {
+namespace maplang {
 
 class BlueprintBuilder final {
  public:
   void build(DataGraph* graph, const nlohmann::json& blueprint);
 };
 
-}  // namespace dgraph
+}  // namespace maplang
 
-#endif //DATA_GRAPH__GRAPHLOADER_H_
+#endif //__MAPLANG_BLUEPRINT_BUILDER_H__

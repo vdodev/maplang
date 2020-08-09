@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-#ifndef DATA_GRAPH_NODES_PACKETWRITER_H_
-#define DATA_GRAPH_NODES_PACKETWRITER_H_
+#ifndef __MAPLANG_PACKETWRITER_H__
+#define __MAPLANG_PACKETWRITER_H__
 
 #include "../IPathable.h"
 #include "../INode.h"
 
-namespace dgraph {
+namespace maplang {
 
 class PacketWriter : public INode, public IPathable {
  public:
@@ -32,6 +32,6 @@ class PacketWriter : public INode, public IPathable {
   ISource *asSource() override { return nullptr; }
 };
 
-}  // namespace dgraph
+}  // namespace maplang
 
-#endif //DATA_GRAPH_NODES_PACKETWRITER_H_
+#endif  // __MAPLANG_PACKETWRITER_H__

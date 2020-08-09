@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-#ifndef __DGRAPH_BUFFER_H__
-#define __DGRAPH_BUFFER_H__
+#ifndef __MAPLANG_BUFFER_H__
+#define __MAPLANG_BUFFER_H__
 
 #include <stddef.h>
 #include <stdint.h>
 
 #include <memory>
 
-namespace dgraph {
+namespace maplang {
 
 struct Buffer {
   Buffer() {}
@@ -33,5 +33,5 @@ struct Buffer {
   size_t length = 0;
 };
 
-}  // namespace dgraph
-#endif  // __DGRAPH_BUFFER_H__
+}  // namespace maplang
+#endif  // __MAPLANG_BUFFER_H__

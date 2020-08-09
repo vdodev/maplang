@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-#ifndef __DGRAPH_CONTEXTUAL_NODE_H__
-#define __DGRAPH_CONTEXTUAL_NODE_H__
+#ifndef __MAPLANG_CONTEXTUAL_NODE_H__
+#define __MAPLANG_CONTEXTUAL_NODE_H__
 
 #include "ICohesiveNode.h"
 
-namespace dgraph {
+namespace maplang {
 class ContextRouter;
 
 class ContextualNode final : public ICohesiveNode {
@@ -40,9 +40,9 @@ class ContextualNode final : public ICohesiveNode {
   std::unordered_map<std::string, std::shared_ptr<INode>> mNodeMap;
 };
 
-}  // namespace dgraph
+}  // namespace maplang
 
-#endif  // __DGRAPH_CONTEXTUAL_NODE_H__
+#endif  // __MAPLANG_CONTEXTUAL_NODE_H__
 
 /*
  * How is instance-deletion handled?

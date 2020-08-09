@@ -18,7 +18,7 @@
 
 using namespace std;
 
-namespace dgraph {
+namespace maplang {
 
 static constexpr size_t kTcpSenderIndex = 0;
 static constexpr size_t kTcpReceiverIndex = 1;
@@ -55,4 +55,4 @@ shared_ptr<INode> UvTcpClient::getNode(const string& partitionName) {
   return nullptr;
 }
 
-}  // namespace dgraph
+}  // namespace maplang

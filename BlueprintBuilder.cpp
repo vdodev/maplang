@@ -17,11 +17,12 @@
 #include "BlueprintBuilder.h"
 #include <unordered_map>
 #include "json.hpp"
+#include "graph/Graph.h"
 
 using namespace std;
 using namespace nlohmann;
 
-namespace dgraph {
+namespace maplang {
 
 static const string kKey_Graphs = "graphs";
 static const string kKey_NodeTypes = "nodeTypes";
@@ -57,8 +58,8 @@ void BlueprintBuilder::build(DataGraph *graph, const nlohmann::json &blueprint) 
     const string& instanceName = it.key();
     const json& instanceInfo = it.value();
 
-
+    Graph<string> graph;
   }
 }
 
-}  // namespace dgraph
+}  // namespace maplang

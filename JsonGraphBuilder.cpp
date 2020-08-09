@@ -20,7 +20,7 @@
 using namespace std;
 using namespace nlohmann;
 
-namespace dgraph {}  // namespace dgraph
+namespace maplang {}  // namespace maplang
 
 /*
  * Config format

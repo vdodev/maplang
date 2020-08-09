@@ -22,7 +22,7 @@
 
 using namespace std;
 
-namespace dgraph {
+namespace maplang {
 
 static shared_ptr<uv_loop_t> createUvLoop() {
   auto uvLoop = shared_ptr<uv_loop_t>((uv_loop_t*) calloc(1, sizeof(uv_loop_t)),
@@ -86,4 +86,4 @@ void UvLoopRunner::waitForExit() {
   mThreadStopped.wait(l, [this](){ return mStopped; });
 }
 
-}  // namespace dgraph
+}  // namespace maplang

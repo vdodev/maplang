@@ -20,9 +20,7 @@
 using namespace std;
 using namespace nlohmann;
 
-namespace dgraph {
-
-
+namespace maplang {
 
 template<class ItemClass, class EdgeClass>
 void Graph<ItemClass, EdgeClass>::visitGraphElements(const GraphElementVisitor& visitor) const {
@@ -118,4 +116,4 @@ shared_ptr<GraphElement<ItemClass, EdgeClass>> Graph<ItemClass, EdgeClass>::getO
   return graphElement;
 }
 
-}  // namespace dgraph
+}  // namespace maplang

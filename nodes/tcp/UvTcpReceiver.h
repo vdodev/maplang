@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef __MAPLANG_UVTCPRECEIVER_H__
+#define __MAPLANG_UVTCPRECEIVER_H__
 
 #include "../../INode.h"
 #include "../../ISource.h"
 
 typedef struct uv_loop_s uv_loop_t;
 
-namespace dgraph {
+namespace maplang {
 
 class UvTcpReceiver final : public INode, public ISource {
  public:
@@ -38,4 +39,6 @@ class UvTcpReceiver final : public INode, public ISource {
   std::shared_ptr<uv_loop_t> mUvLoop;
 };
 
-}  // namespace dgraph
+}  // namespace maplang
+
+#endif  // __MAPLANG_UVTCPRECEIVER_H__

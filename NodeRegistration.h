@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef __MAPLANG_NODEREGISTRATION_H__
+#define __MAPLANG_NODEREGISTRATION_H__
 
 #include <memory>
 #include <set>
@@ -23,7 +24,7 @@
 #include "ICohesiveNode.h"
 #include "json.hpp"
 
-namespace dgraph {
+namespace maplang {
 
 class NodeRegistration {
  public:
@@ -55,4 +56,6 @@ class NodeRegistration {
       mPartitionedNodeFactoryMap;
 };
 
-}  // namespace dgraph
+}  // namespace maplang
+
+#endif  // __MAPLANG_NODEREGISTRATION_H__

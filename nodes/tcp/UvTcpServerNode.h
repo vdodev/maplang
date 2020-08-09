@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef __MAPLANG_UVTCPSERVERNODE_H__
+#define __MAPLANG_UVTCPSERVERNODE_H__
 
 #include "../../ICohesiveNode.h"
 #include <unordered_map>
 
-namespace dgraph {
+namespace maplang {
 
 class UvTcpServerImpl;
 
@@ -38,4 +39,6 @@ class UvTcpServerNode : public ICohesiveNode {
   std::unordered_map<std::string, std::shared_ptr<INode>> mNodes;
 };
 
-}  // namespace dgraph
+}  // namespace maplang
+
+#endif  // __MAPLANG_UVTCPSERVERNODE_H__

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef DATA_GRAPH__UVLOOPRUNNER_H_
-#define DATA_GRAPH__UVLOOPRUNNER_H_
+#ifndef __MAPLANG_UVLOOPRUNNER_H_
+#define __MAPLANG_UVLOOPRUNNER_H_
 
 #include <uv.h>
 #include <memory>
@@ -23,7 +23,7 @@
 #include <mutex>
 #include <condition_variable>
 
-namespace dgraph {
+namespace maplang {
 
 class UvLoopRunner final {
  public:
@@ -43,6 +43,6 @@ class UvLoopRunner final {
   uv_async_s mUvAsync;
 };
 
-}  // namespace dgraph
+}  // namespace maplang
 
-#endif //DATA_GRAPH__UVLOOPRUNNER_H_
+#endif //__MAPLANG_UVLOOPRUNNER_H_

@@ -28,7 +28,7 @@
 #include "nodes/HttpResponseWithAddressAsBody.h"
 
 using namespace std;
-using namespace dgraph;
+using namespace maplang;
 using namespace nlohmann;
 
 static void registerNodes() {

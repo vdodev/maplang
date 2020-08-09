@@ -21,7 +21,7 @@
 
 using namespace std;
 
-namespace dgraph {
+namespace maplang {
 
 const size_t MemoryStream::kNotFound = SIZE_MAX;
 
@@ -457,4 +457,4 @@ size_t MemoryStream::read(size_t streamOffset, size_t numberOfBytesToRead,
   return readByteCount;
 }
 
-}  // namespace dgraph
+}  // namespace maplang

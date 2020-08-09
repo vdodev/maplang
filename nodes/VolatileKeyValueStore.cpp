@@ -26,7 +26,7 @@ static constexpr size_t kGetPartitionIndex = 1;
 static const string kSetPartitionName{"set"};
 static const string kGetPartitionName{"get"};
 
-namespace dgraph {
+namespace maplang {
 
 using StorageMap = unordered_map<string, Packet>;
 
@@ -140,4 +140,4 @@ std::shared_ptr<INode> VolatileKeyValueStore::getNode(
   return mPartitions[partitionName].node;
 }
 
-}  // namespace dgraph
+}  // namespace maplang

@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef __MAPLANG_VOLATILE_KEY_VALUE_SET_H__
+#define __MAPLANG_VOLATILE_KEY_VALUE_SET_H__
 
 #include "../ICohesiveNode.h"
 
-namespace dgraph {
+namespace maplang {
 
 class VolatileKeyValueSet : public ICohesiveNode {
  public:
@@ -40,4 +41,6 @@ class VolatileKeyValueSet : public ICohesiveNode {
   std::unordered_map<std::string, Partition> mPartitions;
 };
 
-}  // namespace dgraph
+}  // namespace maplang
+
+#endif  // __MAPLANG_VOLATILE_KEY_VALUE_SET_H__

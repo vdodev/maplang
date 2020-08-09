@@ -28,7 +28,7 @@
 using namespace std;
 using json = nlohmann::json;
 
-namespace dgraph {
+namespace maplang {
 
 struct DataGraphItem {
   std::shared_ptr<INode> node;
@@ -41,12 +41,12 @@ struct DataGraphItem {
   }
 };
 
-} // namespace dgraph
+} // namespace maplang
 
 namespace std {
 template<>
-struct hash<const dgraph::DataGraphItem> {
-  std::size_t operator()(const dgraph::DataGraphItem& item) const {
+struct hash<const maplang::DataGraphItem> {
+  std::size_t operator()(const maplang::DataGraphItem& item) const {
     return hash<decltype(item.node)>()(item.node);
   }
 };
@@ -54,7 +54,7 @@ struct hash<const dgraph::DataGraphItem> {
 } // namespace std
 
 
-namespace dgraph {
+namespace maplang {
 
 struct DataGraphEdge {
   shared_ptr<GraphElement<DataGraphItem, DataGraphEdge>> otherGraphElement;
@@ -334,4 +334,4 @@ std::shared_ptr<DataGraphElement> DataGraphImpl::getOrCreateDataGraphElement(
   return graphElement;
 }
 
-}  // namespace dgraph
+}  // namespace maplang

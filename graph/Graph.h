@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef DATA_GRAPH_GRAPH_GRAPH_H_
-#define DATA_GRAPH_GRAPH_GRAPH_H_
+#ifndef __MAPLANG_GRAPH_H_
+#define __MAPLANG_GRAPH_H_
 
 #include <list>
 #include <functional>
@@ -24,9 +24,9 @@
 #include "GraphElement.h"
 #include "../INode.h"
 
-namespace dgraph {
+namespace maplang {
 
-template<class ItemClass, class EdgeClass>
+template<class ItemClass, class EdgeClass = DefaultGraphEdge<ItemClass>>
 class Graph final {
  public:
   using GraphElementType = GraphElement<ItemClass, EdgeClass>;
@@ -73,8 +73,8 @@ class Graph final {
   void validateNodeTypesAreCompatible(const std::shared_ptr<INode>& node) const;
 };
 
-}  // namespace dgraph
+}  // namespace maplang
 
 #include "GraphImpl.h"
 
-#endif //DATA_GRAPH_GRAPH_GRAPH_H_
+#endif // __MAPLANG_GRAPH_H_

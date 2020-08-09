@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef __MAPLANG_SEND_ONCE_H__
+#define __MAPLANG_SEND_ONCE_H__
 
 #include "../INode.h"
 #include "../ISource.h"
 
-namespace dgraph {
+namespace maplang {
 
 class SendOnce : public INode, public ISource {
  public:
@@ -36,4 +37,6 @@ class SendOnce : public INode, public ISource {
   const nlohmann::json mSendOnceData;
 };
 
-}  // namespace dgraph
+}  // namespace maplang
+
+#endif  // __MAPLANG_SEND_ONCE_H__

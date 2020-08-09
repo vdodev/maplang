@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef __MAPLANG_INODE_H__
+#define __MAPLANG_INODE_H__
 
 #include <functional>
 
@@ -24,7 +25,7 @@
 #include "ISubgraphContext.h"
 #include "json.hpp"
 
-namespace dgraph {
+namespace maplang {
 class INode {
  public:
   virtual ~INode() {}
@@ -37,4 +38,6 @@ class INode {
   virtual ISource *asSource() = 0;
 };
 
-}  // namespace dgraph
+}  // namespace maplang
+
+#endif  // __MAPLANG_INODE_H__
