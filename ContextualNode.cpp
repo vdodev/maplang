@@ -104,12 +104,6 @@ class ContextRouter : public INode,
     node->asSink()->handlePacket(packet);
   }
 
-  void sendSignal(const std::shared_ptr<ISignalBroadcastContext> &context, const nlohmann::json& params) override {
-    for (auto& pair : mNodes) {
-      pair.second->sendSignal(context, params);
-    }
-  }
-
   void setSubgraphContext(
       const shared_ptr<ISubgraphContext>& context) override {
     mSubgraphContext = context;
@@ -222,9 +216,9 @@ ContextualNode::ContextualNode(const string& nodeName, const string& key,
   mNodeMap[kPartitionName_ContextRemover] = mContextRemover;
 }
 
-size_t ContextualNode::getPartitionCount() { return mNodeMap.size(); }
+size_t ContextualNode::getNodeCount() { return mNodeMap.size(); }
 
-string ContextualNode::getPartitionName(size_t partitionIndex) {
+string ContextualNode::getNodeName(size_t partitionIndex) {
   switch (partitionIndex) {
     case 0:
       return kPartitionName_ContextRouter;
@@ -235,7 +229,7 @@ string ContextualNode::getPartitionName(size_t partitionIndex) {
   }
 }
 
-shared_ptr<INode> ContextualNode::getPartition(const string& nodeName) {
+shared_ptr<INode> ContextualNode::getNode(const string& nodeName) {
   auto it = mNodeMap.find(nodeName);
   if (it == mNodeMap.end()) {
     return nullptr;

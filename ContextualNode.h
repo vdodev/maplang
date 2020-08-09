@@ -17,21 +17,21 @@
 #ifndef __DGRAPH_CONTEXTUAL_NODE_H__
 #define __DGRAPH_CONTEXTUAL_NODE_H__
 
-#include "IPartitionedNode.h"
+#include "ICohesiveNode.h"
 
 namespace dgraph {
 class ContextRouter;
 
-class ContextualNode final : public IPartitionedNode {
+class ContextualNode final : public ICohesiveNode {
  public:
   ContextualNode(const std::string& nodeName, const std::string& key,
                  const nlohmann::json& initData);
   ~ContextualNode() override = default;
 
-  size_t getPartitionCount() override;
-  virtual std::string getPartitionName(size_t partitionIndex) override;
+  size_t getNodeCount() override;
+  virtual std::string getNodeName(size_t partitionIndex) override;
 
-  virtual std::shared_ptr<INode> getPartition(
+  virtual std::shared_ptr<INode> getNode(
       const std::string& partition) override;
 
  private:

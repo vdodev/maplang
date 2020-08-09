@@ -20,38 +20,45 @@
 #include <list>
 #include <functional>
 
-#include "Edge.h"
+#include "DefaultGraphEdge.h"
 #include "GraphElement.h"
 #include "../INode.h"
 
 namespace dgraph {
 
+template<class ItemClass, class EdgeClass>
 class Graph final {
  public:
-  void connect(
-      const std::shared_ptr<INode>& fromNode,
+  using GraphElementType = GraphElement<ItemClass, EdgeClass>;
+
+  EdgeClass& connect(
+      const ItemClass& fromItem,
       const std::string& fromChannel,
-      const std::shared_ptr<INode>& toNode,
+      const ItemClass& toItem,
       const std::string& fromPathableId = "",
       const std::string& toPathableId = "");
 
   void disconnect(
-      const std::shared_ptr<INode>& fromNode,
+      const ItemClass& fromItem,
       const std::string& fromChannel,
-      const std::shared_ptr<INode>& toNode,
+      const ItemClass& toItem,
       const std::string& fromPathableId = "",
       const std::string& toPathableId = "");
 
-  using GraphElementVisitor = std::function<void (const std::string& pathableId, const std::shared_ptr<GraphElement>& graphElement)>;
+  using GraphElementVisitor = std::function<void (const std::string& pathableId, const std::shared_ptr<GraphElementType>& graphElement)>;
 
+  /**
+   * Visits GraphElements. Order is unspecified.
+   * @param visitor Called for each GraphElement in the Graph.
+   */
   void visitGraphElements(const GraphElementVisitor& visitor) const;
 
-  bool hasNode(const std::shared_ptr<INode>& node, const std::string& pathableId) const;
+  bool hasItem(const ItemClass& item, const std::string& pathableId) const;
 
-  std::shared_ptr<GraphElement> getOrCreateGraphElement(const std::shared_ptr<INode>& node, const std::string& pathableId);
+  std::shared_ptr<GraphElementType> getOrCreateGraphElement(const ItemClass& item, const std::string& pathableId);
 
  private:
-  using GraphElementLookupKey = std::pair<const INode*, std::string>;
+  using GraphElementLookupKey = std::pair<const ItemClass, std::string>;
 
   struct GraphElementKeyHasher {
     std::size_t operator()(const GraphElementLookupKey& key) const {
@@ -60,11 +67,14 @@ class Graph final {
     }
   };
 
-  std::unordered_map<GraphElementLookupKey, std::shared_ptr<GraphElement>, GraphElementKeyHasher> mNodeToGraphElementMap;
+  std::unordered_map<GraphElementLookupKey, std::shared_ptr<GraphElementType>, GraphElementKeyHasher> mItemToGraphElementMap;
 
  private:
   void validateNodeTypesAreCompatible(const std::shared_ptr<INode>& node) const;
 };
 
 }  // namespace dgraph
+
+#include "GraphImpl.h"
+
 #endif //DATA_GRAPH_GRAPH_GRAPH_H_

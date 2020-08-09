@@ -14,25 +14,32 @@
  * limitations under the License.
  */
 
-#ifndef DATA_GRAPH_GRAPH_GRAPHELEMENT_H_
-#define DATA_GRAPH_GRAPH_GRAPHELEMENT_H_
+#ifndef MAPLANG_GRAPH_GRAPHELEMENT_H_
+#define MAPLANG_GRAPH_GRAPHELEMENT_H_
 
-#include <list>
-
-#include "../INode.h"
-#include "../IPacketPusher.h"
-#include "../json.hpp"
-#include "Edge.h"
+#include <unordered_map>
+#include "DefaultGraphEdge.h"
 
 namespace dgraph {
 
+template<class ItemClass, class EdgeClass = DefaultGraphEdge<ItemClass>>
 struct GraphElement final {
-  std::shared_ptr<INode> node;  // Always set.
-  std::shared_ptr<IPacketPusher> pathablePacketPusher;  // Set for IPathables only.
-  nlohmann::json lastReceivedParameters; // for parameter propagation the next time we get a packet from this node.
-  std::list<std::shared_ptr<GraphElement>> backEdges;  // All nodes that point at this node.
-  std::list<Edge> forwardEdges;                        // All nodes this one connects to.
+ public:
+  using MapKeyType = std::pair<std::string, std::shared_ptr<GraphElement<ItemClass, EdgeClass>>>;
+
+ private:
+  struct MapKeyHasher {
+    std::size_t operator()(const GraphElement<ItemClass, EdgeClass>::MapKeyType& key) const {
+      return std::hash<decltype(key.first)>()(key.first) ^ std::hash<decltype(key.second)>()(key.second);
+    }
+  };
+
+ public:
+  GraphElement(const ItemClass& item) : item(item) {}
+
+  ItemClass item;
+  std::unordered_map<MapKeyType, EdgeClass, MapKeyHasher> forwardEdges;  // channel => edge: All GraphElements this one connects to.
 };
 
 }  // namespace dgraph
-#endif //DATA_GRAPH_GRAPH_GRAPHELEMENT_H_
+#endif  // MAPLANG_GRAPH_GRAPHELEMENT_H_

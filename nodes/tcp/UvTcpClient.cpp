@@ -28,9 +28,9 @@ static const string kTcpSenderPartitionName = "tcp-sender";
 static const string kTcpReceiverPartitionName = "tcp-receiver";
 static const string kTcpConnectPartitionName = "connect";
 
-size_t UvTcpClient::getPartitionCount() { return 3; }
+size_t UvTcpClient::getNodeCount() { return 3; }
 
-string UvTcpClient::getPartitionName(size_t partitionIndex) {
+string UvTcpClient::getNodeName(size_t partitionIndex) {
   switch (partitionIndex) {
     case kTcpSenderIndex:
       return kTcpSenderPartitionName;
@@ -43,7 +43,7 @@ string UvTcpClient::getPartitionName(size_t partitionIndex) {
   }
 }
 
-shared_ptr<INode> UvTcpClient::getPartition(const string& partitionName) {
+shared_ptr<INode> UvTcpClient::getNode(const string& partitionName) {
   if (partitionName == kTcpSenderPartitionName) {
     return mTcpSender;
   } else if (partitionName == kTcpReceiverPartitionName) {

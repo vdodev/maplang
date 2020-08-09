@@ -16,10 +16,12 @@ Parts
     * Node Type
     * Name/ID
     * Graph
+    * Cohesive Group
 * Node implementations
     * Maps a Node Instance to an implementation, so the class can be instantiated.
 * Default node implementations
     * Maps a Node Type to an implementation, which is used for instances without a specified implementation.
+* Cohesive Groups - groups of nodes which share native objects and must be located in the same DataGraph.
 * Connections
     * From Instance
     * From Channel
@@ -29,10 +31,11 @@ Parts
 
 Simple example
 ```
-"graphs": [ { "name": "Graph 1" } ],
-"nodeTypes": [
-  {
-    "name": "Timer",
+"graphs": {
+  "Graph 1": {} // May contain more info later
+},
+"nodeTypes": {
+  "Timer": {
     "channels": [
       "Timer Fired": {
         "schemaUri": "timer.jsonSchema",
@@ -40,28 +43,29 @@ Simple example
       }
     ]
   },
-  {
-    "name": "Print Time",
+  "Print Time": {
     "schemaUri": "timer.jsonSchema",
     "channels": [],
   }
-],
-"nodeInstances": [
-  {
-    "name": "timer 1",
+},
+"cohesiveGroups": {},
+"nodeInstances": {
+  "timer 1": {
     "type": "Timer",
     "graph": "Graph 1"
   },
-  {
-    "name": "time logger",
+  "time logger": {
     "type": "Print Time",
     "graph": "Graph 1"
   }
-],
-"nodeImplementations": [
-  { "type": "Timer", "source": "maplang:Timer" }, // Used for all instance of this type
-  { "instance": "time logger", "source": "https://maplang.com/impl/print-time.zip" } // Used for a single instance, overriding anything specified for its type.
-],
+},
+"defaultTypeImplementations": {
+  "Timer": { "source": "maplang:Timer" }, // Used for all instance of this type
+},
+"instanceImplementations": {
+  "time logger": { "source": "https://maplang.com/impl/print-time.zip" } // Used for a single instance, overriding anything specified for its type.
+},
+"cohesiveGroupImplementations": {},
 "connections": [
   {
     "fromInstance": "timer 1",

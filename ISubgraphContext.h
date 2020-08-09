@@ -29,8 +29,6 @@ class INode;
 class ISubgraphContext {
  public:
   virtual std::shared_ptr<uv_loop_t> getUvLoop() const = 0;
-  virtual void setSaveDataForNode(const nlohmann::json& saveData,
-                                  const INode* node) = 0;
 };
 
 }  // namespace dgraph

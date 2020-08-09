@@ -22,25 +22,12 @@
 #include "ISink.h"
 #include "ISource.h"
 #include "ISubgraphContext.h"
-#include "ISignalBroadcastContext.h"
 #include "json.hpp"
 
 namespace dgraph {
 class INode {
  public:
   virtual ~INode() {}
-
-  /**
-   * NOTE: for the DataGraph to propagate signals and resulting packets
-   * correctly, this method must ensure any resulting calls to
-   * IPacketPusher::pushPacket() have returned before this method returns.
-   *
-   * sendSignal() can be used for graph flush operations, graph break-up for
-   * scaling, etc. The graph may or may not continue to operate after a signal.
-   *
-   * @param params
-   */
-  virtual void sendSignal(const std::shared_ptr<ISignalBroadcastContext> &context, const nlohmann::json &params) {}
 
   virtual void setSubgraphContext(
       const std::shared_ptr<ISubgraphContext> &context) {}

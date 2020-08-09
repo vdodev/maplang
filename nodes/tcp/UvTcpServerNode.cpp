@@ -49,10 +49,10 @@ static const string kParameter_ClosedReason = "ClosedReason";
 
 static const string kClosedReason_StreamEnded = "StreamEnded";
 
-static const string kPartition_Sender = "Sender";
-static const string kPartition_Receiver = "Receiver";
-static const string kPartition_Listener = "Listener";
-static const string kPartition_Disconnector = "Disconnector";
+static const string kNodeName_Sender = "Sender";
+static const string kNodeName_Receiver = "Receiver";
+static const string kNodeName_Listener = "Listener";
+static const string kNodeName_Disconnector = "Disconnector";
 
 
 struct UvTcpConnection final {
@@ -403,22 +403,6 @@ class UvTcpServerImpl final {
     mDataReceivedPacketPusher = packetPusher;
   }
 
-  void sendReceiverSignal(const std::shared_ptr<ISignalBroadcastContext>& context, const nlohmann::json &params) {
-    if (params["signal"].get<string>() != "stop") {
-      return;
-    }
-
-    mPendingBroadcastContext = context;
-    context->holdBroadcast();
-
-    for (auto pair : mConnections) {
-      UvTcpConnection& connection = pair.second;
-      connection.closedReason = "Stop signal";
-      uv_close(reinterpret_cast<uv_handle_t*>(connection.uvSocket.get()), onConnectionRemovedWrapper);
-    }
-  }
-
-
  private:
   shared_ptr<uv_loop_t> mUvLoop;
   uv_tcp_t mTcpServer;
@@ -429,7 +413,6 @@ class UvTcpServerImpl final {
   bool mNoDelay = false;
   shared_ptr<IPacketPusher> mListenerPacketPusher;
   shared_ptr<IPacketPusher> mDataReceivedPacketPusher;
-  std::shared_ptr<ISignalBroadcastContext> mPendingBroadcastContext;
 
   unordered_map<string, UvTcpConnection> mConnections;
   unordered_map<const void*, UvTcpConnection*> mUvClientToConnection;
@@ -488,10 +471,6 @@ class UvTcpServerImpl final {
     closedPacket.parameters[kParameter_TcpConnectionId] = connectionId;
     closedPacket.parameters[kParameter_ClosedReason] = connection.closedReason;
     mDataReceivedPacketPusher->pushPacket(&closedPacket, kChannel_ConnectionClosed);
-
-    if (mConnections.empty() && mPendingBroadcastContext != nullptr) {
-      mPendingBroadcastContext->resumeBroadcast();
-    }
   }
 };
 
@@ -525,10 +504,6 @@ class UvTcpDataReceiver : public ISource, public INode {
 
   void setPacketPusher(const shared_ptr<IPacketPusher>& packetPusher) override {
     mServer->setReceiverPacketPusher(packetPusher);
-  }
-
-  void sendSignal(const std::shared_ptr<ISignalBroadcastContext>& context, const nlohmann::json &params) override {
-    mServer->sendReceiverSignal(context, params);
   }
 
   IPathable *asPathable() override { return nullptr; }
@@ -567,30 +542,30 @@ class UvTcpDisconnector : public IPathable, public INode {
   const shared_ptr<UvTcpServerImpl> mServer;
 };
 
-size_t UvTcpServerNode::getPartitionCount() {
+size_t UvTcpServerNode::getNodeCount() {
   return mNodes.size();
 }
 
 UvTcpServerNode::UvTcpServerNode() : mImpl(make_shared<UvTcpServerImpl>()) {
-  mNodes[kPartition_Listener] = make_shared<UvTcpListener>(mImpl);
-  mNodes[kPartition_Receiver] = make_shared<UvTcpDataReceiver>(mImpl);
-  mNodes[kPartition_Sender] = make_shared<UvTcpSender>(mImpl);
-  mNodes[kPartition_Disconnector] = make_shared<UvTcpDisconnector>(mImpl);
+  mNodes[kNodeName_Listener] = make_shared<UvTcpListener>(mImpl);
+  mNodes[kNodeName_Receiver] = make_shared<UvTcpDataReceiver>(mImpl);
+  mNodes[kNodeName_Sender] = make_shared<UvTcpSender>(mImpl);
+  mNodes[kNodeName_Disconnector] = make_shared<UvTcpDisconnector>(mImpl);
 }
 
-string UvTcpServerNode::getPartitionName(size_t partitionIndex) {
-  switch(partitionIndex) {
+string UvTcpServerNode::getNodeName(size_t nodeIndex) {
+  switch(nodeIndex) {
     case 0: return "Listen";
     case 1: return "Accept";
     case 2: return "Data Received";
     case 3: return "Send Data";
     case 4: return "Disconnect";
-    default: throw runtime_error("Invalid partition index: " + to_string(partitionIndex));
+    default: throw runtime_error("Invalid node index: " + to_string(nodeIndex));
   }
 }
 
-shared_ptr<INode> UvTcpServerNode::getPartition(const string& partition) {
-  return mNodes[partition];
+shared_ptr<INode> UvTcpServerNode::getNode(const string& nodeName) {
+  return mNodes[nodeName];
 }
 
 } // namespace dgraph

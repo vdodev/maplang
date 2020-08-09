@@ -16,19 +16,19 @@
 
 #pragma once
 
-#include "../IPartitionedNode.h"
+#include "../ICohesiveNode.h"
 
 namespace dgraph {
 
-class VolatileKeyValueStore : public IPartitionedNode {
+class VolatileKeyValueStore : public ICohesiveNode {
  public:
   VolatileKeyValueStore(const nlohmann::json& initParameters);
   ~VolatileKeyValueStore() override = default;
 
-  size_t getPartitionCount() override;
-  std::string getPartitionName(size_t partitionIndex) override;
+  size_t getNodeCount() override;
+  std::string getNodeName(size_t partitionIndex) override;
 
-  std::shared_ptr<INode> getPartition(
+  std::shared_ptr<INode> getNode(
       const std::string& partitionName) override;
 
  private:

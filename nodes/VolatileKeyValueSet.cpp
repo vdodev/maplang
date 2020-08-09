@@ -301,9 +301,9 @@ VolatileKeyValueStore::VolatileKeyValueStore(
   mPartitions[kRemoveAllPartitionName].node = remover;
 }
 
-size_t VolatileKeyValueStore::getPartitionCount() { return mPartitions.size(); }
+size_t VolatileKeyValueStore::getNodeCount() { return mPartitions.size(); }
 
-string VolatileKeyValueStore::getPartitionName(size_t partitionIndex) {
+string VolatileKeyValueStore::getNodeName(size_t partitionIndex) {
   switch (partitionIndex) {
     case kSetterPartitionIndex:
       return kAdderPartitionName;
@@ -318,7 +318,7 @@ string VolatileKeyValueStore::getPartitionName(size_t partitionIndex) {
   }
 }
 
-std::shared_ptr<INode> VolatileKeyValueStore::getPartition(
+std::shared_ptr<INode> VolatileKeyValueStore::getNode(
     const string& partitionName) {
   return mPartitions[partitionName].node;
 }

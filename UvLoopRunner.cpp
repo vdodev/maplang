@@ -81,7 +81,7 @@ shared_ptr<uv_loop_t> UvLoopRunner::getLoop() const {
 }
 
 void UvLoopRunner::waitForExit() {
-  unique_lock l(mMutex);
+  unique_lock<mutex> l(mMutex);
   uv_async_send(&mUvAsync);
   mThreadStopped.wait(l, [this](){ return mStopped; });
 }

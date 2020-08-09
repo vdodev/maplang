@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(data_graph)
+project(maplang)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_library(data_graph_lib
+add_library(maplang
         logging.h
         ISource.h
         ISink.h
@@ -22,7 +22,7 @@ add_library(data_graph_lib
         nodes/tcp/UvTcpClient.cpp
         nodes/tcp/UvTcpSender.h
         ISubgraphContext.h
-        IPartitionedNode.h
+        ICohesiveNode.h
         nodes/tcp/UvTcpReceiver.h
         nodes/tcp/UvTcpConnector.h
         nodes/SendOnce.h
@@ -45,13 +45,10 @@ add_library(data_graph_lib
         ContextualNode.cpp
         MemoryStream.cpp
         nodes/tcp/UvTcpServerNode.cpp
-        ISignalBroadcastContext.h
-        graph/Edge.h
+        graph/DefaultGraphEdge.h
         graph/GraphElement.h
-        graph/SignalBroadcaster.h
-        graph/SignalBroadcaster.cpp
         graph/Graph.h
-        graph/Graph.cpp
+        graph/GraphImpl.h
         UvLoopRunner.h
         UvLoopRunner.cpp
         nodes/PacketWriter.h
@@ -61,14 +58,18 @@ add_library(data_graph_lib
         nodes/SipRequestExtractor.cpp
         nodes/SipRequestExtractor.h
         nodes/VolatileKeyValueSet.cpp
-        nodes/VolatileKeyValueSet.h sip-minimal-main.cpp)
+        nodes/VolatileKeyValueSet.h
+        BlueprintBuilder.cpp
+        BlueprintBuilder.h)
 
-target_include_directories(data_graph_lib PUBLIC /usr/local/include)
-target_link_libraries(data_graph_lib /usr/local/lib/libuv_a.a dl pthread)
+target_include_directories(maplang PUBLIC /usr/local/include)
+target_link_libraries(maplang /usr/local/lib/libuv_a.a dl pthread)
 
-add_executable(data_graph main.cpp GraphLoader.cpp GraphLoader.h)
-target_link_libraries(data_graph data_graph_lib)
+add_executable(http-echo main.cpp )
+target_link_libraries(http-echo maplang)
 
+add_executable(sip-minimal sip-minimal-main.cpp)
+target_link_libraries(sip-minimal maplang)
 option(USE_TESTS "Enable unit testing" ON)
 if(USE_TESTS)
     enable_testing()

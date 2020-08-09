@@ -77,7 +77,7 @@ int main(int argc, char** argv) {
   registerNodes();
 
   const auto registration = NodeRegistration::defaultRegistration();
-  const shared_ptr<IPartitionedNode> tcpServer =
+  const shared_ptr<ICohesiveNode> tcpServer =
       registration->createPartitionedNode(
           "TCP Server", R"(
       {
@@ -85,16 +85,16 @@ int main(int argc, char** argv) {
       })"_json);
 
 
-  const auto tcpSend = tcpServer->getPartition("Sender");
+  const auto tcpSend = tcpServer->getNode("Sender");
   const auto httpRequestExtractor = make_shared<ContextualNode>(
       "HTTP Request Extractor", "TcpConnectionId", nullptr);
   const auto httpResponseWriter =
       registration->createNode("HTTP Response Writer", nullptr);
   const auto httpResponseWithAddressAsBody =
       registration->createNode("HTTP response with address as body", nullptr);
-  const auto tcpReceive = tcpServer->getPartition("Receiver");
-  const auto tcpListen = tcpServer->getPartition("Listener");
-  const auto tcpDisconnector = tcpServer->getPartition("Disconnector");
+  const auto tcpReceive = tcpServer->getNode("Receiver");
+  const auto tcpListen = tcpServer->getNode("Listener");
+  const auto tcpDisconnector = tcpServer->getNode("Disconnector");
   const auto setupListen =
       registration->createNode("Send Once", R"({ "Port": 8080 })"_json);
 
@@ -104,12 +104,12 @@ int main(int argc, char** argv) {
   graph.connect(httpResponseWriter, "Http Data", tcpSend);
   graph.connect(httpResponseWithAddressAsBody, "On Response",
                 httpResponseWriter);
-  graph.connect(httpRequestExtractor->getPartition("Context Router"),
+  graph.connect(httpRequestExtractor->getNode("Context Router"),
                 "New Request", httpResponseWithAddressAsBody);
   graph.connect(tcpReceive, "Data Received",
-                httpRequestExtractor->getPartition("Context Router"));
+                httpRequestExtractor->getNode("Context Router"));
   graph.connect(tcpDisconnector, "Ended",
-                httpRequestExtractor->getPartition("Context Remover"));
+                httpRequestExtractor->getNode("Context Remover"));
   graph.connect(setupListen, "initialized", tcpListen);
 
   uvLoopRunner.waitForExit();

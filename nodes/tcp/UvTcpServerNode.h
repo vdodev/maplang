@@ -16,22 +16,22 @@
 
 #pragma once
 
-#include "../../IPartitionedNode.h"
+#include "../../ICohesiveNode.h"
 #include <unordered_map>
 
 namespace dgraph {
 
 class UvTcpServerImpl;
 
-class UvTcpServerNode : public IPartitionedNode {
+class UvTcpServerNode : public ICohesiveNode {
  public:
   UvTcpServerNode();
   ~UvTcpServerNode() override = default;
 
-  size_t getPartitionCount() override;
-  std::string getPartitionName(size_t partitionIndex) override;
+  size_t getNodeCount() override;
+  std::string getNodeName(size_t nodeIndex) override;
 
-  std::shared_ptr<INode> getPartition(const std::string& partition) override;
+  std::shared_ptr<INode> getNode(const std::string& nodeName) override;
 
  private:
   const std::shared_ptr<UvTcpServerImpl> mImpl;

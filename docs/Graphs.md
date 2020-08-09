@@ -8,8 +8,9 @@ The Atlas could be stored in a database. It's only needed to connect nodes.
 
 There is a single libuv context per DataGraph. It can be used directly if needed (I/O, message passing, etc.). There are also existing nodes that wrap libuv to handle most use cases.
 
-Only Nodes in a PartitionedNode can share native objects.
-
+A CohesiveGroup in a diagram indicates nodes that are bound to the same DataGraph.
+It is implemented with a CohesiveNode, whose sub-nodes can share native objects.
+Connections cannot be made to a CohesiveGroup, only to the Nodes it contains.
 Atlas::connect()
 The Atlas can lookup the DataGraph for a given node.
 It connects to the source's DataGraph, and adds a connection form the source to the target's node.

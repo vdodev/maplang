@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "../../IPartitionedNode.h"
+#include "../../ICohesiveNode.h"
 #include "../../ISink.h"
 #include "../../ISource.h"
 #include "UvTcpConnector.h"
@@ -25,14 +25,14 @@
 
 namespace dgraph {
 
-class UvTcpClient : public IPartitionedNode {
+class UvTcpClient : public ICohesiveNode {
  public:
   ~UvTcpClient() override = default;
 
-  size_t getPartitionCount() override;
-  std::string getPartitionName(size_t partitionIndex) override;
+  size_t getNodeCount() override;
+  std::string getNodeName(size_t partitionIndex) override;
 
-  std::shared_ptr<INode> getPartition(
+  std::shared_ptr<INode> getNode(
       const std::string& partitionName) override;
 
  private:

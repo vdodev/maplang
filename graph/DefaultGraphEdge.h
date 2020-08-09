@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-#ifndef DATA_GRAPH_GRAPH_EDGE_H_
-#define DATA_GRAPH_GRAPH_EDGE_H_
+#ifndef DATA_GRAPH_GRAPH_DEFAULTGRAPHEDGE_H_
+#define DATA_GRAPH_GRAPH_DEFAULTGRAPHEDGE_H_
 
 #include <string>
 #include <memory>
 
 namespace dgraph {
 
+template<class ItemClass, class EdgeClass>
 struct GraphElement;
 
-struct Edge {
-  std::string channel;
-  std::shared_ptr<GraphElement> otherGraphElement;
+template<class ItemClass>
+struct DefaultGraphEdge {
+  std::shared_ptr<GraphElement<ItemClass, DefaultGraphEdge<ItemClass>>> otherGraphElement;
 };
 
 }  // naemspace dgraph
 
-#endif //DATA_GRAPH_GRAPH_EDGE_H_
+#endif //DATA_GRAPH_GRAPH_DEFAULTGRAPHEDGE_H_

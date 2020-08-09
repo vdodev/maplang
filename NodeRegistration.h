@@ -20,7 +20,7 @@
 #include <set>
 
 #include "INode.h"
-#include "IPartitionedNode.h"
+#include "ICohesiveNode.h"
 #include "json.hpp"
 
 namespace dgraph {
@@ -30,7 +30,7 @@ class NodeRegistration {
   using NodeFactory = std::function<std::shared_ptr<INode>(
       const nlohmann::json& initParameters)>;
   using PartitionedNodeFactory =
-      std::function<std::shared_ptr<IPartitionedNode>(
+      std::function<std::shared_ptr<ICohesiveNode>(
           const nlohmann::json& initParameters)>;
 
   using NodeNameVisitor = std::function<void(const std::string& nodeName)>;
@@ -43,7 +43,7 @@ class NodeRegistration {
 
   std::shared_ptr<INode> createNode(const std::string& name,
                                     const nlohmann::json& initParameters);
-  std::shared_ptr<IPartitionedNode> createPartitionedNode(
+  std::shared_ptr<ICohesiveNode> createPartitionedNode(
       const std::string& name, const nlohmann::json& initParameters);
 
   void visitNodeNames(const NodeNameVisitor& visitor);

@@ -1,0 +1,145 @@
+{
+  "graphs": [
+    {
+      "name": "Graph 1"
+    }
+  ],
+  "nodeTypes": {
+    "TCP Listener": {
+      "channels": {
+        "Listening": {}
+      }
+    },
+    "TCP Disconnect": {
+      "channels": {
+        "Connection Ended": {}
+      }
+    },
+    "TCP Receive Data": {
+      "channels": {
+        "Data Received": {
+          "bufferCount": 1
+        }
+      }
+    },
+    "TCP Send Data": {
+      "channels": {}
+    },
+    "Extract HTTP Request": {
+      "channels": {
+        "HTTP Header Received": {},
+        "HTTP Body Data Received": {
+          "bufferCount": 1
+        },
+        "HTTP Message Ended": {}
+      }
+    },
+    "Send HTTP Response with address as body": {
+      "channels": {
+        "On Response": {}
+      }
+    },
+    "HTTP Response Writer": {
+      "channels": {
+        "HTTP Data": {}
+      }
+    },
+    "Send Once": {
+      "channels": {
+        "Initialized": {}
+      }
+    }
+  },
+  "cohesiveGroups": {
+    "HTTP TCP": {}
+  },
+  "nodeInstances": {
+    "HTTP TCP Listener": {
+      "type": "TCP Listener",
+      "cohesiveGroup": "HTTP TCP"
+    },
+    "HTTP TCP Disconnector": {
+      "type": "TCP Disconnector",
+      "cohesiveGroup": "HTTP TCP"
+    },
+    "HTTP TCP Receiver": {
+      "type": "TCP Receiver",
+      "cohesiveGroup": "HTTP TCP"
+    },
+    "HTTP TCP Sender": {
+      "type": "TCP Sender",
+      "cohesiveGroup": "HTTP TCP"
+    },
+    "HTTP Request Extractor": {
+      "type": "Contextual Node",
+      "cohesiveGroup": "HTTP Request Extractor",
+      "parameters": {
+        "context": "TcpConnectionId",
+        "enclosedType": "HTTP Request Extractor"
+      }
+    },
+    "HTTP Request Complete": {
+      "type": "HTTP Request Complete",
+      "cohesiveGroup": "HTTP Request Extractor"
+    },
+    "Address as response": {
+      "type": "HTTP response with address as body"
+    },
+    "HTTP Response Writer": {
+      "type": "HTTP Response Writer"
+    },
+    "Setup TCP Listener": {
+      "type": "Send Once",
+      "parameters": {
+        "Port": 8080
+      }
+    }
+  },
+  "typeImplementations": {
+    "HTTP Response Writer": {
+      "source": "maplang:HTTP Repsonse Writer"
+    },
+    "HTTP Request Extractor": {
+      "source": "maplang:HTTP Request Extractor"
+    },
+    "HTTP response with address as body": {
+      "source": "maplang:HTTP response with address as body"
+    },
+    "Send Once": {
+      "source": "maplang:Send Once"
+    }
+  },
+  "nodeImplementations": {
+
+  },
+  "cohesiveGroupImplementations": {
+    "HTTP TCP": { "source": "maplang:TCP Server" }
+  },
+  "connections": [
+    {
+      "fromInstance": "Setup TCP Listener",
+      "fromChannel": "Initialized",
+      "toInstance": "TCP Listener"
+    },
+    {
+      "fromInstance": "TCP Receiver",
+      "fromChannel": "Data Received",
+      "toInstance": "HTTP Request Extractor"
+    },
+    {
+      "fromInstance": "HTTP Request Extractor",
+      "fromChannel": "New Request",
+      "toInstance": "Address as response"
+    },
+    {
+      "fromInstance": "Address as response",
+      "fromChannel": "On Response",
+      "toInstance": "HTTP Response Writer"
+    },
+    {
+      "fromInstance": "HTTP Response Writer",
+      "fromChannel": "Http Data",
+      "toInstance": "HTTP TCP Sender"
+    }
+  ]
+}

@@ -17,7 +17,6 @@
 #pragma once
 
 #include <memory>
-
 #include "INode.h"
 
 namespace dgraph {
@@ -49,7 +48,7 @@ class DataGraph final {
       const std::string& toPathableId = "");
 
  private:
-    const std::shared_ptr<DataGraphImpl> impl;
+  const std::shared_ptr<DataGraphImpl> impl;
 };
 
 }  // namespace dgraph

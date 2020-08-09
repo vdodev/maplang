@@ -13,16 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #pragma once
+
+#include "INode.h"
 
 namespace dgraph {
 
-class ISignalBroadcastContext {
+class ICohesiveNode {
  public:
-  virtual ~ISignalBroadcastContext() = default;
+  virtual ~ICohesiveNode() = default;
 
-  virtual void holdBroadcast() = 0;
-  virtual void resumeBroadcast() = 0;
+  virtual size_t getNodeCount() = 0;
+  virtual std::string getNodeName(size_t nodeIndex) = 0;
+
+  virtual std::shared_ptr<INode> getNode(const std::string& nodeName) = 0;
 };
 
 }  // namespace dgraph

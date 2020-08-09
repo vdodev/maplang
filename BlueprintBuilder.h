@@ -17,15 +17,14 @@
 #ifndef DATA_GRAPH__GRAPHLOADER_H_
 #define DATA_GRAPH__GRAPHLOADER_H_
 
+#include "DataGraph.h"
 #include "json.hpp"
 
 namespace dgraph {
 
-class GraphLoader final {
+class BlueprintBuilder final {
  public:
-  GraphLoader(const nlohmann::json& config);
-
-
+  void build(DataGraph* graph, const nlohmann::json& blueprint);
 };
 
 }  // namespace dgraph
