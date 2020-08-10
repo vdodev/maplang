@@ -18,6 +18,7 @@
 #define MAPLANG_GRAPHELEMENT_H_
 
 #include <unordered_map>
+#include <list>
 #include "DefaultGraphEdge.h"
 
 namespace maplang {
@@ -26,6 +27,7 @@ template<class ItemClass, class EdgeClass = DefaultGraphEdge<ItemClass>>
 struct GraphElement final {
  public:
   using MapKeyType = std::pair<std::string, std::shared_ptr<GraphElement<ItemClass, EdgeClass>>>;
+  using GraphElementType = GraphElement<ItemClass, EdgeClass>;
 
  private:
   struct MapKeyHasher {
@@ -38,7 +40,8 @@ struct GraphElement final {
   GraphElement(const ItemClass& item) : item(item) {}
 
   ItemClass item;
-  std::unordered_map<MapKeyType, EdgeClass, MapKeyHasher> forwardEdges;  // channel => edge: All GraphElements this one connects to.
+  std::list<std::weak_ptr<GraphElementType>> backEdges;
+  std::unordered_map<MapKeyType, EdgeClass, MapKeyHasher> forwardEdges;  // All GraphElements this one connects to.
 };
 
 }  // namespace maplang

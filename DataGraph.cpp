@@ -47,7 +47,7 @@ namespace std {
 template<>
 struct hash<const maplang::DataGraphItem> {
   std::size_t operator()(const maplang::DataGraphItem& item) const {
-    return hash<decltype(item.node)>()(item.node);
+    return hash<shared_ptr<maplang::INode>>()(item.node);
   }
 };
 

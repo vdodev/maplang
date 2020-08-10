@@ -20,6 +20,25 @@
 using namespace std;
 using namespace nlohmann;
 
+namespace std {
+
+template<class ItemClass>
+struct hash<pair<ItemClass, string>> final {
+  size_t operator()(const pair<ItemClass, string>& key) const {
+    return std::hash<decltype(key.first)>()(key.first) ^
+        std::hash<decltype(key.second)>()(key.second);
+  }
+};
+
+template<>
+struct hash<const string> final {
+  size_t operator()(const string& str) const {
+    return std::hash<string>()(str);
+  }
+};
+
+}  // namespace std
+
 namespace maplang {
 
 template<class ItemClass, class EdgeClass>
@@ -52,6 +71,7 @@ EdgeClass& Graph<ItemClass, EdgeClass>::connect(
 
   EdgeClass edge;
   edge.otherGraphElement = toGraphElement;
+  toGraphElement->backEdges.push_back(fromGraphElement);
   auto insertedIt = fromGraphElement->forwardEdges.emplace(edgeKey, move(edge)).first;
 
   return insertedIt->second;
@@ -65,14 +85,6 @@ static void removeFromListIfPresent(list<T>* removeFromList,
       removeFromList->erase(it);
       return;
     }
-  }
-}
-
-template <typename K, typename V>
-static void removeFromMapIfPresent(unordered_map<K, V>* fromMap, const K& key) {
-  auto it = fromMap->find(key);
-  if (it != fromMap->end()) {
-    fromMap->erase(it);
   }
 }
 
@@ -92,6 +104,16 @@ void Graph<ItemClass, EdgeClass>::disconnect(
   auto toGraphElement = getOrCreateGraphElement(toNode, toPathableId);
 
   removeFromListIfPresent(&fromGraphElement->forwardEdges, toGraphElement);
+
+  for (auto it = toGraphElement->backEdges.begin(); it != toGraphElement->backEdges.end(); ) {
+    auto oldIt = it;
+    it++;
+
+    const auto strongBackEdge = oldIt->lock();
+    if (strongBackEdge == nullptr || strongBackEdge == fromGraphElement) {
+      toGraphElement->backEdges.erase(oldIt);
+    }
+  }
 }
 
 template<class ItemClass, class EdgeClass>

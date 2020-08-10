@@ -60,14 +60,7 @@ class Graph final {
  private:
   using GraphElementLookupKey = std::pair<const ItemClass, std::string>;
 
-  struct GraphElementKeyHasher {
-    std::size_t operator()(const GraphElementLookupKey& key) const {
-      return std::hash<decltype(key.first)>()(key.first) ^
-          std::hash<decltype(key.second)>()(key.second);
-    }
-  };
-
-  std::unordered_map<GraphElementLookupKey, std::shared_ptr<GraphElementType>, GraphElementKeyHasher> mItemToGraphElementMap;
+  std::unordered_map<GraphElementLookupKey, std::shared_ptr<GraphElementType>> mItemToGraphElementMap;
 
  private:
   void validateNodeTypesAreCompatible(const std::shared_ptr<INode>& node) const;
