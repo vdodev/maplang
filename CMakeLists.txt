@@ -62,8 +62,6 @@ add_library(maplang
 
 target_include_directories(maplang PUBLIC /usr/local/include)
 target_include_directories(maplang PUBLIC ${PROJECT_SOURCE_DIR}/include)
-
-target_include_directories(maplang INTERFACE ${PROJECT_SOURCE_DIR}/include)
 set_target_properties(maplang PROPERTIES maplang_MODULE_DIRECTORY ${PROJECT_SOURCE_DIR}/include)
 
 target_link_libraries(maplang /usr/local/lib/libuv_a.a dl pthread)
