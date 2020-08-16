@@ -45,10 +45,10 @@ add_library(maplang
         ContextualNode.cpp
         MemoryStream.cpp
         nodes/tcp/UvTcpServerNode.cpp
-        graph/DefaultGraphEdge.h
-        graph/GraphElement.h
-        graph/Graph.h
-        graph/GraphImpl.h
+        include/maplang/graph/DefaultGraphEdge.h
+        include/maplang/graph/GraphElement.h
+        include/maplang/graph/Graph.h
+        include/maplang/graph/GraphImpl.h
         include/maplang/UvLoopRunner.h
         UvLoopRunner.cpp
         nodes/PacketWriter.h
