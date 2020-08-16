@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#include "maplang/ContextualNode.h"
 #include "maplang/DataGraph.h"
 #include "maplang/NodeRegistration.h"
 #include "maplang/json.hpp"
@@ -61,8 +60,13 @@ int main(int argc, char** argv) {
 
 
   const auto tcpSend = tcpServer->getNode("Sender");
-  const auto httpRequestExtractor = make_shared<ContextualNode>(
-      "HTTP Request Extractor", "TcpConnectionId", nullptr);
+  const auto httpRequestExtractor = registration->createCohesiveGroup(
+      "Contextual Node",
+      R"(
+        {
+          "nodeImplementation": "HTTP Request Extractor",
+          "key": "TcpConnectionId"
+        })"_json);
   const auto httpResponseWriter =
       registration->createNode("HTTP Response Writer", nullptr);
   const auto httpResponseWithAddressAsBody =
@@ -79,10 +83,10 @@ int main(int argc, char** argv) {
   graph.connect(httpResponseWriter, "Http Data", tcpSend);
   graph.connect(httpResponseWithAddressAsBody, "On Response",
                 httpResponseWriter);
-  graph.connect(httpRequestExtractor->getNode("Context Router"),
+  graph.connect(httpRequestExtractor->getNode("HTTP Request Extractor"),
                 "New Request", httpResponseWithAddressAsBody);
   graph.connect(tcpReceive, "Data Received",
-                httpRequestExtractor->getNode("Context Router"));
+                httpRequestExtractor->getNode("HTTP Request Extractor"));
   graph.connect(tcpDisconnector, "Ended",
                 httpRequestExtractor->getNode("Context Remover"));
   graph.connect(setupListen, "initialized", tcpListen);

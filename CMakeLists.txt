@@ -40,9 +40,9 @@ add_library(maplang
         include/maplang/IPacketPusher.h
         nodes/HttpRequestExtractor.h
         nodes/HttpRequestExtractor.cpp
-        include/maplang/ContextualNode.h
+        nodes/ContextualNode.h
         include/maplang/MemoryStream.h
-        ContextualNode.cpp
+        nodes/ContextualNode.cpp
         MemoryStream.cpp
         nodes/tcp/UvTcpServerNode.cpp
         include/maplang/graph/DefaultGraphEdge.h

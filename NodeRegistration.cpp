@@ -21,6 +21,7 @@
 #include "nodes/HttpRequestExtractor.h"
 #include "nodes/HttpResponseWriter.h"
 #include "nodes/SendOnce.h"
+#include "nodes/ContextualNode.h"
 #include "nodes/tcp/UvTcpServerNode.h"
 #include <mutex>
 
@@ -34,6 +35,12 @@ static NodeRegistration* gDefaultRegistration;
 
 static void registerNodes(NodeRegistration* registration) {
   registration->registerCohesiveGroupFactory(
+      "Contextual Node",
+      [](const nlohmann::json& initParameters) {
+        return make_shared<ContextualNode>(initParameters);
+      });
+
+  registration->registerCohesiveGroupFactory(
       "TCP Server",
       [](const nlohmann::json &initParameters) {
         return make_shared<UvTcpServerNode>();
@@ -42,8 +49,7 @@ static void registerNodes(NodeRegistration* registration) {
   registration->registerNodeFactory(
       "HTTP Request Extractor",
       [](const json& initParameters) {
-        const shared_ptr<INode> node = make_shared<HttpRequestExtractor>(initParameters);
-        return node;
+        return make_shared<HttpRequestExtractor>(initParameters);
       });
 
   registration->registerNodeFactory(

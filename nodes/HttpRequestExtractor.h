@@ -20,7 +20,7 @@
 #include <list>
 #include <random>
 
-#include "maplang/ContextualNode.h"
+#include "maplang/INode.h"
 #include "maplang/ISource.h"
 #include "maplang/MemoryStream.h"
 #include "maplang/json.hpp"

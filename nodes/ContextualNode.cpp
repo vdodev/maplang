@@ -14,10 +14,10 @@
  *  limitations under the License.
  */
 
-#include "maplang/ContextualNode.h"
+#include "ContextualNode.h"
 
 #include "maplang/NodeRegistration.h"
-#include "logging.h"
+#include "../logging.h"
 #include <sstream>
 
 using namespace std;
@@ -25,8 +25,10 @@ using namespace nlohmann;
 
 namespace maplang {
 
-static const string kPartitionName_ContextRouter = "Context Router";
 static const string kPartitionName_ContextRemover = "Context Remover";
+
+static const string kInitDataParameter_Key = "key";
+static const string kInitDataParameter_NodeImplementation = "nodeImplementation";
 
 class ContextRouter : public INode,
                       public ISink,
@@ -51,14 +53,12 @@ class ContextRouter : public INode,
     return node != nullptr && node->asPathable() != nullptr;
   }
 
-  ContextRouter(const string& nodeName, const string& key,
-                const json& initParameters)
-      : mThisAsSink(nodeIsSink(nodeName, initParameters) ? this : nullptr),
-        mThisAsSource(nodeIsSource(nodeName, initParameters) ? this : nullptr),
-        mThisAsPathable(nodeIsPathable(nodeName, initParameters) ? this
-                                                                 : nullptr),
-        mNodeName(nodeName),
-        mKey(key),
+  ContextRouter(const string& nodeImplementation, const json& initParameters)
+      : mThisAsSink(nodeIsSink(nodeImplementation, initParameters) ? this : nullptr),
+        mThisAsSource(nodeIsSource(nodeImplementation, initParameters) ? this : nullptr),
+        mThisAsPathable(nodeIsPathable(nodeImplementation, initParameters) ? this : nullptr),
+        mNodeImplementation(nodeImplementation),
+        mKey(initParameters[kInitDataParameter_Key]),
         mInitParameters(initParameters) {}
 
   ~ContextRouter() override = default;
@@ -71,7 +71,7 @@ class ContextRouter : public INode,
       node = it->second;
     } else {
       mNodes[contextLookup] =
-          NodeRegistration::defaultRegistration()->createNode(mNodeName,
+          NodeRegistration::defaultRegistration()->createNode(mNodeImplementation,
                                                               mInitParameters);
       node = mNodes[contextLookup];
     }
@@ -90,7 +90,7 @@ class ContextRouter : public INode,
       node = it->second;
     } else {
       mNodes[contextLookup] =
-          NodeRegistration::defaultRegistration()->createNode(mNodeName,
+          NodeRegistration::defaultRegistration()->createNode(mNodeImplementation,
                                                               mInitParameters);
       node = mNodes[contextLookup];
       node->setSubgraphContext(mSubgraphContext);
@@ -132,7 +132,7 @@ class ContextRouter : public INode,
   void setPacketPusher(const shared_ptr<IPacketPusher>& pusher) override;
 
  private:
-  const string mNodeName;
+  const string mNodeImplementation;
   const string mKey;
   const json mInitParameters;
 
@@ -208,11 +208,11 @@ class ContextRemover : public INode, public IPathable {
   const string mKey;
 };
 
-ContextualNode::ContextualNode(const string& nodeName, const string& key,
-                               const json& initData)
-    : mContextRouter(make_shared<ContextRouter>(nodeName, key, initData)),
-      mContextRemover(make_shared<ContextRemover>(mContextRouter, key)) {
-  mNodeMap[kPartitionName_ContextRouter] = mContextRouter;
+ContextualNode::ContextualNode(const json& initData)
+    : mNodeImplementation(initData[kInitDataParameter_NodeImplementation].get<string>()),
+      mContextRouter(make_shared<ContextRouter>(mNodeImplementation, initData)),
+      mContextRemover(make_shared<ContextRemover>(mContextRouter, mNodeImplementation)){
+  mNodeMap[mNodeImplementation] = mContextRouter;
   mNodeMap[kPartitionName_ContextRemover] = mContextRemover;
 }
 
@@ -221,7 +221,7 @@ size_t ContextualNode::getNodeCount() { return mNodeMap.size(); }
 string ContextualNode::getNodeName(size_t partitionIndex) {
   switch (partitionIndex) {
     case 0:
-      return kPartitionName_ContextRouter;
+      return mNodeImplementation;
     case 1:
       return kPartitionName_ContextRemover;
     default:
@@ -232,7 +232,7 @@ string ContextualNode::getNodeName(size_t partitionIndex) {
 shared_ptr<INode> ContextualNode::getNode(const string& nodeName) {
   auto it = mNodeMap.find(nodeName);
   if (it == mNodeMap.end()) {
-    return nullptr;
+    throw runtime_error("Node '" + nodeName + "' not found.");
   }
 
   return it->second;

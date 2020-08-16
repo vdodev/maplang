@@ -24,8 +24,7 @@ class ContextRouter;
 
 class ContextualNode final : public ICohesiveGroup {
  public:
-  ContextualNode(const std::string& nodeName, const std::string& key,
-                 const nlohmann::json& initData);
+  ContextualNode(const nlohmann::json& initData);
   ~ContextualNode() override = default;
 
   size_t getNodeCount() override;
@@ -35,8 +34,10 @@ class ContextualNode final : public ICohesiveGroup {
       const std::string& partition) override;
 
  private:
+  const std::string mNodeImplementation;
   const std::shared_ptr<ContextRouter> mContextRouter;
   const std::shared_ptr<INode> mContextRemover;
+
   std::unordered_map<std::string, std::shared_ptr<INode>> mNodeMap;
 };
 
