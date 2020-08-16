@@ -60,7 +60,7 @@ struct UvTcpConnection final {
   string connectionId;
   string closedReason;
   string remoteAddress;
-  string remotePort;
+  uint16_t remotePort;
 };
 
 static void sendErrorPacket(const string& message, int status, const string& connectionId, const shared_ptr<IPacketPusher>& pusher) {
