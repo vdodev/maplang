@@ -17,14 +17,14 @@
 #ifndef __MAPLANG_UVTCPSERVERNODE_H__
 #define __MAPLANG_UVTCPSERVERNODE_H__
 
-#include "../../ICohesiveNode.h"
+#include "../../ICohesiveGroup.h"
 #include <unordered_map>
 
 namespace maplang {
 
 class UvTcpServerImpl;
 
-class UvTcpServerNode : public ICohesiveNode {
+class UvTcpServerNode : public ICohesiveGroup {
  public:
   UvTcpServerNode();
   ~UvTcpServerNode() override = default;

@@ -17,7 +17,7 @@
 #ifndef __MAPLANG_UVTCPCLIENT_H__
 #define __MAPLANG_UVTCPCLIENT_H__
 
-#include "../../ICohesiveNode.h"
+#include "../../ICohesiveGroup.h"
 #include "../../ISink.h"
 #include "../../ISource.h"
 #include "UvTcpConnector.h"
@@ -26,7 +26,7 @@
 
 namespace maplang {
 
-class UvTcpClient : public ICohesiveNode {
+class UvTcpClient : public ICohesiveGroup {
  public:
   ~UvTcpClient() override = default;
 

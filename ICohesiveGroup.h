@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-#ifndef __MAPLANG_ICOHESIVE_NODE_H__
-#define __MAPLANG_ICOHESIVE_NODE_H__
+#ifndef __MAPLANG_ICOHESIVEGROUP_H__
+#define __MAPLANG_ICOHESIVEGROUP_H__
 
 #include "INode.h"
 
 namespace maplang {
 
-class ICohesiveNode {
+class ICohesiveGroup {
  public:
-  virtual ~ICohesiveNode() = default;
+  virtual ~ICohesiveGroup() = default;
 
   virtual size_t getNodeCount() = 0;
   virtual std::string getNodeName(size_t nodeIndex) = 0;

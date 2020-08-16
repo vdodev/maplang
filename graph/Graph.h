@@ -45,13 +45,15 @@ class Graph final {
       const std::string& fromPathableId = "",
       const std::string& toPathableId = "");
 
-  using GraphElementVisitor = std::function<void (const std::string& pathableId, const std::shared_ptr<GraphElementType>& graphElement)>;
+  using GraphElementVisitor = std::function<void (const std::shared_ptr<GraphElementType>& graphElement)>;
 
   /**
    * Visits GraphElements. Order is unspecified.
    * @param visitor Called for each GraphElement in the Graph.
    */
   void visitGraphElements(const GraphElementVisitor& visitor) const;
+
+  void visitGraphElementsHeadsLast(const GraphElementVisitor& visitor) const;
 
   bool hasItem(const ItemClass& item, const std::string& pathableId) const;
 

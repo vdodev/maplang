@@ -48,7 +48,6 @@ Simple example
     "channels": [],
   }
 },
-"cohesiveGroups": {},
 "nodeInstances": {
   "timer 1": {
     "type": "Timer",
@@ -65,7 +64,15 @@ Simple example
 "instanceImplementations": {
   "time logger": { "source": "https://maplang.com/impl/print-time.zip" } // Used for a single instance, overriding anything specified for its type.
 },
-"cohesiveGroupImplementations": {},
+"cohesiveGroupInstances": {
+    "HTTP TCP Server": {}
+},
+"cohesiveGroupImplementations": {
+    "HTTP TCP Server": {
+        "type": "internal",
+        "name": 
+    }
+},
 "connections": [
   {
     "fromInstance": "timer 1",

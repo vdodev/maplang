@@ -17,11 +17,11 @@
 #ifndef __MAPLANG_VOLATILE_KEY_VALUE_STORE_H__
 #define __MAPLANG_VOLATILE_KEY_VALUE_STORE_H__
 
-#include "../ICohesiveNode.h"
+#include "../ICohesiveGroup.h"
 
 namespace maplang {
 
-class VolatileKeyValueStore : public ICohesiveNode {
+class VolatileKeyValueStore : public ICohesiveGroup {
  public:
   VolatileKeyValueStore(const nlohmann::json& initParameters);
   ~VolatileKeyValueStore() override = default;

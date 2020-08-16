@@ -17,12 +17,12 @@
 #ifndef __MAPLANG_CONTEXTUAL_NODE_H__
 #define __MAPLANG_CONTEXTUAL_NODE_H__
 
-#include "ICohesiveNode.h"
+#include "ICohesiveGroup.h"
 
 namespace maplang {
 class ContextRouter;
 
-class ContextualNode final : public ICohesiveNode {
+class ContextualNode final : public ICohesiveGroup {
  public:
   ContextualNode(const std::string& nodeName, const std::string& key,
                  const nlohmann::json& initData);

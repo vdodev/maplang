@@ -22,7 +22,7 @@ add_library(maplang
         nodes/tcp/UvTcpClient.cpp
         nodes/tcp/UvTcpSender.h
         ISubgraphContext.h
-        ICohesiveNode.h
+        ICohesiveGroup.h
         nodes/tcp/UvTcpReceiver.h
         nodes/tcp/UvTcpConnector.h
         nodes/SendOnce.h

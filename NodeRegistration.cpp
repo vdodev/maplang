@@ -53,7 +53,7 @@ std::shared_ptr<INode> NodeRegistration::createNode(
   return factory(initParameters);
 }
 
-std::shared_ptr<ICohesiveNode> NodeRegistration::createPartitionedNode(
+std::shared_ptr<ICohesiveGroup> NodeRegistration::createPartitionedNode(
     const std::string& name, const nlohmann::json& initParameters) {
   auto it = mPartitionedNodeFactoryMap.find(name);
   if (it == mPartitionedNodeFactoryMap.end()) {

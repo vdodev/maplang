@@ -77,7 +77,7 @@ int main(int argc, char** argv) {
   registerNodes();
 
   const auto registration = NodeRegistration::defaultRegistration();
-  const shared_ptr<ICohesiveNode> tcpServer =
+  const shared_ptr<ICohesiveGroup> tcpServer =
       registration->createPartitionedNode(
           "TCP Server", R"(
       {

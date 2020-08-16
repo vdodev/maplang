@@ -16,17 +16,15 @@
 
 #include "Graph.h"
 #include <stack>
-
-using namespace std;
-using namespace nlohmann;
+#include <queue>
 
 namespace std {
 
 template<class ItemClass>
 struct hash<pair<ItemClass, string>> final {
   size_t operator()(const pair<ItemClass, string>& key) const {
-    return std::hash<decltype(key.first)>()(key.first) ^
-        std::hash<decltype(key.second)>()(key.second);
+    return hash<decltype(key.first)>()(key.first) ^
+        hash<decltype(key.second)>()(key.second);
   }
 };
 
@@ -45,10 +43,30 @@ template<class ItemClass, class EdgeClass>
 void Graph<ItemClass, EdgeClass>::visitGraphElements(const GraphElementVisitor& visitor) const {
   std::list<std::shared_ptr<GraphElement<ItemClass, EdgeClass>>> elementList;
   for (const auto& pair : mItemToGraphElementMap) {
-    const string& pathableId = pair.first.second;
     const auto& graphElement = pair.second;
 
-    visitor(pathableId, graphElement);
+    visitor(graphElement);
+  }
+}
+
+template<class ItemClass, class EdgeClass>
+void Graph<ItemClass, EdgeClass>::visitGraphElementsHeadsLast(const GraphElementVisitor& visitor) const {
+  std::queue<std::shared_ptr<GraphElement<std::string>>> toProcess;
+  std::queue<std::shared_ptr<GraphElementType>> heads;
+
+  visitGraphElements([&heads, &visitor](const std::shared_ptr<GraphElementType>& graphElement) {
+    if (graphElement->backEdges.empty()) {
+      heads.push(graphElement);
+      return;
+    }
+
+    visitor(graphElement);
+  });
+
+  while (!heads.empty()) {
+    const auto graphElement = move(heads.front());
+    heads.pop();
+    visitor(graphElement);
   }
 }
 
@@ -57,12 +75,12 @@ EdgeClass& Graph<ItemClass, EdgeClass>::connect(
     const ItemClass& fromItem,
     const std::string& fromChannel,
     const ItemClass& toItem,
-    const string& fromPathableId,
-    const string& toPathableId) {
+    const std::string& fromPathableId,
+    const std::string& toPathableId) {
   auto fromGraphElement = getOrCreateGraphElement(fromItem, fromPathableId);
   auto toGraphElement = getOrCreateGraphElement(toItem, toPathableId);
 
-  typename GraphElementType::MapKeyType edgeKey(fromChannel, toGraphElement);
+  typename GraphElementType::EdgeKey edgeKey{fromChannel, toGraphElement};
   auto edgeIt = fromGraphElement->forwardEdges.find(edgeKey);
   const bool alreadyConnected = edgeIt != toGraphElement->forwardEdges.end();
   if (alreadyConnected) {
@@ -71,14 +89,31 @@ EdgeClass& Graph<ItemClass, EdgeClass>::connect(
 
   EdgeClass edge;
   edge.otherGraphElement = toGraphElement;
-  toGraphElement->backEdges.push_back(fromGraphElement);
-  auto insertedIt = fromGraphElement->forwardEdges.emplace(edgeKey, move(edge)).first;
+
+  auto insertedIt = fromGraphElement->forwardEdges.emplace(edgeKey, std::move(edge)).first;
+
+  bool haveBackEdgeAlready = false;
+  for (auto it = toGraphElement->backEdges.begin(); it != toGraphElement->backEdges.end(); ) {
+    auto oldIt = it;
+    it++;
+
+    const auto strongBackEdge = oldIt->lock();
+    if (strongBackEdge == nullptr) {
+      toGraphElement->backEdges.erase(oldIt);
+    } else if (strongBackEdge == fromGraphElement) {
+      haveBackEdgeAlready = true;
+    }
+  }
+
+  if (!haveBackEdgeAlready) {
+    toGraphElement->backEdges.push_back(fromGraphElement);
+  }
 
   return insertedIt->second;
 }
 
 template <typename T>
-static void removeFromListIfPresent(list<T>* removeFromList,
+static void removeFromListIfPresent(std::list<T>* removeFromList,
                                     const T& itemToRemove) {
   for (auto it = removeFromList->begin(); it != removeFromList->end(); it++) {
     if (*it == itemToRemove) {
@@ -93,8 +128,8 @@ void Graph<ItemClass, EdgeClass>::disconnect(
     const ItemClass& fromNode,
     const std::string& fromChannel,
     const ItemClass& toNode,
-    const string& fromPathableId,
-    const string& toPathableId) {
+    const std::string& fromPathableId,
+    const std::string& toPathableId) {
   if (!hasNode(fromNode, fromPathableId) ||
       !hasNode(toNode, toPathableId)) {
     return;
@@ -117,13 +152,14 @@ void Graph<ItemClass, EdgeClass>::disconnect(
 }
 
 template<class ItemClass, class EdgeClass>
-bool Graph<ItemClass, EdgeClass>::hasItem(const ItemClass& item, const string& pathableId) const {
+bool Graph<ItemClass, EdgeClass>::hasItem(const ItemClass& item, const std::string& pathableId) const {
   auto key = make_pair(item, pathableId);
   return mItemToGraphElementMap.find(key) != mItemToGraphElementMap.end();
 }
 
 template<class ItemClass, class EdgeClass>
-shared_ptr<GraphElement<ItemClass, EdgeClass>> Graph<ItemClass, EdgeClass>::getOrCreateGraphElement(const ItemClass& item, const string& pathableId) {
+std::shared_ptr<GraphElement<ItemClass, EdgeClass>> Graph<ItemClass, EdgeClass>::getOrCreateGraphElement(
+    const ItemClass& item, const std::string& pathableId) {
   GraphElementLookupKey key = make_pair(item, pathableId);
   auto it = mItemToGraphElementMap.find(key);
 
@@ -131,7 +167,7 @@ shared_ptr<GraphElement<ItemClass, EdgeClass>> Graph<ItemClass, EdgeClass>::getO
     return it->second;
   }
 
-  auto graphElement = make_shared<GraphElement<ItemClass, EdgeClass>>(item);
+  auto graphElement = std::make_shared<GraphElement<ItemClass, EdgeClass>>(item, pathableId);
 
   mItemToGraphElementMap[key] = graphElement;
 

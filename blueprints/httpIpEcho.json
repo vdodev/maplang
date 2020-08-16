@@ -1,9 +1,7 @@
 {
-  "graphs": [
-    {
-      "name": "Graph 1"
-    }
-  ],
+  "graphs": {
+    "Graph 1": {}
+  },
   "nodeTypes": {
     "TCP Listener": {
       "channels": {
@@ -50,37 +48,33 @@
       }
     }
   },
-  "cohesiveGroups": {
-    "HTTP TCP": {}
+  "cohesiveGroupInstances": {
+    "HTTP TCP Server": {}
   },
   "nodeInstances": {
     "HTTP TCP Listener": {
-      "type": "TCP Listener",
-      "cohesiveGroup": "HTTP TCP"
+      "type": "TCP Listener"
     },
     "HTTP TCP Disconnector": {
-      "type": "TCP Disconnector",
-      "cohesiveGroup": "HTTP TCP"
+      "type": "TCP Disconnector"
     },
     "HTTP TCP Receiver": {
-      "type": "TCP Receiver",
-      "cohesiveGroup": "HTTP TCP"
+      "type": "TCP Receiver"
     },
     "HTTP TCP Sender": {
-      "type": "TCP Sender",
-      "cohesiveGroup": "HTTP TCP"
+      "type": "TCP Sender"
     },
     "HTTP Request Extractor": {
-      "type": "Contextual Node",
-      "cohesiveGroup": "HTTP Request Extractor",
+      "type": "HTTP Request Extractor",
       "parameters": {
-        "context": "TcpConnectionId",
-        "enclosedType": "HTTP Request Extractor"
+        "context": "TcpConnectionId"
       }
     },
     "HTTP Request Complete": {
       "type": "HTTP Request Complete",
-      "cohesiveGroup": "HTTP Request Extractor"
+      "parameters": {
+        "context": "TcpConnectionId"
+      }
     },
     "Address as response": {
       "type": "HTTP response with address as body"
@@ -97,23 +91,67 @@
   },
   "typeImplementations": {
     "HTTP Response Writer": {
-      "source": "maplang:HTTP Repsonse Writer"
+      "type": "internal",
+      "name": "HTTP Response Writer"
     },
     "HTTP Request Extractor": {
-      "source": "maplang:HTTP Request Extractor"
+      "type": "CohesiveGroupNode",
+      "cohesiveNode": "Extractor"
+    },
+    "Remove HTTP Extractor": {
+      "type": "CohesiveGroupNode",
+      "cohesiveNode": "Remove"
     },
     "HTTP response with address as body": {
-      "source": "maplang:HTTP response with address as body"
+      "type": "internal",
+      "name": "HTTP response with address as body"
     },
     "Send Once": {
-      "source": "maplang:Send Once"
+      "type": "internal",
+      "name": "Send Once"
+    },
+    "TCP Listener": {
+      "type": "CohesiveGroupNode",
+      "cohesiveNode": "Listener"
+    },
+    "TCP Receiver": {
+      "type": "CohesiveGroupNode",
+      "cohesiveNode": "Receiver"
+    },
+    "TCP Sender": {
+      "type": "CohesiveGroupNode",
+      "cohesiveNode": "Sender"
+    },
+    "TCP Disconnector": {
+      "type": "CohesiveGroupNode",
+      "cohesiveNode": "Disconnector"
     }
   },
   "nodeImplementations": {
-
+    "HTTP Request Extractor": {
+      "cohesiveGroupInstance": "HTTP Request Extractor"
+    },
+    "Remove HTTP Extractor": {
+      "cohesiveGroupInstance": "HTTP Request Extractor"
+    },
+    "TCP Listener": {
+      "cohesiveGroupInstance": "HTTP TCP Server"
+    },
+    "TCP Receiver": {
+      "cohesiveGroupInstance": "HTTP TCP Server"
+    },
+    "TCP Sender": {
+      "cohesiveGroupInstance": "HTTP TCP Server"
+    },
+    "TCP Disconnector": {
+      "cohesiveGroupInstance": "HTTP TCP Server"
+    }
   },
   "cohesiveGroupImplementations": {
-    "HTTP TCP": { "source": "maplang:TCP Server" }
+    "HTTP TCP Server": {
+      "type": "internal",
+      "name": "UV TCP Server"
+    }
   },
   "connections": [
     {

@@ -1,6 +1,4 @@
-# Maplang
-
-Maplang is a diagram-based programming language.
+# Maplang: Diagrams as Code
 
 ### What problem does Maplang solve?
 

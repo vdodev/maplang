@@ -21,7 +21,7 @@
 #include <set>
 
 #include "INode.h"
-#include "ICohesiveNode.h"
+#include "ICohesiveGroup.h"
 #include "json.hpp"
 
 namespace maplang {
@@ -31,7 +31,7 @@ class NodeRegistration {
   using NodeFactory = std::function<std::shared_ptr<INode>(
       const nlohmann::json& initParameters)>;
   using PartitionedNodeFactory =
-      std::function<std::shared_ptr<ICohesiveNode>(
+      std::function<std::shared_ptr<ICohesiveGroup>(
           const nlohmann::json& initParameters)>;
 
   using NodeNameVisitor = std::function<void(const std::string& nodeName)>;
@@ -44,7 +44,7 @@ class NodeRegistration {
 
   std::shared_ptr<INode> createNode(const std::string& name,
                                     const nlohmann::json& initParameters);
-  std::shared_ptr<ICohesiveNode> createPartitionedNode(
+  std::shared_ptr<ICohesiveGroup> createPartitionedNode(
       const std::string& name, const nlohmann::json& initParameters);
 
   void visitNodeNames(const NodeNameVisitor& visitor);

@@ -180,8 +180,8 @@ void DataGraphImpl::packetReady() {
         bool sentToAny = false;
         for (const auto& nextEdge : packetInfo.fromGraphElement->forwardEdges) {
           const auto& nextEdgeChannelItemPair = nextEdge.first;
-          const string& channel = nextEdgeChannelItemPair.first;
-          const shared_ptr<DataGraphElement> nextDataGraphElement = nextEdgeChannelItemPair.second;
+          const string& channel = nextEdgeChannelItemPair.channel;
+          const shared_ptr<DataGraphElement> nextDataGraphElement = nextEdgeChannelItemPair.toGraphElement;
 
           if (channel == packetInfo.channel) {
             sentToAny = true;
