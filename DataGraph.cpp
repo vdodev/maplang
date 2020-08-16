@@ -190,7 +190,11 @@ void DataGraphImpl::packetReady() {
         }
 
         if (!sentToAny) {
-          logd("Dropped packet from channel %s\n", packetInfo.channel.c_str());
+          if (packetInfo.channel == "error") {
+            logi("Dropped error packet: %s\n", packetInfo.packet.parameters.dump(2).c_str());
+          } else {
+            logd("Dropped packet from channel %s\n", packetInfo.channel.c_str());
+          }
         }
       } else if (packetInfo.manualSendToGraphElement) {
         sendPacketToNode(packetInfo.manualSendToGraphElement, packetInfo.packet);
