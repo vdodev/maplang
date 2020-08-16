@@ -17,7 +17,7 @@
 #ifndef __MAPLANG_CONTEXTUAL_NODE_H__
 #define __MAPLANG_CONTEXTUAL_NODE_H__
 
-#include "ICohesiveGroup.h"
+#include "maplang/ICohesiveGroup.h"
 
 namespace maplang {
 class ContextRouter;

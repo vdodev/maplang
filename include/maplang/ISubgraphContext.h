@@ -19,7 +19,7 @@
 
 #include <memory>
 
-#include "json.hpp"
+#include "maplang/json.hpp"
 
 typedef struct uv_loop_s uv_loop_t;
 

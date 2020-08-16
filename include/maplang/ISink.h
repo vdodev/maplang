@@ -17,7 +17,7 @@
 #ifndef __MAPLANG_ISINK_H__
 #define __MAPLANG_ISINK_H__
 
-#include "Packet.h"
+#include "maplang/Packet.h"
 
 namespace maplang {
 

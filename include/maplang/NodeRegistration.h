@@ -20,9 +20,9 @@
 #include <memory>
 #include <set>
 
-#include "INode.h"
-#include "ICohesiveGroup.h"
-#include "json.hpp"
+#include "maplang/INode.h"
+#include "maplang/ICohesiveGroup.h"
+#include "maplang/json.hpp"
 
 namespace maplang {
 

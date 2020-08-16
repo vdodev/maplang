@@ -17,7 +17,7 @@
 #ifndef __MAPLANG_IPATHABLE_H__
 #define __MAPLANG_IPATHABLE_H__
 
-#include "PathablePacket.h"
+#include "maplang/PathablePacket.h"
 
 namespace maplang {
 

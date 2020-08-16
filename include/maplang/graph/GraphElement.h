@@ -19,7 +19,7 @@
 
 #include <unordered_map>
 #include <list>
-#include "DefaultGraphEdge.h"
+#include "maplang/graph/DefaultGraphEdge.h"
 
 namespace maplang {
 

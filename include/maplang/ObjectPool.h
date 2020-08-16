@@ -17,7 +17,7 @@
 #ifndef __MAPLANG_OBJECTPOOL_H__
 #define __MAPLANG_OBJECTPOOL_H__
 
-#include "Buffer.h"
+#include "maplang/Buffer.h"
 #include <stack>
 
 namespace maplang {

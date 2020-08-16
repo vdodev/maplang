@@ -17,9 +17,9 @@
 #ifndef __MAPLANG_PACKETREADER_H__
 #define __MAPLANG_PACKETREADER_H__
 
-#include "../include/maplang/IPathable.h"
-#include "../include/maplang/INode.h"
-#include "../include/maplang/MemoryStream.h"
+#include "maplang/IPathable.h"
+#include "maplang/INode.h"
+#include "maplang/MemoryStream.h"
 
 namespace maplang {
 

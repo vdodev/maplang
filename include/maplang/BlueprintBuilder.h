@@ -17,8 +17,8 @@
 #ifndef __MAPLANG_BLUEPRINT_BUILDER_H__
 #define __MAPLANG_BLUEPRINT_BUILDER_H__
 
-#include "DataGraph.h"
-#include "json.hpp"
+#include "maplang/DataGraph.h"
+#include "maplang/json.hpp"
 
 namespace maplang {
 

@@ -20,9 +20,9 @@
 #include <memory>
 #include <vector>
 
-#include "IPacketPusher.h"
-#include "ISink.h"
-#include "Packet.h"
+#include "maplang/IPacketPusher.h"
+#include "maplang/ISink.h"
+#include "maplang/Packet.h"
 
 namespace maplang {
 

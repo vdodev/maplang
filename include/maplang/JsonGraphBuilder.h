@@ -19,7 +19,7 @@
 
 #include <memory>
 
-#include "DataGraph.h"
+#include "maplang/DataGraph.h"
 
 namespace maplang {
 

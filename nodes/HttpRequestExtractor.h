@@ -20,10 +20,10 @@
 #include <list>
 #include <random>
 
-#include "../include/maplang/ContextualNode.h"
-#include "../include/maplang/ISource.h"
-#include "../include/maplang/MemoryStream.h"
-#include "../include/maplang/json.hpp"
+#include "maplang/ContextualNode.h"
+#include "maplang/ISource.h"
+#include "maplang/MemoryStream.h"
+#include "maplang/json.hpp"
 
 namespace maplang {
 

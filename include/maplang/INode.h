@@ -19,11 +19,11 @@
 
 #include <functional>
 
-#include "IPathable.h"
-#include "ISink.h"
-#include "ISource.h"
-#include "ISubgraphContext.h"
-#include "json.hpp"
+#include "maplang/IPathable.h"
+#include "maplang/ISink.h"
+#include "maplang/ISource.h"
+#include "maplang/ISubgraphContext.h"
+#include "maplang/json.hpp"
 
 namespace maplang {
 class INode {

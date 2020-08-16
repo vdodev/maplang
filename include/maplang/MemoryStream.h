@@ -24,7 +24,7 @@
 #include <istream>
 #include <sstream>
 
-#include "Buffer.h"
+#include "maplang/Buffer.h"
 
 namespace maplang {
 

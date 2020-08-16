@@ -20,9 +20,9 @@
 #include <memory>
 #include <vector>
 
-#include "Buffer.h"
-#include "IPacketPusher.h"
-#include "json.hpp"
+#include "maplang/Buffer.h"
+#include "maplang/IPacketPusher.h"
+#include "maplang/json.hpp"
 
 namespace maplang {
 

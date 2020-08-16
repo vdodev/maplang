@@ -19,7 +19,7 @@
 #include <uv.h>
 
 #include "UvTcpServerNode.h"
-#include "../../include/maplang/ObjectPool.h"
+#include "maplang/ObjectPool.h"
 
 using namespace std;
 using namespace nlohmann;

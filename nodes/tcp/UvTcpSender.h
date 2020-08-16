@@ -17,7 +17,7 @@
 #ifndef __MAPLANG_UVTCPSENDER_H__
 #define __MAPLANG_UVTCPSENDER_H__
 
-#include "../../include/maplang/ISink.h"
+#include "maplang/ISink.h"
 
 namespace maplang {
 

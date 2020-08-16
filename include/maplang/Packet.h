@@ -17,9 +17,9 @@
 #ifndef __MAPLANG_PACKET_H__
 #define __MAPLANG_PACKET_H__
 
-#include "Buffer.h"
-#include "ISubgraphContext.h"
-#include "json.hpp"
+#include "maplang/Buffer.h"
+#include "maplang/ISubgraphContext.h"
+#include "maplang/json.hpp"
 
 namespace maplang {
 

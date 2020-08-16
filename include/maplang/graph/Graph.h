@@ -20,9 +20,9 @@
 #include <list>
 #include <functional>
 
-#include "DefaultGraphEdge.h"
-#include "GraphElement.h"
-#include "../include/maplang/INode.h"
+#include "maplang/graph/DefaultGraphEdge.h"
+#include "maplang/graph/GraphElement.h"
+#include "maplang/INode.h"
 
 namespace maplang {
 
@@ -70,6 +70,6 @@ class Graph final {
 
 }  // namespace maplang
 
-#include "GraphImpl.h"
+#include "maplang/graph/GraphImpl.h"
 
 #endif // __MAPLANG_GRAPH_H_

@@ -18,7 +18,7 @@
 #define __MAPLANG_DATA_GRAPH_H__
 
 #include <memory>
-#include "INode.h"
+#include "maplang/INode.h"
 
 namespace maplang {
 

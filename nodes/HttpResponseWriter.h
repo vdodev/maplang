@@ -17,9 +17,9 @@
 #ifndef __MAPLANG_RESPONSE_WRITER_H__
 #define __MAPLANG_RESPONSE_WRITER_H__
 
-#include "../include/maplang/INode.h"
-#include "../include/maplang/ISink.h"
-#include "../include/maplang/ISource.h"
+#include "maplang/INode.h"
+#include "maplang/ISink.h"
+#include "maplang/ISource.h"
 
 namespace maplang {
 
