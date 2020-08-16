@@ -55,8 +55,6 @@ add_library(maplang
         nodes/PacketWriter.cpp
         nodes/PacketReader.h
         nodes/PacketReader.cpp
-        nodes/SipRequestExtractor.cpp
-        nodes/SipRequestExtractor.h
         nodes/VolatileKeyValueSet.cpp
         nodes/VolatileKeyValueSet.h
         BlueprintBuilder.cpp
