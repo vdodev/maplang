@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "VolatileKeyValueStore.h"
+#include "VolatileKeyValueSet.h"
 #include <iostream>
 #include <unordered_set>
 
@@ -267,12 +267,12 @@ class RemoveAll : public INode, public IPathable {
   const shared_ptr<StorageMap> mStorage;
 };
 
-VolatileKeyValueStore::VolatileKeyValueStore(
+VolatileKeyValueSet::VolatileKeyValueSet(
     const nlohmann::json& initParameters) {
 
   cout << initParameters << endl;
   if (!initParameters.contains("key")) {
-    throw runtime_error("VolatileKeyValueStore parameters must contain 'key'.");
+    throw runtime_error("VolatileKeyValueSet parameters must contain 'key'.");
   }
   const string keyName = initParameters["key"].get<string>();
   const string valueName = initParameters["value"].get<string>();
@@ -301,9 +301,9 @@ VolatileKeyValueStore::VolatileKeyValueStore(
   mPartitions[kRemoveAllPartitionName].node = remover;
 }
 
-size_t VolatileKeyValueStore::getNodeCount() { return mPartitions.size(); }
+size_t VolatileKeyValueSet::getNodeCount() { return mPartitions.size(); }
 
-string VolatileKeyValueStore::getNodeName(size_t partitionIndex) {
+string VolatileKeyValueSet::getNodeName(size_t partitionIndex) {
   switch (partitionIndex) {
     case kSetterPartitionIndex:
       return kAdderPartitionName;
@@ -318,7 +318,7 @@ string VolatileKeyValueStore::getNodeName(size_t partitionIndex) {
   }
 }
 
-std::shared_ptr<INode> VolatileKeyValueStore::getNode(
+std::shared_ptr<INode> VolatileKeyValueSet::getNode(
     const string& partitionName) {
   return mPartitions[partitionName].node;
 }

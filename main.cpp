@@ -34,31 +34,6 @@ using namespace nlohmann;
 static void registerNodes() {
   auto registration = NodeRegistration::defaultRegistration();
 
-  registration->registerPartitionedNodeFactory(
-      "TCP Server",
-      [](const nlohmann::json& initParameters) {
-        return make_shared<UvTcpServerNode>();
-      });
-
-  registration->registerNodeFactory(
-      "HTTP Request Extractor",
-      [](const json& initParameters) {
-        const shared_ptr<INode> node = make_shared<HttpRequestExtractor>(initParameters);
-        return node;
-      });
-
-  registration->registerNodeFactory(
-      "Send Once",
-      [](const json& initParameters) {
-        return make_shared<SendOnce>(initParameters);
-      });
-
-  registration->registerNodeFactory(
-      "HTTP Response Writer",
-      [](const json& initParameters) {
-        return make_shared<HttpResponseWriter>();
-      });
-
   registration->registerNodeFactory(
       "HTTP response with address as body",
       [](const json& initParameters) {
@@ -78,7 +53,7 @@ int main(int argc, char** argv) {
 
   const auto registration = NodeRegistration::defaultRegistration();
   const shared_ptr<ICohesiveGroup> tcpServer =
-      registration->createPartitionedNode(
+      registration->createCohesiveGroup(
           "TCP Server", R"(
       {
             "disableNaglesAlgorithm": true

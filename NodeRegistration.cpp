@@ -15,19 +15,68 @@
  */
 
 #include "maplang/NodeRegistration.h"
-
+#include "maplang/json.hpp"
+#include "nodes/VolatileKeyValueStore.h"
+#include "nodes/VolatileKeyValueSet.h"
+#include "nodes/HttpRequestExtractor.h"
+#include "nodes/HttpResponseWriter.h"
+#include "nodes/SendOnce.h"
+#include "nodes/tcp/UvTcpServerNode.h"
 #include <mutex>
 
 using namespace std;
+using namespace nlohmann;
 
 namespace maplang {
 
 static once_flag createRegistrationOnce;
 static NodeRegistration* gDefaultRegistration;
 
+static void registerNodes(NodeRegistration* registration) {
+  registration->registerCohesiveGroupFactory(
+      "TCP Server",
+      [](const nlohmann::json &initParameters) {
+        return make_shared<UvTcpServerNode>();
+      });
+
+  registration->registerNodeFactory(
+      "HTTP Request Extractor",
+      [](const json& initParameters) {
+        const shared_ptr<INode> node = make_shared<HttpRequestExtractor>(initParameters);
+        return node;
+      });
+
+  registration->registerNodeFactory(
+      "Send Once",
+      [](const json& initParameters) {
+        return make_shared<SendOnce>(initParameters);
+      });
+
+  registration->registerNodeFactory(
+      "HTTP Response Writer",
+      [](const json& initParameters) {
+        return make_shared<HttpResponseWriter>();
+      });
+
+  registration->registerCohesiveGroupFactory(
+      "Volatile Key Value Store",
+      [](const json& initParameters) {
+        return make_shared<VolatileKeyValueStore>(initParameters);
+      });
+
+  registration->registerCohesiveGroupFactory(
+      "Volatile Key Value Set",
+      [](const json& initParameters) {
+        return make_shared<VolatileKeyValueSet>(initParameters);
+      });
+}
+
 NodeRegistration* NodeRegistration::defaultRegistration() {
   call_once(createRegistrationOnce,
-            []() { gDefaultRegistration = new NodeRegistration(); });
+            []() {
+    gDefaultRegistration = new NodeRegistration();
+    registerNodes(gDefaultRegistration);
+  });
 
   return gDefaultRegistration;
 }
@@ -37,30 +86,30 @@ void NodeRegistration::registerNodeFactory(const std::string& name,
   mNodeFactoryMap[name] = move(factory);
 }
 
-void NodeRegistration::registerPartitionedNodeFactory(
-    const std::string& name, PartitionedNodeFactory&& factory) {
-  mPartitionedNodeFactoryMap[name] = move(factory);
+void NodeRegistration::registerCohesiveGroupFactory(
+    const std::string& name, CohesiveGroupFactory&& factory) {
+  mCohesiveGroupFactoryMap[name] = move(factory);
 }
 
 std::shared_ptr<INode> NodeRegistration::createNode(
     const std::string& name, const nlohmann::json& initParameters) {
   auto it = mNodeFactoryMap.find(name);
   if (it == mNodeFactoryMap.end()) {
-    return nullptr;
+    throw runtime_error("No Node factory exists for node type '" + name + "'.");
   }
 
   NodeFactory& factory = it->second;
   return factory(initParameters);
 }
 
-std::shared_ptr<ICohesiveGroup> NodeRegistration::createPartitionedNode(
+std::shared_ptr<ICohesiveGroup> NodeRegistration::createCohesiveGroup(
     const std::string& name, const nlohmann::json& initParameters) {
-  auto it = mPartitionedNodeFactoryMap.find(name);
-  if (it == mPartitionedNodeFactoryMap.end()) {
-    return nullptr;
+  auto it = mCohesiveGroupFactoryMap.find(name);
+  if (it == mCohesiveGroupFactoryMap.end()) {
+    throw runtime_error("No CohesiveGroup factory exists for type '" + name + "'.");
   }
 
-  PartitionedNodeFactory& factory = it->second;
+  CohesiveGroupFactory& factory = it->second;
   return factory(initParameters);
 }
 
@@ -72,9 +121,9 @@ void NodeRegistration::visitNodeNames(
   }
 }
 
-void NodeRegistration::visitPartitionedNodeNames(
+void NodeRegistration::visitCohesiveGroupNames(
     const NodeRegistration::NodeNameVisitor& visitor) {
-  for (const auto& pair : mPartitionedNodeFactoryMap) {
+  for (const auto& pair : mCohesiveGroupFactoryMap) {
     std::string key = pair.first;
     visitor(key);
   }
