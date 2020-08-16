@@ -31,7 +31,6 @@ class UvLoopRunner final {
 
   std::shared_ptr<uv_loop_t> getLoop() const;
 
-  void runLoop();
   void waitForExit();
 
  private:
