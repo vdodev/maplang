@@ -17,8 +17,8 @@
 #ifndef __MAPLANG_SEND_ONCE_H__
 #define __MAPLANG_SEND_ONCE_H__
 
-#include "../INode.h"
-#include "../ISource.h"
+#include "../include/maplang/INode.h"
+#include "../include/maplang/ISource.h"
 
 namespace maplang {
 

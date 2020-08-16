@@ -16,8 +16,8 @@
 
 #include <functional>
 
-#include "../DataGraph.h"
-#include "../UvLoopRunner.h"
+#include "maplang/DataGraph.h"
+#include "maplang/UvLoopRunner.h"
 #include "gtest/gtest.h"
 
 using namespace std;

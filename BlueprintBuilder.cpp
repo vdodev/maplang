@@ -14,12 +14,12 @@
  *  limitations under the License.
  */
 
-#include "BlueprintBuilder.h"
+#include "maplang/BlueprintBuilder.h"
 #include <unordered_map>
 #include <unordered_set>
-#include "json.hpp"
-#include "graph/Graph.h"
-#include "ICohesiveGroup.h"
+#include "maplang/json.hpp"
+#include "maplang/graph/Graph.h"
+#include "maplang/ICohesiveGroup.h"
 #include "logging.h"
 #include <queue>
 #include <string>

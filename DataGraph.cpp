@@ -14,14 +14,14 @@
  *  limitations under the License.
  */
 
-#include "DataGraph.h"
+#include "maplang/DataGraph.h"
 #include <uv.h>
 
 #include <list>
 #include <unordered_map>
 
-#include "graph/Graph.h"
-#include "ISubgraphContext.h"
+#include "maplang/graph/Graph.h"
+#include "maplang/ISubgraphContext.h"
 #include "concurrentqueue.h"
 #include "logging.h"
 

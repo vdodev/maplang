@@ -14,9 +14,9 @@
  *  limitations under the License.
  */
 
-#include "ContextualNode.h"
+#include "maplang/ContextualNode.h"
 
-#include "NodeRegistration.h"
+#include "maplang/NodeRegistration.h"
 #include "logging.h"
 #include <sstream>
 

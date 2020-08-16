@@ -17,8 +17,8 @@
 #ifndef __MAPLANG_PACKETWRITER_H__
 #define __MAPLANG_PACKETWRITER_H__
 
-#include "../IPathable.h"
-#include "../INode.h"
+#include "../include/maplang/IPathable.h"
+#include "../include/maplang/INode.h"
 
 namespace maplang {
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "MemoryStream.h"
+#include "maplang/MemoryStream.h"
 
 #include <cstring>
 #include <stdexcept>

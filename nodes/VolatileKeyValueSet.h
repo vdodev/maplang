@@ -17,7 +17,7 @@
 #ifndef __MAPLANG_VOLATILE_KEY_VALUE_SET_H__
 #define __MAPLANG_VOLATILE_KEY_VALUE_SET_H__
 
-#include "../ICohesiveGroup.h"
+#include "../include/maplang/ICohesiveGroup.h"
 
 namespace maplang {
 

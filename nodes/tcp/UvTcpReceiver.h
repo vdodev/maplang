@@ -17,8 +17,8 @@
 #ifndef __MAPLANG_UVTCPRECEIVER_H__
 #define __MAPLANG_UVTCPRECEIVER_H__
 
-#include "../../INode.h"
-#include "../../ISource.h"
+#include "../../include/maplang/INode.h"
+#include "../../include/maplang/ISource.h"
 
 typedef struct uv_loop_s uv_loop_t;
 

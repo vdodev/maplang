@@ -22,7 +22,7 @@
 
 #include "DefaultGraphEdge.h"
 #include "GraphElement.h"
-#include "../INode.h"
+#include "../include/maplang/INode.h"
 
 namespace maplang {
 

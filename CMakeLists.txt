@@ -8,21 +8,21 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_library(maplang
         logging.h
-        ISource.h
-        ISink.h
+        include/maplang/ISource.h
+        include/maplang/ISink.h
         DataGraph.cpp
-        DataGraph.h
-        Buffer.h
-        Packet.h
-        PathablePacket.h
-        JsonGraphBuilder.h
+        include/maplang/DataGraph.h
+        include/maplang/Buffer.h
+        include/maplang/Packet.h
+        include/maplang/PathablePacket.h
+        include/maplang/JsonGraphBuilder.h
         JsonGraphBuilder.cpp
-        INode.h
+        include/maplang/INode.h
         nodes/tcp/UvTcpClient.h
         nodes/tcp/UvTcpClient.cpp
         nodes/tcp/UvTcpSender.h
-        ISubgraphContext.h
-        ICohesiveGroup.h
+        include/maplang/ISubgraphContext.h
+        include/maplang/ICohesiveGroup.h
         nodes/tcp/UvTcpReceiver.h
         nodes/tcp/UvTcpConnector.h
         nodes/SendOnce.h
@@ -34,14 +34,14 @@ add_library(maplang
         nodes/HttpResponseWithAddressAsBody.h
         nodes/HttpResponseWithAddressAsBody.cpp
         nodes/tcp/UvTcpServerNode.h
-        NodeRegistration.h
+        include/maplang/NodeRegistration.h
         NodeRegistration.cpp
-        IPathable.h
-        IPacketPusher.h
+        include/maplang/IPathable.h
+        include/maplang/IPacketPusher.h
         nodes/HttpRequestExtractor.h
         nodes/HttpRequestExtractor.cpp
-        ContextualNode.h
-        MemoryStream.h
+        include/maplang/ContextualNode.h
+        include/maplang/MemoryStream.h
         ContextualNode.cpp
         MemoryStream.cpp
         nodes/tcp/UvTcpServerNode.cpp
@@ -49,7 +49,7 @@ add_library(maplang
         graph/GraphElement.h
         graph/Graph.h
         graph/GraphImpl.h
-        UvLoopRunner.h
+        include/maplang/UvLoopRunner.h
         UvLoopRunner.cpp
         nodes/PacketWriter.h
         nodes/PacketWriter.cpp
@@ -58,16 +58,16 @@ add_library(maplang
         nodes/VolatileKeyValueSet.cpp
         nodes/VolatileKeyValueSet.h
         BlueprintBuilder.cpp
-        BlueprintBuilder.h)
+        include/maplang/BlueprintBuilder.h)
 
 target_include_directories(maplang PUBLIC /usr/local/include)
+target_include_directories(maplang PUBLIC ${CMAKE_SOURCE_DIR}/include)
+
 target_link_libraries(maplang /usr/local/lib/libuv_a.a dl pthread)
 
-add_executable(http-echo main.cpp )
+add_executable(http-echo main.cpp)
 target_link_libraries(http-echo maplang)
 
-add_executable(sip-minimal sip-minimal-main.cpp)
-target_link_libraries(sip-minimal maplang)
 option(USE_TESTS "Enable unit testing" ON)
 if(USE_TESTS)
     enable_testing()

@@ -17,8 +17,8 @@
 #ifndef __MAPLANG_HTTP_RESPONSE_WITH_ADDRESS_AS_BODY_H__
 #define __MAPLANG_HTTP_RESPONSE_WITH_ADDRESS_AS_BODY_H__
 
-#include "../INode.h"
-#include "../IPathable.h"
+#include "../include/maplang/INode.h"
+#include "../include/maplang/IPathable.h"
 
 namespace maplang {
 

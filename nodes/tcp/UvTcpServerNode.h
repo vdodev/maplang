@@ -17,7 +17,7 @@
 #ifndef __MAPLANG_UVTCPSERVERNODE_H__
 #define __MAPLANG_UVTCPSERVERNODE_H__
 
-#include "../../ICohesiveGroup.h"
+#include "../../include/maplang/ICohesiveGroup.h"
 #include <unordered_map>
 
 namespace maplang {

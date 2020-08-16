@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "JsonGraphBuilder.h"
+#include "maplang/JsonGraphBuilder.h"
 
-#include "json.hpp"
+#include "maplang/json.hpp"
 
 using namespace std;
 using namespace nlohmann;

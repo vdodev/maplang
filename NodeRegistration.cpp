@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "NodeRegistration.h"
+#include "maplang/NodeRegistration.h"
 
 #include <mutex>
 

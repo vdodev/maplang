@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "UvLoopRunner.h"
+#include "maplang/UvLoopRunner.h"
 #include <uv.h>
 
 #include <stdlib.h>

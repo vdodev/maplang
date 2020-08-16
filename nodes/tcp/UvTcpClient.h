@@ -17,9 +17,9 @@
 #ifndef __MAPLANG_UVTCPCLIENT_H__
 #define __MAPLANG_UVTCPCLIENT_H__
 
-#include "../../ICohesiveGroup.h"
-#include "../../ISink.h"
-#include "../../ISource.h"
+#include "../../include/maplang/ICohesiveGroup.h"
+#include "../../include/maplang/ISink.h"
+#include "../../include/maplang/ISource.h"
 #include "UvTcpConnector.h"
 #include "UvTcpReceiver.h"
 #include "UvTcpSender.h"
