@@ -22,7 +22,7 @@
 #include "nodes/HttpResponseWriter.h"
 #include "nodes/SendOnce.h"
 #include "nodes/ContextualNode.h"
-#include "nodes/tcp/UvTcpServerNode.h"
+#include "nodes/tcp/UvTcpServerGroup.h"
 #include <mutex>
 
 using namespace std;
@@ -43,7 +43,7 @@ static void registerNodes(NodeRegistration* registration) {
   registration->registerCohesiveGroupFactory(
       "TCP Server",
       [](const nlohmann::json &initParameters) {
-        return make_shared<UvTcpServerNode>();
+        return make_shared<UvTcpServerGroup>();
       });
 
   registration->registerNodeFactory(

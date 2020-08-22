@@ -6,6 +6,8 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+
+
 add_library(maplang
         logging.h
         include/maplang/ISource.h
@@ -18,13 +20,10 @@ add_library(maplang
         include/maplang/JsonGraphBuilder.h
         JsonGraphBuilder.cpp
         include/maplang/INode.h
-        nodes/tcp/UvTcpClient.h
-        nodes/tcp/UvTcpClient.cpp
-        nodes/tcp/UvTcpSender.h
+        nodes/tcp/UvTcpClientGroup.h
+        nodes/tcp/UvTcpClientGroup.cpp
         include/maplang/ISubgraphContext.h
         include/maplang/ICohesiveGroup.h
-        nodes/tcp/UvTcpReceiver.h
-        nodes/tcp/UvTcpConnector.h
         nodes/SendOnce.h
         nodes/SendOnce.cpp
         nodes/VolatileKeyValueStore.h
@@ -33,7 +32,8 @@ add_library(maplang
         nodes/HttpResponseWriter.cpp
         nodes/HttpResponseWithAddressAsBody.h
         nodes/HttpResponseWithAddressAsBody.cpp
-        nodes/tcp/UvTcpServerNode.h
+        nodes/tcp/UvTcpServerGroup.h
+        nodes/tcp/UvTcpServerGroup.cpp
         include/maplang/NodeRegistration.h
         NodeRegistration.cpp
         include/maplang/IPathable.h
@@ -44,7 +44,6 @@ add_library(maplang
         include/maplang/MemoryStream.h
         nodes/ContextualNode.cpp
         MemoryStream.cpp
-        nodes/tcp/UvTcpServerNode.cpp
         include/maplang/graph/DefaultGraphEdge.h
         include/maplang/graph/GraphElement.h
         include/maplang/graph/Graph.h
@@ -58,15 +57,19 @@ add_library(maplang
         nodes/VolatileKeyValueSet.cpp
         nodes/VolatileKeyValueSet.h
         BlueprintBuilder.cpp
-        include/maplang/BlueprintBuilder.h)
+        include/maplang/BlueprintBuilder.h
+        include/maplang/Errors.h
+        LibuvUtilities.cpp
+        LibuvUtilities.h)
 
 target_include_directories(maplang PUBLIC /usr/local/include)
 target_include_directories(maplang PUBLIC ${PROJECT_SOURCE_DIR}/include)
+target_include_directories(maplang PRIVATE ${PROJECT_SOURCE_DIR}/include-private)
 set_target_properties(maplang PROPERTIES maplang_MODULE_DIRECTORY ${PROJECT_SOURCE_DIR}/include)
 
 target_link_libraries(maplang /usr/local/lib/libuv_a.a dl pthread)
 
-add_executable(http-echo main.cpp)
+add_executable(http-echo main.cpp src/Errors.cpp)
 target_link_libraries(http-echo maplang)
 
 option(USE_TESTS "Enable unit testing" ON)

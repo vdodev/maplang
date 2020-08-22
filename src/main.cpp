@@ -18,7 +18,7 @@
 #include "maplang/NodeRegistration.h"
 #include "maplang/json.hpp"
 #include "nodes/SendOnce.h"
-#include "nodes/tcp/UvTcpServerNode.h"
+#include "nodes/tcp/UvTcpServerGroup.h"
 #include "nodes/VolatileKeyValueStore.h"
 #include "maplang/UvLoopRunner.h"
 #include "nodes/HttpRequestExtractor.h"

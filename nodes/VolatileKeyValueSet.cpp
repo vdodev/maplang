@@ -26,10 +26,10 @@ static constexpr size_t kGetterPartitionIndex = 1;
 static constexpr size_t kRemoverPartitionIndex = 2;
 static constexpr size_t kRemoveAllPartitionIndex = 3;
 
-static const string kAdderPartitionName{"adder"};
-static const string kGetterPartitionName{"getter"};
-static const string kRemoverPartitionName{"remover"};
-static const string kRemoveAllPartitionName{"removeAll"};
+static const string kAdderPartitionName{"Adder"};
+static const string kGetterPartitionName{"Getter"};
+static const string kRemoverPartitionName{"Remover"};
+static const string kRemoveAllPartitionName{"Remove All"};
 
 static const string kParameter_KeyWhichIsNotPresent = "keyWhichIsNotPresent";
 static const string kParameter_ValueWhichIsNotPresent = "valueWhichIsNotPresent";
@@ -188,6 +188,10 @@ class Remover : public INode, public IPathable {
 
     values.erase(setIt);
 
+    if (values.empty()) {
+      mStorage->erase(it);
+    }
+
     Packet packetWithValues;
     packetWithValues.parameters[mKeyName] = key;
     packetWithValues.parameters[mValueName] = value;
@@ -251,8 +255,6 @@ class RemoveAll : public INode, public IPathable {
       incomingPacket->packetPusher->pushPacket(&notFoundPacket, kChannel_ValueNotFound);
       return;
     }
-
-    mStorage->erase(it);
 
     Packet packetWithValues;
     packetWithValues.parameters[mKeyName] = key;

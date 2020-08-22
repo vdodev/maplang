@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __MAPLANG_UVTCPSERVERNODE_H__
-#define __MAPLANG_UVTCPSERVERNODE_H__
+#ifndef __MAPLANG_UVTCPSERVERGROUP_H__
+#define __MAPLANG_UVTCPSERVERGROUP_H__
 
 #include "maplang/ICohesiveGroup.h"
 #include <unordered_map>
@@ -24,10 +24,10 @@ namespace maplang {
 
 class UvTcpServerImpl;
 
-class UvTcpServerNode : public ICohesiveGroup {
+class UvTcpServerGroup : public ICohesiveGroup {
  public:
-  UvTcpServerNode();
-  ~UvTcpServerNode() override = default;
+  UvTcpServerGroup();
+  ~UvTcpServerGroup() override = default;
 
   size_t getNodeCount() override;
   std::string getNodeName(size_t nodeIndex) override;
@@ -41,4 +41,4 @@ class UvTcpServerNode : public ICohesiveGroup {
 
 }  // namespace maplang
 
-#endif  // __MAPLANG_UVTCPSERVERNODE_H__
+#endif  // __MAPLANG_UVTCPSERVERGROUP_H__
