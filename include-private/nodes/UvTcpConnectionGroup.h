@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-#ifndef __MAPLANG_UVTCPCLIENTGROUP_H__
-#define __MAPLANG_UVTCPCLIENTGROUP_H__
+#ifndef __MAPLANG_UVTCPCONNECTIONGROUP_H__
+#define __MAPLANG_UVTCPCONNECTIONGROUP_H__
 
 #include "maplang/ICohesiveGroup.h"
 #include <unordered_map>
 
 namespace maplang {
 
-class UvTcpClientImpl;
+class UvTcpImpl;
 
-class UvTcpClientGroup : public ICohesiveGroup {
+class UvTcpConnectionGroup : public ICohesiveGroup {
  public:
-  UvTcpClientGroup();
-  ~UvTcpClientGroup() override = default;
+  UvTcpConnectionGroup();
+  ~UvTcpConnectionGroup() override = default;
 
   size_t getNodeCount() override;
   std::string getNodeName(size_t nodeIndex) override;
@@ -35,10 +35,10 @@ class UvTcpClientGroup : public ICohesiveGroup {
   std::shared_ptr<INode> getNode(const std::string& nodeName) override;
 
  private:
-  const std::shared_ptr<UvTcpClientImpl> mImpl;
+  const std::shared_ptr<UvTcpImpl> mImpl;
   std::unordered_map<std::string, std::shared_ptr<INode>> mNodes;
 };
 
 }  // namespace maplang
 
-#endif  // __MAPLANG_UVTCPCLIENTGROUP_H__
+#endif  // __MAPLANG_UVTCPCONNECTIONGROUP_H__

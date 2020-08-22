@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "HttpResponseWithAddressAsBody.h"
+#include "nodes/HttpResponseWithAddressAsBody.h"
 
 using namespace std;
 using namespace nlohmann;

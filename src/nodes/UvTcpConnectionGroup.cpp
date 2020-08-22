@@ -18,10 +18,8 @@
 #include <list>
 #include <uv.h>
 
-#include "UvTcpClientGroup.h"
+#include "UvTcpConnectionGroup.h"
 #include "maplang/ObjectPool.h"
-#include "maplang/Errors.h"
-#include "LibuvUtilities.h"
 
 using namespace std;
 using namespace nlohmann;
@@ -30,8 +28,9 @@ namespace maplang {
 
 static const string kChannel_DataReceived = "Data Received";
 static const string kChannel_Listening = "Listening";
-static const string kChannel_Connected = "Connected";
+static const string kChannel_NewConnection = "New Connection";
 static const string kChannel_ConnectionClosed = "Connection Closed";
+static const string kChannel_Error = "Error";
 static const string kChannel_DataQueued = "Data Queued";
 static const string kChannel_LocallyDisconnected = "Locally Disconnected";
 static const string kChannel_RemotelyDisconnected = "Remotely Disconnected";
@@ -43,6 +42,7 @@ static const string kParameter_RemoteAddress = "RemoteAddress";
 static const string kParameter_Port = "Port";
 static const string kParameter_LocalPort = "LocalPort";
 static const string kParameter_RemotePort = "RemotePort";
+static const string kParameter_ErrorMessage = "ErrorMessage";
 static const string kParameter_Backlog = "NewConnectionBacklog";
 static const string kParameter_NoDelay = "NoDelay";
 static const string kParameter_ClosedReason = "ClosedReason";
@@ -51,6 +51,7 @@ static const string kClosedReason_StreamEnded = "StreamEnded";
 
 static const string kNodeName_Sender = "Sender";
 static const string kNodeName_Receiver = "Receiver";
+static const string kNodeName_Listener = "Listener";
 static const string kNodeName_Connector = "Connector";
 static const string kNodeName_Disconnector = "Disconnector";
 
@@ -63,10 +64,21 @@ struct UvTcpConnection final {
   uint16_t remotePort;
 };
 
-static void sendLibUvErrorPacket(const string& message, int status, const string& connectionId, const shared_ptr<IPacketPusher>& pusher) {
-  json extraParameters;
-  extraParameters[kParameter_TcpConnectionId] = connectionId;
-  sendErrorPacket(pusher, uvStrError(status), message, extraParameters);
+static void sendUvErrorPacket(const string& message, int status, const string& connectionId, const shared_ptr<IPacketPusher>& pusher) {
+  Packet packet;
+  packet.parameters[kParameter_TcpConnectionId] = connectionId;
+
+  static constexpr size_t kErrorNameLength = 128;
+  char errorName[kErrorNameLength];
+  errorName[0] = 0;
+  uv_strerror_r(status, errorName, kErrorNameLength);
+  errorName[kErrorNameLength - 1] = 0;
+
+  ostringstream messageStream;
+  messageStream << message << " " << errorName << " (" << status << ").";
+  packet.parameters[kParameter_ErrorMessage] = messageStream.str();
+
+  pusher->pushPacket(&packet, kChannel_Error);
 }
 
 static int getSocketAddressAndPort(const sockaddr_storage* sock, string* outAddress, uint16_t* outPort, const shared_ptr<IPacketPusher>& pusherForErrors) {
@@ -81,7 +93,7 @@ static int getSocketAddressAndPort(const sockaddr_storage* sock, string* outAddr
     status = uv_ip6_name(ip6Sock, ip6AddrString, sizeof(ip6AddrString));
     if (status != 0) {
       const string connectionId = "";
-      sendErrorPacket("Could not create IPv6 address string.", status, connectionId, pusherForErrors);
+      sendUvErrorPacket("Could not create IPv6 address string.", status, connectionId, pusherForErrors);
       return status;
     }
 
@@ -94,7 +106,7 @@ static int getSocketAddressAndPort(const sockaddr_storage* sock, string* outAddr
     status = uv_ip4_name(ip4Sock, ip4AddrString, sizeof(ip4AddrString));
     if (status != 0) {
       const string connectionId = "";
-      sendErrorPacket("Could not create IPv4 address string.", status, connectionId, pusherForErrors);
+      sendUvErrorPacket("Could not create IPv4 address string.", status, connectionId, pusherForErrors);
       return status;
     }
 
@@ -103,7 +115,7 @@ static int getSocketAddressAndPort(const sockaddr_storage* sock, string* outAddr
     const string connectionId = "";
     ostringstream errorMessageStream;
     errorMessageStream << "Unexpected address family " << sock->ss_family << ".";
-    sendErrorPacket(errorMessageStream.str(), EINVAL, connectionId, pusherForErrors);
+    sendUvErrorPacket(errorMessageStream.str(), EINVAL, connectionId, pusherForErrors);
     return status;
   }
 
@@ -125,9 +137,9 @@ struct ExtendedUvWriteT {
   Buffer buffer;
 };
 
-class UvTcpClientImpl final {
+class UvTcpImpl final {
  public:
-  UvTcpClientImpl()
+  UvTcpImpl()
   : mBufferPool(
       []{ return new uint8_t[kBufferSizeInPool]; },
       [](uint8_t* buf) { delete[] buf; }),
@@ -138,26 +150,92 @@ class UvTcpClientImpl final {
           writeReq->buffer.length = 0;
         }) {}
 
-  ~UvTcpClientImpl() {
+  ~UvTcpImpl() {
 
   }
 
   void connect(const Packet* packet) {
+    if (!packet->parameters.contains(kParameter_Port)) {
+      const string connectionId = "";
+      sendUvErrorPacket("Missing parameter '" + kParameter_Port + "'.", EINVAL, connectionId, mConnectorPacketPusher);
+      return;
+    }
+
+    if (!packet->parameters.contains(kParameter_Address)) {
+      const string connectionId = "";
+      sendUvErrorPacket("Missing parameter '" + kParameter_Address + "'.", EINVAL, connectionId, mConnectorPacketPusher);
+      return;
+    }
+
+    uint16_t port = packet->parameters[kParameter_Port].get<uint16_t>();
+    string address = packet->parameters[kParameter_Address].get<string>();
+
+    mNoDelay = false;
+    if (packet->parameters.contains(kParameter_NoDelay)) {
+      mNoDelay = packet->parameters[kParameter_NoDelay].get<bool>();
+    }
+
+    sockaddr_storage addr;
+    memset(&addr, 0, sizeof(addr));
+    int status = uv_ip6_addr(address.c_str(), port, reinterpret_cast<sockaddr_in6*>(&addr));
+    if (status != 0) {
+      status = uv_ip4_addr(address.c_str(), port, reinterpret_cast<sockaddr_in*>(&addr));
+
+      if (status != 0) {
+        const string connectionId = "";
+        sendUvErrorPacket(
+            "Could not parse address '" + address + "' port " + to_string(port) + ".",
+            status,
+            connectionId,
+            mConnectorPacketPusher);
+        return;
+      }
+    }
+
+    uv_tcp_t* uvSocket = reinterpret_cast<uv_tcp_t*>(calloc(1, sizeof(uv_tcp_t)));
+    if (!uvSocket) {
+      throw bad_alloc();
+    }
+
+    status = uv_tcp_init(mUvLoop.get(), uvSocket);
+    if (status != 0) {
+      const string connectionId = "";
+      sendUvErrorPacket("Could not initialize TCP client.", status, connectionId, mConnectorPacketPusher);
+      return;
+    }
+
+    uv_connect_t* connect = reinterpret_cast<uv_connect_t*>(calloc(1, sizeof(uv_connect_t)));
+    if (!connect) {
+      throw bad_alloc();
+    }
+
+    connect->data = this;
+
+    status = uv_tcp_connect(
+        connect, &uvSocket, reinterpret_cast<const sockaddr*>(&addr), onOutgoingConnectionEstablishedWrapper);
+    if (status != 0) {
+      const string connectionId = "";
+      sendUvErrorPacket("Connection failed.", status, connectionId, mConnectorPacketPusher);
+      return;
+    }
+  }
+
+  void listen(const Packet* packet) {
     const bool alreadyListening = !mListeningAddressPortPair.empty();
     if (alreadyListening) {
-      sendErrorPacket("Already listening.", EINVAL, "", mListenerPacketPusher);
+      sendUvErrorPacket("Already listening.", EINVAL, "", mListenerPacketPusher);
       return;
     }
 
     if (!packet->parameters.contains(kParameter_Port)) {
       const string connectionId = "";
-      sendErrorPacket("Missing parameter '" + kParameter_Port + "'.", EINVAL, connectionId, mListenerPacketPusher);
+      sendUvErrorPacket("Missing parameter '" + kParameter_Port + "'.", EINVAL, connectionId, mListenerPacketPusher);
       return;
     }
 
     string address = "::";
     if (packet->parameters.contains(kParameter_Address)) {
-      address = packet->parameters[kParameter_Address];
+      address = packet->parameters[kParameter_Address].get<string>();
     }
 
     int backlog = 100;
@@ -180,7 +258,7 @@ class UvTcpClientImpl final {
 
       if (status != 0) {
         const string connectionId = "";
-        sendErrorPacket("Could not parse address '" + address + "' port " + to_string(port) + ".", status, connectionId, mListenerPacketPusher);
+        sendUvErrorPacket("Could not parse address '" + address + "' port " + to_string(port) + ".", status, connectionId, mListenerPacketPusher);
         return;
       }
     }
@@ -188,15 +266,15 @@ class UvTcpClientImpl final {
     status = uv_tcp_bind(&mTcpServer, reinterpret_cast<const sockaddr*>(&addr), 0);
     if (status != 0) {
       const string connectionId = "";
-      sendErrorPacket("Could not bind to address '" + address + "' port " + to_string(port) + ".", status, connectionId, mListenerPacketPusher);
+      sendUvErrorPacket("Could not bind to address '" + address + "' port " + to_string(port) + ".", status, connectionId, mListenerPacketPusher);
       return;
     }
 
     mTcpServer.data = this;
-    status = uv_listen(reinterpret_cast<uv_stream_t*>(&mTcpServer), backlog, onNewConnectionWrapper);
+    status = uv_listen(reinterpret_cast<uv_stream_t *>(&mTcpServer), backlog, onNewIncomingConnectionWrapper);
     if (status != 0) {
       const string connectionId = "";
-      sendErrorPacket("Could not listen on address '" + address + "' port " + to_string(port) + ".", status, connectionId, mListenerPacketPusher);
+      sendUvErrorPacket("Could not listen on address '" + address + "' port " + to_string(port) + ".", status, connectionId, mListenerPacketPusher);
       return;
     }
 
@@ -207,7 +285,7 @@ class UvTcpClientImpl final {
     status = uv_tcp_getsockname(&mTcpServer, reinterpret_cast<sockaddr*>(&populatedSocket), &socketSize);
     if (status != 0) {
       const string connectionId = "";
-      sendErrorPacket("Could not get listening server address/port.", status, connectionId, mListenerPacketPusher);
+      sendUvErrorPacket("Could not get listening server address/port.", status, connectionId, mListenerPacketPusher);
       return;
     }
 
@@ -228,15 +306,34 @@ class UvTcpClientImpl final {
     mListenerPacketPusher->pushPacket(&listenSuccessPacket, kChannel_Listening);
   }
 
-  static void onConnectedWrapper(uv_connect_t* uvConnect, int status) {
-    auto serverImpl = reinterpret_cast<UvTcpClientImpl*>(uvConnect->data);
-    serverImpl->onConnected(uvConnect, status);
+  static void onOutgoingConnectionEstablishedWrapper(uv_connect_t* client, int status) {
+    auto serverImpl = reinterpret_cast<UvTcpImpl*>(client->data);
+    serverImpl->onOutgoingConnectionEstablished(client, status);
   }
 
-  void onConnected(uv_connect_t* uvConnect, int status) {
+  void onOutgoingConnectionEstablished(uv_connect_t* client, int status) {
+    sdf
+  }
+
+  static void onNewIncomingConnectionWrapper(uv_stream_t* server, int status) {
+    auto serverImpl = reinterpret_cast<UvTcpImpl*>(server->data);
+    serverImpl->onNewIncomingConnection(server, status);
+  }
+
+  void onNewIncomingConnection(uv_stream_t* server, int status) {
     if (status < 0) {
       const string connectionId = "";
-      sendErrorPacket("Failed to establish connection.", status, connectionId, mListenerPacketPusher);
+      sendUvErrorPacket("New connection failed.", status, connectionId, mListenerPacketPusher);
+      return;
+    }
+
+    auto client = make_shared<uv_tcp_t>();
+    uv_tcp_init(mUvLoop.get(), client.get());
+    client->data = this;
+    status = uv_accept(server, reinterpret_cast<uv_stream_t*>(client.get()));
+    if (status != 0) {
+      const string connectionId = "";
+      sendUvErrorPacket("Failed to accept connection.", status, connectionId, mListenerPacketPusher);
       return;
     }
 
@@ -246,7 +343,7 @@ class UvTcpClientImpl final {
     status = uv_tcp_getpeername(client.get(), reinterpret_cast<sockaddr*>(&clientSocket), &clientSocketSize);
     if (status != 0) {
       string connectionId = "";
-      sendErrorPacket("Failed to get remote address/port from socket.", status, connectionId, mListenerPacketPusher);
+      sendUvErrorPacket("Failed to get remote address/port from socket.", status, connectionId, mListenerPacketPusher);
       return;
     }
 
@@ -270,7 +367,7 @@ class UvTcpClientImpl final {
 
     status = uv_read_start(reinterpret_cast<uv_stream_t*>(client.get()), allocateBufferWrapper, dataReceivedWrapper);
     if (status != 0) {
-      sendErrorPacket("Failed to start reading from incoming connection.", status, connectionId, mListenerPacketPusher);
+      sendUvErrorPacket("Failed to start reading from incoming connection.", status, connectionId, mListenerPacketPusher);
       uv_close(reinterpret_cast<uv_handle_t*>(client.get()), onConnectionRemovedWrapper);
       return;
     }
@@ -282,7 +379,7 @@ class UvTcpClientImpl final {
   }
 
   static void dataReceivedWrapper(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf) {
-    auto serverImpl = reinterpret_cast<UvTcpClientImpl*>(stream->data);
+    auto serverImpl = reinterpret_cast<UvTcpImpl*>(stream->data);
     serverImpl->dataReceived(stream, nread, buf);
   }
 
@@ -301,7 +398,7 @@ class UvTcpClientImpl final {
       uv_close(reinterpret_cast<uv_handle_t*>(connection->uvSocket.get()), onConnectionRemovedWrapper);
       return;
     } else if (nread < 0) {
-      sendErrorPacket("TCP receive error.", nread, connection->connectionId, mDataReceivedPacketPusher);
+      sendUvErrorPacket("TCP receive error.", nread, connection->connectionId, mDataReceivedPacketPusher);
       return;
     }
 
@@ -335,7 +432,7 @@ class UvTcpClientImpl final {
   }
 
   static void onDataSentWrapper(uv_write_t* req, int status) {
-    auto serverImpl = reinterpret_cast<UvTcpClientImpl*>(req->data);
+    auto serverImpl = reinterpret_cast<UvTcpImpl*>(req->data);
     serverImpl->onDataSent(req, status);
   }
 
@@ -370,8 +467,12 @@ class UvTcpClientImpl final {
     int status = uv_tcp_init(mUvLoop.get(), &mTcpServer);
     if (status != 0) {
       const string connectionId = "";
-      sendErrorPacket("Could not initialize server's TCP socket.", status, connectionId, mListenerPacketPusher);
+      sendUvErrorPacket("Could not initialize server's TCP socket.", status, connectionId, mListenerPacketPusher);
     }
+  }
+
+  void setConnectorPacketPusher(const shared_ptr<IPacketPusher>& packetPusher) {
+    mConnectorPacketPusher = packetPusher;
   }
 
   void setListenerPacketPusher(const shared_ptr<IPacketPusher>& packetPusher) {
@@ -390,6 +491,7 @@ class UvTcpClientImpl final {
   uint16_t mBoundPort = 0;
 
   bool mNoDelay = false;
+  shared_ptr<IPacketPusher> mConnectorPacketPusher;
   shared_ptr<IPacketPusher> mListenerPacketPusher;
   shared_ptr<IPacketPusher> mDataReceivedPacketPusher;
 
@@ -409,7 +511,7 @@ class UvTcpClientImpl final {
   }
 
   static void allocateBufferWrapper(uv_handle_t* handle, size_t suggestedSize, uv_buf_t* buf) {
-    auto serverImpl = reinterpret_cast<UvTcpClientImpl*>(handle->data);
+    auto serverImpl = reinterpret_cast<UvTcpImpl*>(handle->data);
     serverImpl->allocateBuffer(handle, suggestedSize, buf);
   }
 
@@ -426,7 +528,7 @@ class UvTcpClientImpl final {
   }
 
   static void onConnectionRemovedWrapper(uv_handle_t* handle) {
-    auto serverImpl = reinterpret_cast<UvTcpClientImpl*>(handle->data);
+    auto serverImpl = reinterpret_cast<UvTcpImpl*>(handle->data);
     serverImpl->onConnectionRemoved(handle);
   }
 
@@ -455,34 +557,57 @@ class UvTcpClientImpl final {
 
 class UvTcpConnector : public ISink, public ISource, public INode {
  public:
-  UvTcpConnector(const shared_ptr<UvTcpCLientImpl>& client) : mClient(client) {}
+  UvTcpConnector(const shared_ptr<UvTcpImpl>& tcp) : mTcp(tcp) {}
   ~UvTcpConnector() override = default;
 
-  void handlePacket(const Packet* packet) override { mServer->listen(packet); }
+  void handlePacket(const Packet* packet) override { mTcp->connect(packet); }
 
   IPathable *asPathable() override { return nullptr; }
   ISink *asSink() override { return this; }
   ISource *asSource() override {return this; }
 
   void setPacketPusher(const shared_ptr<IPacketPusher>& packetPusher) override {
-    mServer->setListenerPacketPusher(packetPusher);
+    mTcp->setConnectorPacketPusher(packetPusher);
   }
 
   void setSubgraphContext(const std::shared_ptr<ISubgraphContext> &context) override {
-    mServer->setUvLoop(context->getUvLoop());
+    mTcp->setUvLoop(context->getUvLoop());
   }
 
  private:
-  const shared_ptr<UvTcpClientImpl> mServer;
+  const shared_ptr<UvTcpImpl> mTcp;
+};
+
+class UvTcpListener : public ISink, public ISource, public INode {
+ public:
+  UvTcpListener(const shared_ptr<UvTcpImpl>& tcp) : mTcp(tcp) {}
+  ~UvTcpListener() override = default;
+
+  void handlePacket(const Packet* packet) override { mTcp->listen(packet); }
+
+  IPathable *asPathable() override { return nullptr; }
+  ISink *asSink() override { return this; }
+  ISource *asSource() override {return this; }
+
+  void setPacketPusher(const shared_ptr<IPacketPusher>& packetPusher) override {
+    mTcp->setListenerPacketPusher(packetPusher);
+  }
+
+  void setSubgraphContext(const std::shared_ptr<ISubgraphContext> &context) override {
+    mTcp->setUvLoop(context->getUvLoop());
+  }
+
+ private:
+  const shared_ptr<UvTcpImpl> mTcp;
 };
 
 class UvTcpDataReceiver : public ISource, public INode {
  public:
-  UvTcpDataReceiver(const shared_ptr<UvTcpClientImpl>& server) : mServer(server) {}
+  UvTcpDataReceiver(const shared_ptr<UvTcpImpl>& tcp) : mTcp(tcp) {}
   ~UvTcpDataReceiver() override = default;
 
   void setPacketPusher(const shared_ptr<IPacketPusher>& packetPusher) override {
-    mServer->setReceiverPacketPusher(packetPusher);
+    mTcp->setReceiverPacketPusher(packetPusher);
   }
 
   IPathable *asPathable() override { return nullptr; }
@@ -490,60 +615,61 @@ class UvTcpDataReceiver : public ISource, public INode {
   ISource *asSource() override {return this; }
 
  private:
-  const shared_ptr<UvTcpClientImpl> mServer;
+  const shared_ptr<UvTcpImpl> mTcp;
 };
 
 class UvTcpSender : public ISink, public INode {
  public:
-  UvTcpSender(const shared_ptr<UvTcpClientImpl>& server) : mServer(server) {}
+  UvTcpSender(const shared_ptr<UvTcpImpl>& tcp) : mTcp(tcp) {}
   ~UvTcpSender() override = default;
-  void handlePacket(const Packet* packet) override { mServer->sendData(packet); }
+  void handlePacket(const Packet* packet) override { mTcp->sendData(packet); }
 
   IPathable *asPathable() override { return nullptr; }
   ISink *asSink() override { return this; }
   ISource *asSource() override {return nullptr; }
 
  private:
-  const shared_ptr<UvTcpClientImpl> mServer;
+  const shared_ptr<UvTcpImpl> mTcp;
 };
 
 class UvTcpDisconnector : public IPathable, public INode {
  public:
-  UvTcpDisconnector(const shared_ptr<UvTcpClientImpl>& server) : mServer(server) {}
+  UvTcpDisconnector(const shared_ptr<UvTcpImpl>& tcp) : mTcp(tcp) {}
   ~UvTcpDisconnector() override = default;
-  void handlePacket(const PathablePacket* packet) override { mServer->disconnect(packet); }
+  void handlePacket(const PathablePacket* packet) override { mTcp->disconnect(packet); }
 
   IPathable *asPathable() override { return this; }
   ISink *asSink() override { return nullptr; }
   ISource *asSource() override {return nullptr; }
 
  private:
-  const shared_ptr<UvTcpClientImpl> mServer;
+  const shared_ptr<UvTcpImpl> mTcp;
 };
 
-size_t UvTcpServerNode::getNodeCount() {
-  return mNodes.size();
-}
-
-UvTcpServerNode::UvTcpServerNode() : mImpl(make_shared<UvTcpClientImpl>()) {
+UvTcpConnectionGroup::UvTcpConnectionGroup() : mImpl(make_shared<UvTcpImpl>()) {
+  mNodes[kNodeName_Connector] = make_shared<UvTcpConnector>(mImpl);
   mNodes[kNodeName_Listener] = make_shared<UvTcpListener>(mImpl);
   mNodes[kNodeName_Receiver] = make_shared<UvTcpDataReceiver>(mImpl);
   mNodes[kNodeName_Sender] = make_shared<UvTcpSender>(mImpl);
   mNodes[kNodeName_Disconnector] = make_shared<UvTcpDisconnector>(mImpl);
 }
 
-string UvTcpServerNode::getNodeName(size_t nodeIndex) {
+size_t UvTcpConnectionGroup::getNodeCount() {
+  return mNodes.size();
+}
+
+string UvTcpConnectionGroup::getNodeName(size_t nodeIndex) {
   switch(nodeIndex) {
-    case 0: return "Listen";
-    case 1: return "Accept";
-    case 2: return "Data Received";
-    case 3: return "Send Data";
-    case 4: return "Disconnect";
+    case 0: return kNodeName_Connector;
+    case 1: return kNodeName_Listener;
+    case 2: return kNodeName_Receiver;
+    case 3: return kNodeName_Sender;
+    case 4: return kNodeName_Disconnector;
     default: throw runtime_error("Invalid node index: " + to_string(nodeIndex));
   }
 }
 
-shared_ptr<INode> UvTcpServerNode::getNode(const string& nodeName) {
+shared_ptr<INode> UvTcpConnectionGroup::getNode(const string& nodeName) {
   return mNodes[nodeName];
 }
 

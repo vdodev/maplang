@@ -17,14 +17,7 @@
 #include "maplang/DataGraph.h"
 #include "maplang/NodeRegistration.h"
 #include "maplang/json.hpp"
-#include "nodes/SendOnce.h"
-#include "nodes/tcp/UvTcpServerGroup.h"
-#include "nodes/VolatileKeyValueStore.h"
 #include "maplang/UvLoopRunner.h"
-#include "nodes/HttpRequestExtractor.h"
-#include "nodes/SendOnce.h"
-#include "nodes/HttpResponseWriter.h"
-#include "nodes/HttpResponseWithAddressAsBody.h"
 
 using namespace std;
 using namespace maplang;
@@ -41,13 +34,6 @@ static void registerNodes() {
 }
 
 int main(int argc, char** argv) {
-  auto kvStore = make_shared<VolatileKeyValueStore>(R"(
-  {
-    "key": "TcpConnectionId",
-    "retainBuffers": false
-  }
-  )"_json);
-
   registerNodes();
 
   const auto registration = NodeRegistration::defaultRegistration();
