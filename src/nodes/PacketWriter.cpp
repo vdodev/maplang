@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "PacketWriter.h"
+#include "nodes/PacketWriter.h"
 #include <sstream>
 
 using namespace std;

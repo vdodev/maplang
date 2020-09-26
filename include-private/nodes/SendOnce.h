@@ -32,6 +32,7 @@ class SendOnce : public INode, public ISource {
   IPathable *asPathable() override { return nullptr; }
   ISink *asSink() override { return nullptr; }
   ISource *asSource() override { return this; }
+  ICohesiveGroup* asGroup() override { return nullptr; }
 
  private:
   const nlohmann::json mSendOnceData;

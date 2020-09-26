@@ -14,34 +14,25 @@
  * limitations under the License.
  */
 
-#ifndef __MAPLANG_INODE_H__
-#define __MAPLANG_INODE_H__
+#ifndef __MAPLANG_PRINTBUFFERASSTRING_H__
+#define __MAPLANG_PRINTBUFFERASSTRING_H__
 
-#include <functional>
-
+#include "maplang/INode.h"
 #include "maplang/IPathable.h"
-#include "maplang/ISink.h"
-#include "maplang/ISource.h"
-#include "maplang/ISubgraphContext.h"
-#include "maplang/json.hpp"
 
 namespace maplang {
 
-class ICohesiveGroup;
-
-class INode {
+class PrintBufferAsString final : public INode, public ISink {
  public:
-  virtual ~INode() {}
+  ~PrintBufferAsString() override = default;
 
-  virtual void setSubgraphContext(
-      const std::shared_ptr<ISubgraphContext> &context) {}
+  void handlePacket(const Packet* incomingPacket) override;
 
-  virtual IPathable *asPathable() = 0;
-  virtual ISink *asSink() = 0;
-  virtual ISource *asSource() = 0;
-  virtual ICohesiveGroup *asGroup() = 0;
+  IPathable* asPathable() override { return nullptr; }
+  ISource* asSource() override { return nullptr; }
+  ISink* asSink() override { return this; }
 };
 
 }  // namespace maplang
 
-#endif  // __MAPLANG_INODE_H__
+#endif // __MAPLANG_HTTP_RESPONSE_WITH_ADDRESS_AS_BODY_H__

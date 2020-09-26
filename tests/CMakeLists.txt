@@ -27,6 +27,7 @@ target_link_libraries(
         gtest_main
 )
 
-target_include_directories(maplang_tests PRIVATE ..)
+target_include_directories(maplang_tests PUBLIC ${PROJECT_SOURCE_DIR}/../include)
+target_include_directories(maplang_tests PRIVATE ${PROJECT_SOURCE_DIR}/../include-private)
 
 add_test(NAME maplang_tests1 COMMAND maplang_tests)

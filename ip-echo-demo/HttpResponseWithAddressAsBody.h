@@ -31,6 +31,7 @@ class HttpResponseWithAddressAsBody final : public INode, public IPathable {
   IPathable* asPathable() override { return this; }
   ISource* asSource() override { return nullptr; }
   ISink* asSink() override { return nullptr; }
+  ICohesiveGroup* asGroup() override { return nullptr; }
 };
 
 }  // namespace maplang

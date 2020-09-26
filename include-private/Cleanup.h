@@ -17,10 +17,25 @@
 #ifndef MAPLANG_SRC_CLEANUP_H_
 #define MAPLANG_SRC_CLEANUP_H_
 
+#include <functional>
+
 namespace maplang {
 
-class Cleanup {
+class Cleanup final {
+ public:
+  Cleanup(std::function<void()>&& cleanup) : mCleanup(std::move(cleanup)) {}
+  ~Cleanup() {
+    if (mCleanup) {
+      mCleanup();
+    }
+  }
 
+  void cancelCleanup() {
+    mCleanup = nullptr;
+  }
+
+ private:
+  std::function<void()> mCleanup;
 };
 
 }  // namespace maplang

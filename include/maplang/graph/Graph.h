@@ -45,6 +45,8 @@ class Graph final {
       const std::string& fromPathableId = "",
       const std::string& toPathableId = "");
 
+  void removeItem(const ItemClass& item);
+
   using GraphElementVisitor = std::function<void (const std::shared_ptr<GraphElementType>& graphElement)>;
 
   /**
@@ -56,16 +58,12 @@ class Graph final {
   void visitGraphElementsHeadsLast(const GraphElementVisitor& visitor) const;
 
   bool hasItem(const ItemClass& item, const std::string& pathableId) const;
-
+  bool hasItemWithAnyPathableId(const ItemClass& item) const;
   std::shared_ptr<GraphElementType> getOrCreateGraphElement(const ItemClass& item, const std::string& pathableId);
 
  private:
-  using GraphElementLookupKey = std::pair<const ItemClass, std::string>;
-
-  std::unordered_map<GraphElementLookupKey, std::shared_ptr<GraphElementType>> mItemToGraphElementMap;
-
- private:
-  void validateNodeTypesAreCompatible(const std::shared_ptr<INode>& node) const;
+  // Item -> Pathable ID -> Graph Element
+  std::unordered_map<const ItemClass, std::unordered_map<std::string, std::shared_ptr<GraphElementType>>> mItemToGraphElementMap;
 };
 
 }  // namespace maplang

@@ -29,6 +29,8 @@ class ObjectPool final {
     : mFactory(move(objectFactory)), mDisposer(move(disposer)) {}
 
   ~ObjectPool() {
+    printf("~ObjectPool()\n");
+
     while (!mObjects.empty()) {
       mDisposer(mObjects.top());
       mObjects.pop();

@@ -9,58 +9,64 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 
 add_library(maplang
-        logging.h
+        include-private/logging.h
         include/maplang/ISource.h
         include/maplang/ISink.h
-        DataGraph.cpp
+        src/DataGraph.cpp
         include/maplang/DataGraph.h
         include/maplang/Buffer.h
         include/maplang/Packet.h
         include/maplang/PathablePacket.h
         include/maplang/JsonGraphBuilder.h
-        JsonGraphBuilder.cpp
+        src/JsonGraphBuilder.cpp
         include/maplang/INode.h
-        nodes/tcp/UvTcpClientGroup.h
-        nodes/tcp/UvTcpClientGroup.cpp
         include/maplang/ISubgraphContext.h
         include/maplang/ICohesiveGroup.h
-        nodes/SendOnce.h
-        nodes/SendOnce.cpp
-        nodes/VolatileKeyValueStore.h
-        nodes/VolatileKeyValueStore.cpp
-        nodes/HttpResponseWriter.h
-        nodes/HttpResponseWriter.cpp
-        nodes/HttpResponseWithAddressAsBody.h
-        nodes/HttpResponseWithAddressAsBody.cpp
-        nodes/tcp/UvTcpServerGroup.h
-        nodes/tcp/UvTcpServerGroup.cpp
+        include-private/nodes/SendOnce.h
+        src/nodes/SendOnce.cpp
+        include-private/nodes/VolatileKeyValueStore.h
+        src/nodes/VolatileKeyValueStore.cpp
+        include-private/nodes/HttpResponseWriter.h
+        src/nodes/HttpResponseWriter.cpp
+        include-private/nodes/UvTcpConnectionGroup.h
+        src/nodes/UvTcpConnectionGroup.cpp
         include/maplang/NodeRegistration.h
-        NodeRegistration.cpp
+        src/NodeRegistration.cpp
         include/maplang/IPathable.h
         include/maplang/IPacketPusher.h
-        nodes/HttpRequestExtractor.h
-        nodes/HttpRequestExtractor.cpp
-        nodes/ContextualNode.h
+        include-private/nodes/HttpRequestExtractor.h
+        src/nodes/HttpRequestExtractor.cpp
+        include-private/nodes/ContextualNode.h
         include/maplang/MemoryStream.h
-        nodes/ContextualNode.cpp
-        MemoryStream.cpp
+        src/nodes/ContextualNode.cpp
+        src/MemoryStream.cpp
         include/maplang/graph/DefaultGraphEdge.h
         include/maplang/graph/GraphElement.h
         include/maplang/graph/Graph.h
         include/maplang/graph/GraphImpl.h
         include/maplang/UvLoopRunner.h
-        UvLoopRunner.cpp
-        nodes/PacketWriter.h
-        nodes/PacketWriter.cpp
-        nodes/PacketReader.h
-        nodes/PacketReader.cpp
-        nodes/VolatileKeyValueSet.cpp
-        nodes/VolatileKeyValueSet.h
-        BlueprintBuilder.cpp
+        src/UvLoopRunner.cpp
+        include-private/nodes/PacketWriter.h
+        src/nodes/PacketWriter.cpp
+        include-private/nodes/PacketReader.h
+        src/nodes/PacketReader.cpp
+        src/nodes/VolatileKeyValueSet.cpp
+        include-private/nodes/VolatileKeyValueSet.h
+        src/BlueprintBuilder.cpp
         include/maplang/BlueprintBuilder.h
         include/maplang/Errors.h
-        LibuvUtilities.cpp
-        LibuvUtilities.h)
+        src/Errors.cpp
+        src/LibuvUtilities.cpp
+        include-private/LibuvUtilities.h
+        include-private/Cleanup.h
+        src/nodes/OrderedPacketSender.cpp
+        include-private/nodes/OrderedPacketSender.h
+        src/nodes/HttpRequestHeaderWriter.cpp
+        include-private/nodes/HttpRequestHeaderWriter.h
+        src/nodes/HttpResponseExtractor.cpp
+        include-private/nodes/HttpResponseExtractor.h
+        src/HttpUtilities.cpp
+        include/maplang/HttpUtilities.h)
 
 target_include_directories(maplang PUBLIC /usr/local/include)
 target_include_directories(maplang PUBLIC ${PROJECT_SOURCE_DIR}/include)
@@ -69,8 +75,17 @@ set_target_properties(maplang PROPERTIES maplang_MODULE_DIRECTORY ${PROJECT_SOUR
 
 target_link_libraries(maplang /usr/local/lib/libuv_a.a dl pthread)
 
-add_executable(http-echo main.cpp src/Errors.cpp)
-target_link_libraries(http-echo maplang)
+add_executable(http-ip-echo
+        ip-echo-demo/ip-echo-main.cpp
+        ip-echo-demo/HttpResponseWithAddressAsBody.cpp
+        ip-echo-demo/HttpResponseWithAddressAsBody.h)
+target_link_libraries(http-ip-echo maplang)
+
+add_executable(http-get
+        http-get-demo/http-get-main.cpp
+        http-get-demo/PrintBufferAsString.cpp
+        http-get-demo/PrintBufferAsString.h)
+target_link_libraries(http-get maplang)
 
 option(USE_TESTS "Enable unit testing" ON)
 if(USE_TESTS)

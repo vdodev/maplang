@@ -17,6 +17,8 @@
 #ifndef __MAPLANG_ICOHESIVEGROUP_H__
 #define __MAPLANG_ICOHESIVEGROUP_H__
 
+#include <memory>
+
 #include "maplang/INode.h"
 
 namespace maplang {

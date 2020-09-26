@@ -21,7 +21,7 @@
 
 namespace maplang {
 
-class VolatileKeyValueStore : public ICohesiveGroup {
+class VolatileKeyValueStore : public ICohesiveGroup, public INode {
  public:
   VolatileKeyValueStore(const nlohmann::json& initParameters);
   ~VolatileKeyValueStore() override = default;
@@ -31,6 +31,11 @@ class VolatileKeyValueStore : public ICohesiveGroup {
 
   std::shared_ptr<INode> getNode(
       const std::string& partitionName) override;
+
+  IPathable *asPathable() override { return nullptr; }
+  ISink *asSink() override { return nullptr; }
+  ISource *asSource() override { return nullptr; }
+  ICohesiveGroup* asGroup() override { return this; }
 
  private:
   struct Partition {

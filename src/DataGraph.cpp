@@ -78,7 +78,9 @@ class DataGraphImpl final : public enable_shared_from_this<DataGraphImpl> {
   shared_ptr<ISubgraphContext> mSubgraphContext;
   uv_async_t mPacketReadyAsync;
   moodycamel::ConcurrentQueue<PushedPacketInfo> mPacketQueue;
-  unordered_map<const INode*, weak_ptr<DataGraphElement>> mNodeToGraphElementMap;
+
+  // node -> pathable ID -> DataGraphElement
+  unordered_map<const INode*, unordered_map<string, weak_ptr<DataGraphElement>>> mNodeToGraphElementMap;
 
  public:
   DataGraphImpl(const std::shared_ptr<uv_loop_t>& uvLoop) : mUvLoop(uvLoop) {
@@ -107,6 +109,30 @@ class SubgraphContext : public ISubgraphContext {
       : mUvLoop(impl->mUvLoop), mImplWeak(impl) {}
 
   shared_ptr<uv_loop_t> getUvLoop() const override { return mUvLoop; }
+
+  void removeFromGraph(INode* removeNode) override {
+    const auto impl = mImplWeak.lock();
+    if (impl == nullptr) {
+      return;
+    }
+
+    DataGraphItem removeItem;
+
+    /*
+     * This shared_ptr doesn't track the pointer's ref count. DataGraphItem has to
+     * be used to remove it from the underlying graph.
+     */
+    removeItem.node = shared_ptr<INode>(removeNode, [](INode* node) {});
+    impl->mGraph.removeItem(removeItem);
+    removeItem.node.reset();
+
+    auto mapIt = impl->mNodeToGraphElementMap.find(removeNode);
+    if (mapIt == impl->mNodeToGraphElementMap.end()) {
+      return;
+    }
+
+    impl->mNodeToGraphElementMap.erase(mapIt);
+  }
 
  private:
   const shared_ptr<uv_loop_t> mUvLoop;
@@ -315,9 +341,20 @@ bool DataGraphImpl::hasDataGraphElement(const std::shared_ptr<INode>& node, cons
 
 std::shared_ptr<DataGraphElement> DataGraphImpl::getOrCreateDataGraphElement(
     const std::shared_ptr<INode>& node, const std::string& pathableId) {
-  const auto it = mNodeToGraphElementMap.find(node.get());
+  auto mapIt = mNodeToGraphElementMap.find(node.get());
   shared_ptr<DataGraphElement> graphElement;
-  if (it == mNodeToGraphElementMap.end()) {
+
+  if (mapIt == mNodeToGraphElementMap.end()) {
+    auto insertPair = mNodeToGraphElementMap.emplace(make_pair(
+      node.get(),
+      unordered_map<string, weak_ptr<DataGraphElement>>()));
+
+    mapIt = insertPair.first;
+  }
+
+  auto& pathableIdToElementMap = mapIt->second;
+  const auto elementIt = pathableIdToElementMap.find(pathableId);
+  if (elementIt == pathableIdToElementMap.end()) {
     DataGraphItem item;
     item.node = node;
 

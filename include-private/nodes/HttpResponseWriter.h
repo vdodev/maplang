@@ -25,6 +25,7 @@ namespace maplang {
 
 class HttpResponseWriter : public INode, public ISink, public ISource {
  public:
+  HttpResponseWriter(const nlohmann::json& initParameters);
   ~HttpResponseWriter() override = default;
 
   void handlePacket(const Packet* packet) override;
@@ -34,6 +35,7 @@ class HttpResponseWriter : public INode, public ISink, public ISource {
   ISink* asSink() override { return this; }
   ISource* asSource() override { return this; }
   IPathable* asPathable() override { return nullptr; }
+  ICohesiveGroup* asGroup() override { return nullptr; }
 
  private:
   std::shared_ptr<IPacketPusher> mPacketPusher;

@@ -14,21 +14,26 @@
  *  limitations under the License.
  */
 
-#include "LibuvUtilities.h"
-#include <uv.h>
+#ifndef MAPLANG_SRC_NODES_ORDEREDPACKETSENDER_H_
+#define MAPLANG_SRC_NODES_ORDEREDPACKETSENDER_H_
 
-using namespace std;
+#include "maplang/INode.h"
+#include "maplang/IPathable.h"
 
 namespace maplang {
 
-string uvStrError(int status) {
-  static constexpr size_t kErrorNameLength = 128;
-  char errorName[kErrorNameLength];
-  errorName[0] = 0;
-  uv_strerror_r(status, errorName, kErrorNameLength);
-  errorName[kErrorNameLength - 1] = 0;
+class OrderedPacketSender final : public INode, public IPathable {
+ public:
+  ~OrderedPacketSender() override = default;
 
-  return errorName;
-}
+  void handlePacket(const PathablePacket* incomingPacket) override;
+
+  IPathable *asPathable() override { return this; }
+  ISink *asSink() override { return nullptr; }
+  ISource *asSource() override { return nullptr; }
+  ICohesiveGroup* asGroup() override { return nullptr; }
+};
 
 }  // namespace maplang
+
+#endif //MAPLANG_SRC_NODES_ORDEREDPACKETSENDER_H_

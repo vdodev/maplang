@@ -14,21 +14,22 @@
  *  limitations under the License.
  */
 
-#include "LibuvUtilities.h"
-#include <uv.h>
+#include "nodes/OrderedPacketSender.h"
 
 using namespace std;
 
+static const string kChannel_First = "first";
+static const string kChannel_Last = "last";
+
 namespace maplang {
 
-string uvStrError(int status) {
-  static constexpr size_t kErrorNameLength = 128;
-  char errorName[kErrorNameLength];
-  errorName[0] = 0;
-  uv_strerror_r(status, errorName, kErrorNameLength);
-  errorName[kErrorNameLength - 1] = 0;
+void OrderedPacketSender::handlePacket(const PathablePacket *incomingPacket) {
+  Packet p;
+  p.parameters = incomingPacket->parameters;
+  p.buffers = incomingPacket->buffers;
 
-  return errorName;
+  incomingPacket->packetPusher->pushPacket(&p, kChannel_First);
+  incomingPacket->packetPusher->pushPacket(&p, kChannel_Last);
 }
 
 }  // namespace maplang

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "PacketReader.h"
+#include "nodes/PacketReader.h"
 #include <sstream>
 
 using namespace std;

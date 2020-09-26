@@ -1,59 +1,50 @@
 /*
  * Copyright 2020 VDO Dev Inc <support@maplang.com>
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 
-#include "nodes/HttpRequestExtractor.h"
+#include <memory>
+
+#include "nodes/HttpResponseExtractor.h"
 #include "maplang/Errors.h"
 #include "maplang/HttpUtilities.h"
-
-#include <memory>
 
 using namespace std;
 using namespace nlohmann;
 
 namespace maplang {
 
-
-
 static const string kChannel_BodyData = "Body Data";
-static const string kChannel_RequestEnded = "Request Ended";
-static const string kChannel_NewRequest = "New Request";
+static const string kChannel_ResponseEnded = "Request Ended";
+static const string kChannel_ReponseHeadersReceived = "Reponse Headers Received";
 
-
-HttpRequestExtractor::HttpRequestExtractor(const nlohmann::json& parameters) {
+HttpResponseExtractor::HttpResponseExtractor(const nlohmann::json& parameters) {
   reset();
 }
 
-HttpRequestExtractor::~HttpRequestExtractor() {
+HttpResponseExtractor::~HttpResponseExtractor() {
   sendEndOfRequestPacketIfRequestPending();
 }
 
-void HttpRequestExtractor::setPacketPusher(
+void HttpResponseExtractor::setPacketPusher(
     const std::shared_ptr<IPacketPusher>& pusher) {
   mPacketPusher = pusher;
 }
 
-void HttpRequestExtractor::handlePacket(const Packet* incomingPacket) {
+void HttpResponseExtractor::handlePacket(const Packet* incomingPacket) {
   try {
-    if (mSentHeaders) {
-      /*
-       * Won't know if it's the last one when Content-Length isn't set, but that
-       * means a new connection is required for the next request. Because this
-       * node is usually used inside of a ContextualNode, another instance of
-       * this class will handle the next request.
-       */
+    if (mReceivedHeaders) {
       bool knownLastBufferInRequest = false;
       const Buffer& incomingBuffer = incomingPacket->buffers[0];
       Packet bodyPacket =
@@ -91,15 +82,15 @@ void HttpRequestExtractor::handlePacket(const Packet* incomingPacket) {
     // Send a packet containing the request headers (no body data).
     Packet headerPacket = createHeaderPacket(mHeaderData.subStream(0, headersEnd));
     size_t contentLength = SIZE_MAX;
-    const json& httpHeaders = headerPacket.parameters[http::kParameter_HttpHeaders];
-    if (httpHeaders.contains(http::kHttpHeaderNormalized_ContentLength)) {
+    if (headerPacket.parameters[http::kParameter_HttpHeaders].contains(
+        "content-length")) {
       contentLength =
           headerPacket.parameters[http::kParameter_HttpHeaders][http::kHttpHeaderNormalized_ContentLength]
-              .get<uint64_t>();
+              .get<size_t>();
     }
 
-    mPacketPusher->pushPacket(&headerPacket, kChannel_NewRequest);
-    mSentHeaders = true;
+    mPacketPusher->pushPacket(&headerPacket, kChannel_ReponseHeadersReceived);
+    mReceivedHeaders = true;
 
     // If the incoming packet has part of the body, send body data as a separate
     // packet.
@@ -116,8 +107,8 @@ void HttpRequestExtractor::handlePacket(const Packet* incomingPacket) {
           shared_ptr<uint8_t>(incomingPacket->buffers[0].data, body);
 
       const size_t bodyLength = availableBodyLength < contentLength
-                                    ? availableBodyLength
-                                    : contentLength;
+                                ? availableBodyLength
+                                : contentLength;
       bodyBuffer.length = bodyLength;
 
       Packet bodyPacket = createBodyPacket(bodyBuffer);
@@ -131,7 +122,7 @@ void HttpRequestExtractor::handlePacket(const Packet* incomingPacket) {
   }
 }
 
-Packet HttpRequestExtractor::createHeaderPacket(const MemoryStream& memoryStream) const {
+Packet HttpResponseExtractor::createHeaderPacket(const MemoryStream& memoryStream) const {
   MemoryStream firstLine;
   MemoryStream headersStream;
 
@@ -158,11 +149,11 @@ Packet HttpRequestExtractor::createHeaderPacket(const MemoryStream& memoryStream
     string tokenString = outStream.str();
 
     if (index == 0) {
-      parameters[http::kParameter_HttpMethod] = tokenString;
-    } else if (index == 1) {
-      parameters[http::kParameter_HttpPath] = tokenString;
-    } else if (index == 2) {
       parameters[http::kParameter_HttpVersion] = tokenString;
+    } else if (index == 1) {
+      parameters[http::kParameter_HttpStatusCode] = tokenString;
+    } else if (index == 2) {
+      parameters[http::kParameter_HttpStatusReason] = tokenString;
     }
 
     return true;
@@ -176,15 +167,15 @@ Packet HttpRequestExtractor::createHeaderPacket(const MemoryStream& memoryStream
   return headerPacket;
 }
 
-void HttpRequestExtractor::reset() {
-  mSentHeaders = false;
+void HttpResponseExtractor::reset() {
+  mReceivedHeaders = false;
   mHeaderData.clear();
   mRequestId = to_string(mUniformDistribution(mRandomDevice));
   mBodyLength = SIZE_MAX;
   mSentBodyDataByteCount = 0;
 }
 
-Packet HttpRequestExtractor::createBodyPacket(const Buffer& bodyBuffer) const {
+Packet HttpResponseExtractor::createBodyPacket(const Buffer& bodyBuffer) const {
   Packet bodyPacket;
   bodyPacket.buffers.push_back(bodyBuffer);
   bodyPacket.parameters[http::kParameter_HttpRequestId] = mRequestId;
@@ -202,7 +193,7 @@ static string toLower(const string& str) {
   return out.str();
 }
 
-json HttpRequestExtractor::parseHeaders(const MemoryStream& headers) {
+json HttpResponseExtractor::parseHeaders(const MemoryStream& headers) {
   json parsedHeaders;
   headers.split(
       "\r\n", 2, [&parsedHeaders](size_t lineIndex, MemoryStream&& headerLine) {
@@ -229,8 +220,8 @@ json HttpRequestExtractor::parseHeaders(const MemoryStream& headers) {
   return parsedHeaders;
 }
 
-void HttpRequestExtractor::sendEndOfRequestPacketIfRequestPending() {
-  if (!mSentHeaders) {
+void HttpResponseExtractor::sendEndOfRequestPacketIfRequestPending() {
+  if (!mReceivedHeaders) {
     return;
   }
 
@@ -238,7 +229,7 @@ void HttpRequestExtractor::sendEndOfRequestPacketIfRequestPending() {
   packet.parameters[http::kParameter_HttpRequestId] = mRequestId;
 
   if (mPacketPusher) {
-    mPacketPusher->pushPacket(&packet, kChannel_RequestEnded);
+    mPacketPusher->pushPacket(&packet, kChannel_ResponseEnded);
   }
 }
 

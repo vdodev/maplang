@@ -29,9 +29,12 @@ const extern std::string kParameter_ErrorName;
 const extern std::string kParameter_ErrorMessage;
 
 inline Packet createErrorPacket(
-    const std::string& errorName, const std::string& errorMessage, const nlohmann::json& extraParameters) {
+    const std::string& errorName, const std::string& errorMessage, const nlohmann::json& extraParameters = nullptr) {
   Packet packet;
-  packet.parameters = extraParameters;
+  if (extraParameters != nullptr) {
+    packet.parameters = extraParameters;
+  }
+
   packet.parameters[kParameter_ErrorName] = errorName;
   packet.parameters[kParameter_ErrorMessage] = errorMessage;
 
@@ -42,8 +45,16 @@ inline void sendErrorPacket(
     const std::shared_ptr<IPacketPusher>& packetPusher,
     const std::string& errorName,
     const std::string& errorMessage,
-    const nlohmann::json& extraParameters) {
+    const nlohmann::json& extraParameters = nullptr) {
   Packet errorPacket = createErrorPacket(errorName, errorMessage, extraParameters);
+  packetPusher->pushPacket(&errorPacket, kChannel_Error);
+}
+
+inline void sendErrorPacket(
+    const std::shared_ptr<IPacketPusher>& packetPusher,
+    const std::exception& ex,
+    const nlohmann::json& extraParameters = nullptr) {
+  Packet errorPacket = createErrorPacket("exception", ex.what(), extraParameters);
   packetPusher->pushPacket(&errorPacket, kChannel_Error);
 }
 

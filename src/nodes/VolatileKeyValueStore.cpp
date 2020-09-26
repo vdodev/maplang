@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "VolatileKeyValueStore.h"
+#include "nodes/VolatileKeyValueStore.h"
 #include <iostream>
 
 using namespace std;
@@ -41,6 +41,7 @@ class Setter : public INode, public ISink {
   IPathable* asPathable() override { return nullptr; }
   ISource* asSource() override { return nullptr; }
   ISink* asSink() override { return this; }
+  ICohesiveGroup* asGroup() override { return nullptr; }
 
   void handlePacket(const Packet* incomingPacket) override {
     const json& key = incomingPacket->parameters[mKeyName];
@@ -75,6 +76,7 @@ class Getter : public INode, public IPathable {
   IPathable* asPathable() override { return this; }
   ISource* asSource() override { return nullptr; }
   ISink* asSink() override { return nullptr; }
+  ICohesiveGroup* asGroup() override { return nullptr; }
 
   void handlePacket(const PathablePacket* packet) override {
     const string key = packet->parameters[mKeyName].get<string>();

@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-#include "nodes/HttpResponseWithAddressAsBody.h"
+#include "HttpResponseWithAddressAsBody.h"
+#include "maplang/HttpUtilities.h"
 
 using namespace std;
 using namespace nlohmann;
 
 namespace maplang {
 
-static const char* const kParameter_HttpHeaders = "http-headers";
-static const char* const kParameter_HttpStatusCode = "http-status-code";
-static const char* const kParameter_HttpStatusMessage = "http-status-message";
-
 static const char* const kParameter_RemoteAddress = "RemoteAddress";
-
 
 void HttpResponseWithAddressAsBody::handlePacket(const PathablePacket* incomingPacket) {
   string address = "unknown";
@@ -42,22 +38,13 @@ void HttpResponseWithAddressAsBody::handlePacket(const PathablePacket* incomingP
   Packet response;
   response.parameters = incomingPacket->parameters;
   json httpHeaders;
-  httpHeaders["Content-Type"] = "text/plain";
-  response.parameters[kParameter_HttpHeaders] = httpHeaders;
-  response.parameters[kParameter_HttpStatusCode] = 200;
-  response.parameters[kParameter_HttpStatusMessage] = "OK";
+  httpHeaders[http::kHttpHeaderNormalized_ContentType] = "text/plain";
+  response.parameters[http::kParameter_HttpHeaders] = httpHeaders;
+  response.parameters[http::kParameter_HttpStatusCode] = http::kHttpStatus_Ok;
 
   response.buffers.push_back(Buffer(body, address.length()));
 
   incomingPacket->packetPusher->pushPacket(&response, "On Response");
 }
-
-/*
- * Back-propagation of required parameters.
- *
- * Cause parameters to be retained that can be used by down-stream nodes.
- * For each sink, apply the back-propagation broadcast algorithm.
- * For each node
- */
 
 }  // namespace maplang

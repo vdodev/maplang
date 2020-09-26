@@ -16,6 +16,7 @@
 
 #include <stack>
 #include <queue>
+#include "Graph.h"
 
 namespace std {
 
@@ -41,10 +42,14 @@ namespace maplang {
 template<class ItemClass, class EdgeClass>
 void Graph<ItemClass, EdgeClass>::visitGraphElements(const GraphElementVisitor& visitor) const {
   std::list<std::shared_ptr<GraphElement<ItemClass, EdgeClass>>> elementList;
-  for (const auto& pair : mItemToGraphElementMap) {
-    const auto& graphElement = pair.second;
+  for (const auto& itemMapPair : mItemToGraphElementMap) {
+    const auto& pathableIdToElementMap = itemMapPair.second;
 
-    visitor(graphElement);
+    for (const auto& pathableIdElementPair : pathableIdToElementMap) {
+      const auto &graphElement = pathableIdElementPair.second;
+
+      visitor(graphElement);
+    }
   }
 }
 
@@ -111,15 +116,57 @@ EdgeClass& Graph<ItemClass, EdgeClass>::connect(
   return insertedIt->second;
 }
 
-template <typename T>
-static void removeFromListIfPresent(std::list<T>* removeFromList,
-                                    const T& itemToRemove) {
-  for (auto it = removeFromList->begin(); it != removeFromList->end(); it++) {
-    if (*it == itemToRemove) {
-      removeFromList->erase(it);
-      return;
+template<class ItemClass, class EdgeClass>
+void Graph<ItemClass, EdgeClass>::removeItem(const ItemClass& removeItem) {
+  auto mapIt = mItemToGraphElementMap.find(removeItem);
+  if (mapIt == mItemToGraphElementMap.end()) {
+    return;
+  }
+
+  // For each DataGraphElement (Node + pathableId, a.k.a. element in pahtableIdToElementMap), remove forward and back connections.
+
+  auto& pathableIdToElementMap = mapIt->second;
+  for (auto& pathableElementPair : pathableIdToElementMap) {
+    const std::string& removedNodeCurrentPathableId = pathableElementPair.first;
+    std::shared_ptr<GraphElementType> element = pathableElementPair.second;
+
+    // Remove forward edges
+    for (const auto& edgePair : element->forwardEdges) {
+      const auto& edge = edgePair.second;
+      const std::string& toPathableId = edge.otherGraphElement->pathableId;
+
+      disconnect(
+          element->item,
+          edge.channel,
+          edge.otherGraphElement->item,
+          removedNodeCurrentPathableId,
+          toPathableId);
+    }
+
+    // Removing incoming edges
+    for (const auto& weakPreviousElement : element->backEdges) {
+      auto previousElement = weakPreviousElement.lock();
+      if (previousElement == nullptr) {
+        continue;
+      }
+
+      for (auto& candidateIncomingEdgePair : previousElement->forwardEdges) {
+        const auto& edge = candidateIncomingEdgePair.second;
+        if (!(edge.otherGraphElement->item == removeItem)) {
+          continue;
+        }
+
+        disconnect(
+            previousElement->item,
+            edge.channel,
+            edge.otherGraphElement->item,
+            previousElement->pathableId,
+            removedNodeCurrentPathableId);
+      }
     }
   }
+
+  mItemToGraphElementMap.erase(mapIt);
 }
 
 template<class ItemClass, class EdgeClass>
@@ -129,15 +176,23 @@ void Graph<ItemClass, EdgeClass>::disconnect(
     const ItemClass& toNode,
     const std::string& fromPathableId,
     const std::string& toPathableId) {
-  if (!hasNode(fromNode, fromPathableId) ||
-      !hasNode(toNode, toPathableId)) {
+  if (!hasItem(fromNode, fromPathableId) ||
+      !hasItem(toNode, toPathableId)) {
     return;
   }
 
   auto fromGraphElement = getOrCreateGraphElement(fromNode, fromPathableId);
   auto toGraphElement = getOrCreateGraphElement(toNode, toPathableId);
 
-  removeFromListIfPresent(&fromGraphElement->forwardEdges, toGraphElement);
+  // Remove forward edges
+  auto& forwardEdges = fromGraphElement->forwardEdges;
+  typename GraphElementType::EdgeKey edgeKey;
+  edgeKey.channel = fromChannel;
+  edgeKey.toGraphElement = toGraphElement;
+  auto forwardEdgeIt = forwardEdges.find(edgeKey);
+  if (forwardEdgeIt == forwardEdges.end()) {
+    return;
+  }
 
   for (auto it = toGraphElement->backEdges.begin(); it != toGraphElement->backEdges.end(); ) {
     auto oldIt = it;
@@ -148,27 +203,50 @@ void Graph<ItemClass, EdgeClass>::disconnect(
       toGraphElement->backEdges.erase(oldIt);
     }
   }
+
+  // Erase the forward edge last because it contains the shared_ptr, while back-edges are weak_ptrs.
+  forwardEdges.erase(edgeKey);
 }
 
 template<class ItemClass, class EdgeClass>
 bool Graph<ItemClass, EdgeClass>::hasItem(const ItemClass& item, const std::string& pathableId) const {
   auto key = make_pair(item, pathableId);
-  return mItemToGraphElementMap.find(key) != mItemToGraphElementMap.end();
+  auto mapIt = mItemToGraphElementMap.find(item);
+  if (mapIt == mItemToGraphElementMap.end()) {
+    return false;
+  }
+
+  auto& pathableIdToElementMap = mapIt->second;
+  return pathableIdToElementMap.find(pathableId) != pathableIdToElementMap.end();
+}
+
+template<class ItemClass, class EdgeClass>
+bool Graph<ItemClass, EdgeClass>::hasItemWithAnyPathableId(const ItemClass &item) const {
+  return mItemToGraphElementMap.find(item) != mItemToGraphElementMap.end();
 }
 
 template<class ItemClass, class EdgeClass>
 std::shared_ptr<GraphElement<ItemClass, EdgeClass>> Graph<ItemClass, EdgeClass>::getOrCreateGraphElement(
     const ItemClass& item, const std::string& pathableId) {
-  GraphElementLookupKey key = make_pair(item, pathableId);
-  auto it = mItemToGraphElementMap.find(key);
+  auto mapIt = mItemToGraphElementMap.find(item);
+  if (mapIt == mItemToGraphElementMap.end()) {
+    auto insertedIt = mItemToGraphElementMap.emplace(
+        std::make_pair(
+            item,
+            std::unordered_map<std::string, std::shared_ptr<GraphElementType>>()));
 
-  if (it != mItemToGraphElementMap.end()) {
-    return it->second;
+    mapIt = insertedIt.first;
+  }
+
+  auto& pathableIdToElementMap = mapIt->second;
+  auto elementIt = pathableIdToElementMap.find(pathableId);
+  if (elementIt != pathableIdToElementMap.end()) {
+    return elementIt->second;
   }
 
   auto graphElement = std::make_shared<GraphElement<ItemClass, EdgeClass>>(item, pathableId);
 
-  mItemToGraphElementMap[key] = graphElement;
+  pathableIdToElementMap[pathableId] = graphElement;
 
   return graphElement;
 }

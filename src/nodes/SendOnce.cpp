@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "SendOnce.h"
+#include "nodes/SendOnce.h"
 
 namespace maplang {
 

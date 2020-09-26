@@ -20,9 +20,8 @@
 #include "maplang/ICohesiveGroup.h"
 
 namespace maplang {
-class ContextRouter;
 
-class ContextualNode final : public ICohesiveGroup {
+class ContextualNode final : public ICohesiveGroup, public INode {
  public:
   ContextualNode(const nlohmann::json& initData);
   ~ContextualNode() override = default;
@@ -33,12 +32,14 @@ class ContextualNode final : public ICohesiveGroup {
   virtual std::shared_ptr<INode> getNode(
       const std::string& partition) override;
 
- private:
-  const std::string mNodeImplementation;
-  const std::shared_ptr<ContextRouter> mContextRouter;
-  const std::shared_ptr<INode> mContextRemover;
+  IPathable *asPathable() override { return nullptr; }
+  ISink *asSink() override { return nullptr; }
+  ISource *asSource() override { return nullptr; }
+  ICohesiveGroup* asGroup() override { return this; }
 
-  std::unordered_map<std::string, std::shared_ptr<INode>> mNodeMap;
+ private:
+  class Impl;
+  const std::shared_ptr<Impl> mImpl;
 };
 
 }  // namespace maplang

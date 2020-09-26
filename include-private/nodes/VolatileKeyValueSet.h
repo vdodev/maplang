@@ -21,7 +21,7 @@
 
 namespace maplang {
 
-class VolatileKeyValueSet : public ICohesiveGroup {
+class VolatileKeyValueSet : public ICohesiveGroup, public INode {
  public:
   VolatileKeyValueSet(const nlohmann::json& initParameters);
   ~VolatileKeyValueSet() override = default;
@@ -31,6 +31,11 @@ class VolatileKeyValueSet : public ICohesiveGroup {
 
   std::shared_ptr<INode> getNode(
       const std::string& partitionName) override;
+
+  IPathable *asPathable() override { return nullptr; }
+  ISink *asSink() override { return nullptr; }
+  ISource *asSource() override { return nullptr; }
+  ICohesiveGroup* asGroup() override { return this; }
 
  private:
   struct Partition {

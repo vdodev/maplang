@@ -18,6 +18,7 @@
 #include "maplang/NodeRegistration.h"
 #include "maplang/json.hpp"
 #include "maplang/UvLoopRunner.h"
+#include "PrintBufferAsString.h"
 
 using namespace std;
 using namespace maplang;
@@ -27,9 +28,9 @@ static void registerNodes() {
   auto registration = NodeRegistration::defaultRegistration();
 
   registration->registerNodeFactory(
-      "HTTP response with address as body",
+      "Print buffer as string",
       [](const json& initParameters) {
-        return make_shared<HttpResponseWithAddressAsBody>();
+        return make_shared<PrintBufferAsString>();
       });
 }
 
@@ -37,38 +38,49 @@ int main(int argc, char** argv) {
   registerNodes();
 
   const auto registration = NodeRegistration::defaultRegistration();
-  const shared_ptr<ICohesiveGroup> tcpServer =
-      registration->createCohesiveGroup(
-          "TCP Server", R"(
+  const shared_ptr<INode> tcpServer =
+      registration->createNode(
+          "TCP Connection", R"(
       {
             "disableNaglesAlgorithm": true
       })"_json);
 
-
-  const auto tcpSend = tcpServer->getNode("Sender");
-  const auto httpRequestExtractor = registration->createCohesiveGroup(
+  const auto tcpSender = tcpServer->asGroup()->getNode("Sender");
+  const auto orderedPacketSender = registration->createNode("Ordered Packet Sender", nullptr);
+  const auto httpResponseExtractor = registration->createNode(
       "Contextual Node",
       R"(
         {
-          "nodeImplementation": "HTTP Request Extractor",
+          "nodeImplementation": "HTTP Response Extractor",
           "key": "TcpConnectionId"
         })"_json);
-  const auto httpResponseWriter =
-      registration->createNode("HTTP Response Writer", nullptr);
-  const auto httpResponseWithAddressAsBody =
-      registration->createNode("HTTP response with address as body", nullptr);
-  const auto tcpReceive = tcpServer->getNode("Receiver");
-  const auto tcpListen = tcpServer->getNode("Listener");
-  const auto tcpDisconnector = tcpServer->getNode("Disconnector");
-  const auto setupListen =
-      registration->createNode("Send Once", R"({ "Port": 8080 })"_json);
+  const auto httpRequestHeaderWriter =
+      registration->createNode("HTTP Request Header Writer", nullptr);
+  const auto tcpReceiver = tcpServer->asGroup()->getNode("Receiver");
+  const auto tcpConnector = tcpServer->asGroup()->getNode("Connector");
+  const auto tcpDisconnector = tcpServer->asGroup()->getNode("Disconnector");
+  const auto tcpShutdownSender = tcpServer->asGroup()->getNode("Shutdown Sender");
+
+  json connectInfo;
+  connectInfo["Address"] = argv[1];
+  connectInfo["Port"] = 80;
+  const auto setupConnector =
+      registration->createNode("Send Once", connectInfo);
 
   UvLoopRunner uvLoopRunner;
   DataGraph graph(uvLoopRunner.getLoop());
 
-  graph.connect(httpResponseWriter, "Http Data", tcpSend);
-  graph.connect(httpResponseWithAddressAsBody, "On Response",
-                httpResponseWriter);
+  graph.connect(orderedPacketSender, "First", tcpSender);
+  graph.connect(orderedPacketSender, "Last", tcpShutdownSender);
+  graph.connect(httpRequestHeaderWriter, "On Request Header Buffer", orderedPacketSender);
+  graph.connect(createHttpGetRequest, "On GET Request", httpRequestHeaderWriter);
+  graph.connect(tcpConnector, "Connected", createHttpGetRequest);
+  graph.connect(tcpConnector, "error", printErrorToConsole);
+
+  graph.connect(httpResponseExtractor, "On Body Data", printBufferAsString);
+  graph.connect(httpResponseExtractor, "On Headers", httpStatusRouter);
+  graph.connect(tcpReceiver, "On Data", httpResponseExtractor);
+
   graph.connect(httpRequestExtractor->getNode("HTTP Request Extractor"),
                 "New Request", httpResponseWithAddressAsBody);
   graph.connect(tcpReceive, "Data Received",

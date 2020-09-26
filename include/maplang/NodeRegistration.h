@@ -30,30 +30,20 @@ class NodeRegistration {
  public:
   using NodeFactory = std::function<std::shared_ptr<INode>(
       const nlohmann::json& initParameters)>;
-  using CohesiveGroupFactory =
-      std::function<std::shared_ptr<ICohesiveGroup>(
-          const nlohmann::json& initParameters)>;
 
   using NodeNameVisitor = std::function<void(const std::string& nodeName)>;
 
   static NodeRegistration* defaultRegistration();
 
   void registerNodeFactory(const std::string& name, NodeFactory&& factory);
-  void registerCohesiveGroupFactory(const std::string& name,
-                                    CohesiveGroupFactory&& factory);
 
   std::shared_ptr<INode> createNode(const std::string& name,
                                     const nlohmann::json& initParameters);
-  std::shared_ptr<ICohesiveGroup> createCohesiveGroup(
-      const std::string& name, const nlohmann::json& initParameters);
 
   void visitNodeNames(const NodeNameVisitor& visitor);
-  void visitCohesiveGroupNames(const NodeNameVisitor& visitor);
 
  private:
   std::unordered_map<std::string, NodeFactory> mNodeFactoryMap;
-  std::unordered_map<std::string, CohesiveGroupFactory>
-      mCohesiveGroupFactoryMap;
 };
 
 }  // namespace maplang

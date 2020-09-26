@@ -35,6 +35,7 @@ class LambdaSink : public INode, public ISink {
   IPathable *asPathable() override { return nullptr;}
   ISink *asSink() override { return this; }
   ISource *asSource() override { return nullptr; }
+  ICohesiveGroup *asGroup() override { return nullptr; };
 
  private:
   function<void (const Packet* packet)> mOnPacket;

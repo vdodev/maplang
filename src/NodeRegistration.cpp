@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <mutex>
 
 #include "maplang/NodeRegistration.h"
 #include "maplang/json.hpp"
 #include "nodes/VolatileKeyValueStore.h"
 #include "nodes/VolatileKeyValueSet.h"
+#include "nodes/HttpRequestHeaderWriter.h"
 #include "nodes/HttpRequestExtractor.h"
 #include "nodes/HttpResponseWriter.h"
+#include "nodes/HttpResponseExtractor.h"
 #include "nodes/SendOnce.h"
 #include "nodes/ContextualNode.h"
-#include "nodes/tcp/UvTcpServerGroup.h"
-#include <mutex>
+#include "nodes/UvTcpConnectionGroup.h"
+#include "nodes/OrderedPacketSender.h"
 
 using namespace std;
 using namespace nlohmann;
@@ -34,16 +37,22 @@ static once_flag createRegistrationOnce;
 static NodeRegistration* gDefaultRegistration;
 
 static void registerNodes(NodeRegistration* registration) {
-  registration->registerCohesiveGroupFactory(
+  registration->registerNodeFactory(
       "Contextual Node",
       [](const nlohmann::json& initParameters) {
         return make_shared<ContextualNode>(initParameters);
       });
 
-  registration->registerCohesiveGroupFactory(
-      "TCP Server",
+  registration->registerNodeFactory(
+      "TCP Connection",
       [](const nlohmann::json &initParameters) {
-        return make_shared<UvTcpServerGroup>();
+        return make_shared<UvTcpConnectionGroup>();
+      });
+
+  registration->registerNodeFactory(
+      "HTTP Request Header Writer",
+      [](const json& initParameters) {
+        return make_shared<HttpRequestHeaderWriter>(initParameters);
       });
 
   registration->registerNodeFactory(
@@ -61,19 +70,31 @@ static void registerNodes(NodeRegistration* registration) {
   registration->registerNodeFactory(
       "HTTP Response Writer",
       [](const json& initParameters) {
-        return make_shared<HttpResponseWriter>();
+        return make_shared<HttpResponseWriter>(initParameters);
       });
 
-  registration->registerCohesiveGroupFactory(
+  registration->registerNodeFactory(
+      "HTTP Response Extractor",
+      [](const json& initParameters) {
+        return make_shared<HttpResponseExtractor>(initParameters);
+      });
+
+  registration->registerNodeFactory(
       "Volatile Key Value Store",
       [](const json& initParameters) {
         return make_shared<VolatileKeyValueStore>(initParameters);
       });
 
-  registration->registerCohesiveGroupFactory(
+  registration->registerNodeFactory(
       "Volatile Key Value Set",
       [](const json& initParameters) {
         return make_shared<VolatileKeyValueSet>(initParameters);
+      });
+
+  registration->registerNodeFactory(
+      "Ordered Packet Sender",
+      [](const json& initParameters) {
+        return make_shared<OrderedPacketSender>();
       });
 }
 
@@ -92,11 +113,6 @@ void NodeRegistration::registerNodeFactory(const std::string& name,
   mNodeFactoryMap[name] = move(factory);
 }
 
-void NodeRegistration::registerCohesiveGroupFactory(
-    const std::string& name, CohesiveGroupFactory&& factory) {
-  mCohesiveGroupFactoryMap[name] = move(factory);
-}
-
 std::shared_ptr<INode> NodeRegistration::createNode(
     const std::string& name, const nlohmann::json& initParameters) {
   auto it = mNodeFactoryMap.find(name);
@@ -108,28 +124,9 @@ std::shared_ptr<INode> NodeRegistration::createNode(
   return factory(initParameters);
 }
 
-std::shared_ptr<ICohesiveGroup> NodeRegistration::createCohesiveGroup(
-    const std::string& name, const nlohmann::json& initParameters) {
-  auto it = mCohesiveGroupFactoryMap.find(name);
-  if (it == mCohesiveGroupFactoryMap.end()) {
-    throw runtime_error("No CohesiveGroup factory exists for type '" + name + "'.");
-  }
-
-  CohesiveGroupFactory& factory = it->second;
-  return factory(initParameters);
-}
-
 void NodeRegistration::visitNodeNames(
     const NodeRegistration::NodeNameVisitor& visitor) {
   for (const auto& pair : mNodeFactoryMap) {
-    std::string key = pair.first;
-    visitor(key);
-  }
-}
-
-void NodeRegistration::visitCohesiveGroupNames(
-    const NodeRegistration::NodeNameVisitor& visitor) {
-  for (const auto& pair : mCohesiveGroupFactoryMap) {
     std::string key = pair.first;
     visitor(key);
   }

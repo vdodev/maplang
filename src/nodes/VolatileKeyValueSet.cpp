@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-#include "VolatileKeyValueSet.h"
+#include "nodes/VolatileKeyValueSet.h"
 #include <iostream>
 #include <unordered_set>
+#include "maplang/Errors.h"
 
 using namespace std;
 using namespace nlohmann;
@@ -54,17 +55,14 @@ class Adder : public INode, public IPathable {
   IPathable* asPathable() override { return this; }
   ISource* asSource() override { return nullptr; }
   ISink* asSink() override { return nullptr; }
+  ICohesiveGroup* asGroup() override { return nullptr; }
 
   void handlePacket(const PathablePacket* incomingPacket) override {
     if (!incomingPacket->parameters.contains(mKeyName)) {
-      Packet errorPacket;
-      errorPacket.parameters["message"] = "Missing parameter for key-lookup: " + mKeyName;
-      incomingPacket->packetPusher->pushPacket(&errorPacket, "error");
+      sendErrorPacket(incomingPacket->packetPusher, "Key-lookup missing", "Missing parameter for key-lookup: " + mKeyName);
       return;
     } else if (!incomingPacket->parameters.contains(mValueName)) {
-      Packet errorPacket;
-      errorPacket.parameters["message"] = "Missing parameter for value-lookup: " + mValueName;
-      incomingPacket->packetPusher->pushPacket(&errorPacket, "error");
+      sendErrorPacket(incomingPacket->packetPusher, "Value-lookup missing", "Missing parameter for value-lookup: " + mValueName);
       return;
     }
 
@@ -103,12 +101,11 @@ class Getter : public INode, public IPathable {
   IPathable* asPathable() override { return this; }
   ISource* asSource() override { return nullptr; }
   ISink* asSink() override { return nullptr; }
+  ICohesiveGroup* asGroup() override { return nullptr; }
 
   void handlePacket(const PathablePacket* incomingPacket) override {
     if (!incomingPacket->parameters.contains(mKeyName)) {
-      Packet errorPacket;
-      errorPacket.parameters["message"] = "Missing parameter for key-lookup: " + mKeyName;
-      incomingPacket->packetPusher->pushPacket(&errorPacket, "error");
+      sendErrorPacket(incomingPacket->packetPusher, "Key-lookup missing", "Missing parameter for key-lookup: " + mKeyName);
       return;
     }
 
@@ -152,17 +149,14 @@ class Remover : public INode, public IPathable {
   IPathable* asPathable() override { return this; }
   ISource* asSource() override { return nullptr; }
   ISink* asSink() override { return nullptr; }
+  ICohesiveGroup* asGroup() override { return nullptr; }
 
   void handlePacket(const PathablePacket* incomingPacket) override {
     if (!incomingPacket->parameters.contains(mKeyName)) {
-      Packet errorPacket;
-      errorPacket.parameters["message"] = "Missing parameter for key-lookup: " + mKeyName;
-      incomingPacket->packetPusher->pushPacket(&errorPacket, "error");
+      sendErrorPacket(incomingPacket->packetPusher, "Key-lookup missing", "Missing parameter for key-lookup: " + mKeyName);
       return;
     } else if (!incomingPacket->parameters.contains(mValueName)) {
-      Packet errorPacket;
-      errorPacket.parameters["message"] = "Missing parameter for value-lookup: " + mValueName;
-      incomingPacket->packetPusher->pushPacket(&errorPacket, "error");
+      sendErrorPacket(incomingPacket->packetPusher, "Value-lookup missing", "Missing parameter for value-lookup: " + mValueName);
       return;
     }
 
@@ -215,17 +209,14 @@ class RemoveAll : public INode, public IPathable {
   IPathable* asPathable() override { return this; }
   ISource* asSource() override { return nullptr; }
   ISink* asSink() override { return nullptr; }
+  ICohesiveGroup* asGroup() override { return nullptr; }
 
   void handlePacket(const PathablePacket* incomingPacket) override {
     if (!incomingPacket->parameters.contains(mKeyName)) {
-      Packet errorPacket;
-      errorPacket.parameters["message"] = "Missing parameter for key-lookup: " + mKeyName;
-      incomingPacket->packetPusher->pushPacket(&errorPacket, "error");
+      sendErrorPacket(incomingPacket->packetPusher, "Key-lookup missing", "Missing parameter for key-lookup: " + mKeyName);
       return;
     } else if (!incomingPacket->parameters.contains(mValueName)) {
-      Packet errorPacket;
-      errorPacket.parameters["message"] = "Missing parameter for value-lookup: " + mValueName;
-      incomingPacket->packetPusher->pushPacket(&errorPacket, "error");
+      sendErrorPacket(incomingPacket->packetPusher, "Value-lookup missing", "Missing parameter for value-lookup: " + mValueName);
       return;
     }
 

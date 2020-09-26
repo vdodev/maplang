@@ -60,9 +60,15 @@ Extension in Maplang is more broad than object-oriented languages. Provided the 
 
 This principle says that a function's pre-conditions cannot be strengthened, and post-conditions cannot be weakened.
 
-Maplang pre-conditions cannot be strengthened beyond what you create in the diagram. A node cannot require more parameters, or a wider range of values than is set in the diagram. A node is free to weaken the pre-conditions, however. Nodes are free to be able to function with a wider range of values than the diagram requires, and nodes are not required to use every input parameter.
+There are three areas to consider: parameters/return values, behavior, and state.
 
-Post-conditions cannot be weakened. A node must output the parameters specified in the diagram (and range, if specified). The node is free to strengthen post-conditions though. It may output in a tighter range than required, or may send more parameters than required by the diagram.
+*Parameter Pre-conditions* Pre-conditions for a Node's input parameters cannot be strengthened beyond what you create in the diagram. A node cannot require more parameters, or a wider range of values than is set in the diagram. A node is free to weaken the pre-conditions on parameters, however. Nodes are free to function with a wider range of values than the diagram requires, and nodes are not required to use every input parameter.
+
+*Parameter Post-conditions* Post-conditions cannot be weakened. A node must output the parameters specified in the diagram (and range, if specified). The node is free to strengthen post-conditions though. It may output in a tighter range than required, or may send more parameters than required by the diagram.
+
+*Behaviour pre- and post-conditions* can be validated with unit tests. These tests can be attached to Node types in the Maplang UI.
+
+Beyond parameter values, there are pre- and post-conditions on behaviour and state.
 
 **Interface Segregation**
 
@@ -78,6 +84,31 @@ The abstraction is the data format being passed between nodes. Input and output 
 
 This allows nodes to be swapped, even at run-time if needed.
 
+### Testing
+
+There are two ways to test individual nodes - with input and output json, or by creating test Nodes to feed and receive data from the Node under test. This works well for nodes which both receive and send data. Nodes which only produce or only consume data are better tested with either custom test Nodes driving the test, or alternative testing methods.
+
+**JSON Test Cases** are comprised of the node implementation, an input JSON blob, and the expected output JSON blob. For example:
+
+```json
+{
+  "nodeImplementation": "ConvertToBase64",
+  "inputPacket": {
+    "parameters": {},
+    "buffers": [
+      {"contentsFromFile": "file.bin"}
+    ]
+  },
+  "outputPacket": {
+    "fromChannel": "On Encoded",
+    "parameters": "",
+    "buffers": [
+      {"stringContents": "TWFwbGFuZyB0ZXN0"}
+    ]
+  }
+}
+```
+
 ### Diagram UI
 
 The diagram UI uses [mxGraph](https://github.com/jgraph/mxgraph), the same library used in [Diagrams.net](https://www.diagrams.net/) (formerly Draw.io).
@@ -89,4 +120,4 @@ The diagram UI is currently a work-in-progress, and is a critical piece of Mapla
 
 Bug reports and pull requests can be submitted on [GitHub](https://github.com/vdodev/maplang).
 
-You are welcome to review the existing code, submit use-cases, criticize the code, argue with us, become one of us, and anything else that improves Maplang.
+You are welcome to review the existing code, fix bugs, submit use-cases, criticize the code, argue with us, become one of us, and anything else that improves Maplang.

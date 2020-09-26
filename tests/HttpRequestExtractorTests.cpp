@@ -15,6 +15,7 @@
  */
 
 #include <functional>
+#include "maplang/HttpUtilities.h"
 
 #include "gtest/gtest.h"
 #include "nodes/HttpRequestExtractor.h"
@@ -93,29 +94,23 @@ TEST(WhenAnHttpRequestIsProcessed, HeaderFieldsAndBodyAreCorrect) {
   ASSERT_EQ(0, unexpectedChannelCount)
       << "Unexpected channel '" << lastUnexpectedChannel << "'.";
 
-  ASSERT_NE(headerPacket.parameters.end(),
-            headerPacket.parameters.find("httpRequestId"));
-  const string requestId = headerPacket.parameters["httpRequestId"];
+  ASSERT_TRUE(headerPacket.parameters.contains(http::kParameter_HttpRequestId));
+  const string requestId = headerPacket.parameters[http::kParameter_HttpRequestId];
 
-  ASSERT_NE(headerPacket.parameters.end(),
-            headerPacket.parameters.find("method"));
-  const string method = headerPacket.parameters["method"].get<string>();
+  ASSERT_TRUE(headerPacket.parameters.contains(http::kParameter_HttpMethod));
+  const string method = headerPacket.parameters[http::kParameter_HttpMethod].get<string>();
   ASSERT_STREQ("GET", method.c_str());
 
-  ASSERT_NE(headerPacket.parameters.end(),
-            headerPacket.parameters.find("path"));
-  const string path = headerPacket.parameters["path"].get<string>();
+  ASSERT_TRUE(headerPacket.parameters.contains(http::kParameter_HttpPath));
+  const string path = headerPacket.parameters[http::kParameter_HttpPath].get<string>();
   ASSERT_STREQ("/", path.c_str());
 
-  ASSERT_NE(headerPacket.parameters.end(),
-            headerPacket.parameters.find("http-version"));
-  const string httpVersion =
-      headerPacket.parameters["http-version"].get<string>();
+  ASSERT_TRUE(headerPacket.parameters.contains(http::kParameter_HttpVersion));
+  const string httpVersion = headerPacket.parameters[http::kParameter_HttpVersion].get<string>();
   ASSERT_STREQ("HTTP/1.1", httpVersion.c_str());
 
-  ASSERT_NE(headerPacket.parameters.end(),
-            headerPacket.parameters.find("http-headers"));
-  const json& headers = headerPacket.parameters["http-headers"];
+  ASSERT_TRUE(headerPacket.parameters.contains(http::kParameter_HttpHeaders));
+  const json& headers = headerPacket.parameters[http::kParameter_HttpHeaders];
   ASSERT_TRUE(headers.is_object());
 
   bool foundHeaderKey = false;
@@ -138,10 +133,9 @@ TEST(WhenAnHttpRequestIsProcessed, HeaderFieldsAndBodyAreCorrect) {
     const auto& bodyPacket = bodyPackets[i];
     ASSERT_EQ(1, bodyPacket.buffers.size()) << "Packet " << i;
 
-    ASSERT_NE(bodyPacket.parameters.end(),
-              bodyPacket.parameters.find("httpRequestId"))
+    ASSERT_TRUE(bodyPacket.parameters.contains(http::kParameter_HttpRequestId))
         << "Packet " << i;
-    const string thisPacketsRequestId = bodyPacket.parameters["httpRequestId"];
+    const string thisPacketsRequestId = bodyPacket.parameters[http::kParameter_HttpRequestId];
     ASSERT_STREQ(requestId.c_str(), thisPacketsRequestId.c_str())
         << "Packet " << i;
   }
@@ -154,10 +148,9 @@ TEST(WhenAnHttpRequestIsProcessed, HeaderFieldsAndBodyAreCorrect) {
   extractor.reset();
   ASSERT_EQ(1, requestEndedPacketCount);
 
-  ASSERT_NE(requestEndedPacket.parameters.end(),
-            requestEndedPacket.parameters.find("httpRequestId"));
+  ASSERT_TRUE(requestEndedPacket.parameters.contains(http::kParameter_HttpRequestId));
   const string requestEndedPacketsRequestId =
-      requestEndedPacket.parameters["httpRequestId"];
+      requestEndedPacket.parameters[http::kParameter_HttpRequestId];
   ASSERT_STREQ(requestId.c_str(), requestEndedPacketsRequestId.c_str());
 }
 

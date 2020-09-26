@@ -25,12 +25,14 @@ namespace maplang {
 
 class PacketReader : public INode, public IPathable {
  public:
+  ~PacketReader() override = default;
 
   void handlePacket(const PathablePacket *incomingPacket) override;
 
   IPathable *asPathable() override { return this; }
   ISink *asSink() override { return nullptr; }
   ISource *asSource() override { return nullptr; }
+  ICohesiveGroup* asGroup() override { return nullptr; }
 
  private:
   uint64_t mLength = 0;
