@@ -35,4 +35,4 @@ class PrintBufferAsString final : public INode, public ISink {
 
 }  // namespace maplang
 
-#endif // __MAPLANG_HTTP_RESPONSE_WITH_ADDRESS_AS_BODY_H__
+#endif  // __MAPLANG_HTTP_RESPONSE_WITH_ADDRESS_AS_BODY_H__

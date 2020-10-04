@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
+#include "PrintBufferAsString.h"
 #include "maplang/DataGraph.h"
 #include "maplang/NodeRegistration.h"
-#include "maplang/json.hpp"
 #include "maplang/UvLoopRunner.h"
-#include "PrintBufferAsString.h"
+#include "maplang/json.hpp"
 
 using namespace std;
 using namespace maplang;
@@ -27,20 +27,16 @@ using namespace nlohmann;
 static void registerNodes() {
   auto registration = NodeRegistration::defaultRegistration();
 
-  registration->registerNodeFactory(
-      "Print buffer as string",
-      [](const json& initParameters) {
-        return make_shared<PrintBufferAsString>();
-      });
+  registration->registerNodeFactory("Print buffer as string", [](const json& initParameters) {
+    return make_shared<PrintBufferAsString>();
+  });
 }
 
 int main(int argc, char** argv) {
   registerNodes();
 
   const auto registration = NodeRegistration::defaultRegistration();
-  const shared_ptr<INode> tcpServer =
-      registration->createNode(
-          "TCP Connection", R"(
+  const shared_ptr<INode> tcpServer = registration->createNode("TCP Connection", R"(
       {
             "disableNaglesAlgorithm": true
       })"_json);
@@ -54,8 +50,7 @@ int main(int argc, char** argv) {
           "nodeImplementation": "HTTP Response Extractor",
           "key": "TcpConnectionId"
         })"_json);
-  const auto httpRequestHeaderWriter =
-      registration->createNode("HTTP Request Header Writer", nullptr);
+  const auto httpRequestHeaderWriter = registration->createNode("HTTP Request Header Writer", nullptr);
   const auto tcpReceiver = tcpServer->asGroup()->getNode("Receiver");
   const auto tcpConnector = tcpServer->asGroup()->getNode("Connector");
   const auto tcpDisconnector = tcpServer->asGroup()->getNode("Disconnector");
@@ -64,8 +59,7 @@ int main(int argc, char** argv) {
   json connectInfo;
   connectInfo["Address"] = argv[1];
   connectInfo["Port"] = 80;
-  const auto setupConnector =
-      registration->createNode("Send Once", connectInfo);
+  const auto setupConnector = registration->createNode("Send Once", connectInfo);
 
   UvLoopRunner uvLoopRunner;
   DataGraph graph(uvLoopRunner.getLoop());
@@ -81,12 +75,9 @@ int main(int argc, char** argv) {
   graph.connect(httpResponseExtractor, "On Headers", httpStatusRouter);
   graph.connect(tcpReceiver, "On Data", httpResponseExtractor);
 
-  graph.connect(httpRequestExtractor->getNode("HTTP Request Extractor"),
-                "New Request", httpResponseWithAddressAsBody);
-  graph.connect(tcpReceive, "Data Received",
-                httpRequestExtractor->getNode("HTTP Request Extractor"));
-  graph.connect(tcpDisconnector, "Ended",
-                httpRequestExtractor->getNode("Context Remover"));
+  graph.connect(httpRequestExtractor->getNode("HTTP Request Extractor"), "New Request", httpResponseWithAddressAsBody);
+  graph.connect(tcpReceive, "Data Received", httpRequestExtractor->getNode("HTTP Request Extractor"));
+  graph.connect(tcpDisconnector, "Ended", httpRequestExtractor->getNode("Context Remover"));
   graph.connect(setupListen, "initialized", tcpListen);
 
   uvLoopRunner.waitForExit();

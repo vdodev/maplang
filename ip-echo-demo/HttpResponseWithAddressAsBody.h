@@ -36,4 +36,4 @@ class HttpResponseWithAddressAsBody final : public INode, public IPathable {
 
 }  // namespace maplang
 
-#endif // __MAPLANG_HTTP_RESPONSE_WITH_ADDRESS_AS_BODY_H__
+#endif  // __MAPLANG_HTTP_RESPONSE_WITH_ADDRESS_AS_BODY_H__

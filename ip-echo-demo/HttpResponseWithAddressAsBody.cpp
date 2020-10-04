@@ -15,6 +15,7 @@
  */
 
 #include "HttpResponseWithAddressAsBody.h"
+
 #include "maplang/HttpUtilities.h"
 
 using namespace std;
@@ -31,8 +32,7 @@ void HttpResponseWithAddressAsBody::handlePacket(const PathablePacket& incomingP
     address = incomingPacket.parameters[kParameter_RemoteAddress];
   }
 
-  shared_ptr<uint8_t> body = shared_ptr<uint8_t>(new uint8_t[address.length()],
-                                                 default_delete<uint8_t[]>());
+  shared_ptr<uint8_t> body = shared_ptr<uint8_t>(new uint8_t[address.length()], default_delete<uint8_t[]>());
 
   address.copy(reinterpret_cast<char*>(body.get()), address.length());
   Packet response;

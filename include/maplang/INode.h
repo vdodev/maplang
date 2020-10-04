@@ -33,12 +33,12 @@ class INode {
  public:
   virtual ~INode() {}
 
-  virtual void setSubgraphContext(const std::shared_ptr<ISubgraphContext> &context) {}
+  virtual void setSubgraphContext(const std::shared_ptr<ISubgraphContext>& context) {}
 
-  virtual IPathable *asPathable() = 0;
-  virtual ISink *asSink() = 0;
-  virtual ISource *asSource() = 0;
-  virtual ICohesiveGroup *asGroup() = 0;
+  virtual IPathable* asPathable() = 0;
+  virtual ISink* asSink() = 0;
+  virtual ISource* asSource() = 0;
+  virtual ICohesiveGroup* asGroup() = 0;
 };
 
 }  // namespace maplang

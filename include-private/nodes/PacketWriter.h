@@ -26,12 +26,12 @@ class PacketWriter : public INode, public IPathable {
  public:
   ~PacketWriter() override = default;
 
-  void handlePacket(const PathablePacket &incomingPacket) override;
+  void handlePacket(const PathablePacket& incomingPacket) override;
 
-  IPathable *asPathable() override { return this; }
-  ISink *asSink() override { return nullptr; }
-  ISource *asSource() override { return nullptr; }
-  ICohesiveGroup *asGroup() override { return nullptr; }
+  IPathable* asPathable() override { return this; }
+  ISink* asSink() override { return nullptr; }
+  ISource* asSource() override { return nullptr; }
+  ICohesiveGroup* asGroup() override { return nullptr; }
 };
 
 }  // namespace maplang
