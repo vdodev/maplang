@@ -17,16 +17,16 @@
 #ifndef __MAPLANG_GRAPH_H_
 #define __MAPLANG_GRAPH_H_
 
-#include <list>
 #include <functional>
+#include <list>
 
+#include "maplang/INode.h"
 #include "maplang/graph/DefaultGraphEdge.h"
 #include "maplang/graph/GraphElement.h"
-#include "maplang/INode.h"
 
 namespace maplang {
 
-template<class ItemClass, class EdgeClass = DefaultGraphEdge<ItemClass>>
+template <class ItemClass, class EdgeClass = DefaultGraphEdge<ItemClass>>
 class Graph final {
  public:
   using GraphElementType = GraphElement<ItemClass, EdgeClass>;
@@ -47,7 +47,7 @@ class Graph final {
 
   void removeItem(const ItemClass& item);
 
-  using GraphElementVisitor = std::function<void (const std::shared_ptr<GraphElementType>& graphElement)>;
+  using GraphElementVisitor = std::function<void(const std::shared_ptr<GraphElementType>& graphElement)>;
 
   /**
    * Visits GraphElements. Order is unspecified.
@@ -63,11 +63,12 @@ class Graph final {
 
  private:
   // Item -> Pathable ID -> Graph Element
-  std::unordered_map<const ItemClass, std::unordered_map<std::string, std::shared_ptr<GraphElementType>>> mItemToGraphElementMap;
+  std::unordered_map<const ItemClass, std::unordered_map<std::string, std::shared_ptr<GraphElementType>>>
+      mItemToGraphElementMap;
 };
 
 }  // namespace maplang
 
 #include "maplang/graph/GraphImpl.h"
 
-#endif // __MAPLANG_GRAPH_H_
+#endif  // __MAPLANG_GRAPH_H_

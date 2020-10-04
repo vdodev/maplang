@@ -35,9 +35,9 @@ class HttpRequestExtractor final : public INode, public ISink, public ISource {
   void handlePacket(const Packet& packet) override;
   void setPacketPusher(const std::shared_ptr<IPacketPusher>& pusher) override;
 
-  IPathable *asPathable() override { return nullptr; }
-  ISink *asSink() override { return this; }
-  ISource *asSource() override { return this; }
+  IPathable* asPathable() override { return nullptr; }
+  ISink* asSink() override { return this; }
+  ISource* asSource() override { return this; }
   ICohesiveGroup* asGroup() override { return nullptr; }
 
  private:
@@ -60,4 +60,4 @@ class HttpRequestExtractor final : public INode, public ISink, public ISource {
 
 }  // namespace maplang
 
-#endif // __MAPLANG_HTTP_REQUEST_EXTRACTOR_H__
+#endif  // __MAPLANG_HTTP_REQUEST_EXTRACTOR_H__

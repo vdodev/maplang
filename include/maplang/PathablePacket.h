@@ -34,7 +34,7 @@ struct PathablePacket {
   std::shared_ptr<IPacketPusher> packetPusher;
 };
 
-template<class T>
+template <class T>
 void fromPathablePacket(const PathablePacket& pathablePacket, T& to) {
   Packet maplangPacket;
   maplangPacket.parameters = pathablePacket.parameters;

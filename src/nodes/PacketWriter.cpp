@@ -15,6 +15,7 @@
  */
 
 #include "nodes/PacketWriter.h"
+
 #include <sstream>
 
 using namespace std;
@@ -29,7 +30,7 @@ static void writeUInt64BE(uint64_t val, uint8_t** where) {
   **where++ = 0xFF & (val >> 32);
   **where++ = 0xFF & (val >> 24);
   **where++ = 0xFF & (val >> 16);
-  **where++ = 0xFF & (val >>  8);
+  **where++ = 0xFF & (val >> 8);
   **where++ = 0xFF & val;
 }
 
@@ -41,7 +42,7 @@ void PacketWriter::handlePacket(const PathablePacket& incomingPacket) {
   const size_t parametersLength = parameterStream.tellg();
   parameterStream.seekg(0, ios::beg);
 
-  //number of bytes following the first length field
+  // number of bytes following the first length field
   size_t totalLength = parametersLength + (1 + incomingPacket.buffers.size()) * sizeof(uint64_t);
 
   for (size_t i = 0; i < incomingPacket.buffers.size(); i++) {

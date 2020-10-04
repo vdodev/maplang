@@ -15,9 +15,10 @@
  */
 
 #include "maplang/UvLoopRunner.h"
-#include <uv.h>
 
 #include <stdlib.h>
+#include <uv.h>
+
 #include <string>
 
 using namespace std;
@@ -25,23 +26,22 @@ using namespace std;
 namespace maplang {
 
 static shared_ptr<uv_loop_t> createUvLoop() {
-  auto uvLoop = shared_ptr<uv_loop_t>((uv_loop_t*) calloc(1, sizeof(uv_loop_t)),
-                                      [](uv_loop_t* loop) {
-                                        if (!loop) {
-                                          return;
-                                        }
+  auto uvLoop = shared_ptr<uv_loop_t>((uv_loop_t*)calloc(1, sizeof(uv_loop_t)), [](uv_loop_t* loop) {
+    if (!loop) {
+      return;
+    }
 
-                                        uv_loop_close(loop);
-                                        free(loop);
-                                      });
+    uv_loop_close(loop);
+    free(loop);
+  });
 
-  if (uvLoop==nullptr) {
+  if (uvLoop == nullptr) {
     throw bad_alloc();
   }
 
   int status = uv_loop_init(uvLoop.get());
 
-  if (status!=0) {
+  if (status != 0) {
     static constexpr size_t kErrorMessageBufLen = 128;
     char errorMessage[kErrorMessageBufLen];
     uv_strerror_r(status, errorMessage, sizeof(errorMessage));
@@ -66,7 +66,7 @@ UvLoopRunner::UvLoopRunner() : mUvLoop(createUvLoop()) {
     throw runtime_error("Error " + to_string(status) + " initializing UV async. " + errorMessage);
   }
 
-  thread runnerThread([this](){
+  thread runnerThread([this]() {
     uv_run(mUvLoop.get(), UV_RUN_DEFAULT);
     mStopped = true;
     mThreadStopped.notify_all();
@@ -76,14 +76,12 @@ UvLoopRunner::UvLoopRunner() : mUvLoop(createUvLoop()) {
   mThread.swap(runnerThread);
 }
 
-shared_ptr<uv_loop_t> UvLoopRunner::getLoop() const {
-  return mUvLoop;
-}
+shared_ptr<uv_loop_t> UvLoopRunner::getLoop() const { return mUvLoop; }
 
 void UvLoopRunner::waitForExit() {
   unique_lock<mutex> l(mMutex);
   uv_async_send(&mUvAsync);
-  mThreadStopped.wait(l, [this](){ return mStopped; });
+  mThreadStopped.wait(l, [this]() { return mStopped; });
 }
 
 }  // namespace maplang

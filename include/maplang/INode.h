@@ -33,8 +33,7 @@ class INode {
  public:
   virtual ~INode() {}
 
-  virtual void setSubgraphContext(
-      const std::shared_ptr<ISubgraphContext> &context) {}
+  virtual void setSubgraphContext(const std::shared_ptr<ISubgraphContext> &context) {}
 
   virtual IPathable *asPathable() = 0;
   virtual ISink *asSink() = 0;

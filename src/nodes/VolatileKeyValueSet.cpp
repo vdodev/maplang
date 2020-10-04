@@ -15,8 +15,10 @@
  */
 
 #include "nodes/VolatileKeyValueSet.h"
+
 #include <iostream>
 #include <unordered_set>
+
 #include "maplang/Errors.h"
 
 using namespace std;
@@ -27,10 +29,10 @@ static constexpr size_t kGetterPartitionIndex = 1;
 static constexpr size_t kRemoverPartitionIndex = 2;
 static constexpr size_t kRemoveAllPartitionIndex = 3;
 
-static const string kAdderPartitionName{"Adder"};
-static const string kGetterPartitionName{"Getter"};
-static const string kRemoverPartitionName{"Remover"};
-static const string kRemoveAllPartitionName{"Remove All"};
+static const string kAdderPartitionName {"Adder"};
+static const string kGetterPartitionName {"Getter"};
+static const string kRemoverPartitionName {"Remover"};
+static const string kRemoveAllPartitionName {"Remove All"};
 
 static const string kParameter_KeyWhichIsNotPresent = "keyWhichIsNotPresent";
 static const string kParameter_ValueWhichIsNotPresent = "valueWhichIsNotPresent";
@@ -59,10 +61,16 @@ class Adder : public INode, public IPathable {
 
   void handlePacket(const PathablePacket& incomingPacket) override {
     if (!incomingPacket.parameters.contains(mKeyName)) {
-      sendErrorPacket(incomingPacket.packetPusher, "Key-lookup missing", "Missing parameter for key-lookup: " + mKeyName);
+      sendErrorPacket(
+          incomingPacket.packetPusher,
+          "Key-lookup missing",
+          "Missing parameter for key-lookup: " + mKeyName);
       return;
     } else if (!incomingPacket.parameters.contains(mValueName)) {
-      sendErrorPacket(incomingPacket.packetPusher, "Value-lookup missing", "Missing parameter for value-lookup: " + mValueName);
+      sendErrorPacket(
+          incomingPacket.packetPusher,
+          "Value-lookup missing",
+          "Missing parameter for value-lookup: " + mValueName);
       return;
     }
 
@@ -105,7 +113,10 @@ class Getter : public INode, public IPathable {
 
   void handlePacket(const PathablePacket& incomingPacket) override {
     if (!incomingPacket.parameters.contains(mKeyName)) {
-      sendErrorPacket(incomingPacket.packetPusher, "Key-lookup missing", "Missing parameter for key-lookup: " + mKeyName);
+      sendErrorPacket(
+          incomingPacket.packetPusher,
+          "Key-lookup missing",
+          "Missing parameter for key-lookup: " + mKeyName);
       return;
     }
 
@@ -153,10 +164,16 @@ class Remover : public INode, public IPathable {
 
   void handlePacket(const PathablePacket& incomingPacket) override {
     if (!incomingPacket.parameters.contains(mKeyName)) {
-      sendErrorPacket(incomingPacket.packetPusher, "Key-lookup missing", "Missing parameter for key-lookup: " + mKeyName);
+      sendErrorPacket(
+          incomingPacket.packetPusher,
+          "Key-lookup missing",
+          "Missing parameter for key-lookup: " + mKeyName);
       return;
     } else if (!incomingPacket.parameters.contains(mValueName)) {
-      sendErrorPacket(incomingPacket.packetPusher, "Value-lookup missing", "Missing parameter for value-lookup: " + mValueName);
+      sendErrorPacket(
+          incomingPacket.packetPusher,
+          "Value-lookup missing",
+          "Missing parameter for value-lookup: " + mValueName);
       return;
     }
 
@@ -213,10 +230,16 @@ class RemoveAll : public INode, public IPathable {
 
   void handlePacket(const PathablePacket& incomingPacket) override {
     if (!incomingPacket.parameters.contains(mKeyName)) {
-      sendErrorPacket(incomingPacket.packetPusher, "Key-lookup missing", "Missing parameter for key-lookup: " + mKeyName);
+      sendErrorPacket(
+          incomingPacket.packetPusher,
+          "Key-lookup missing",
+          "Missing parameter for key-lookup: " + mKeyName);
       return;
     } else if (!incomingPacket.parameters.contains(mValueName)) {
-      sendErrorPacket(incomingPacket.packetPusher, "Value-lookup missing", "Missing parameter for value-lookup: " + mValueName);
+      sendErrorPacket(
+          incomingPacket.packetPusher,
+          "Value-lookup missing",
+          "Missing parameter for value-lookup: " + mValueName);
       return;
     }
 
@@ -260,9 +283,7 @@ class RemoveAll : public INode, public IPathable {
   const shared_ptr<StorageMap> mStorage;
 };
 
-VolatileKeyValueSet::VolatileKeyValueSet(
-    const nlohmann::json& initParameters) {
-
+VolatileKeyValueSet::VolatileKeyValueSet(const nlohmann::json& initParameters) {
   cout << initParameters << endl;
   if (!initParameters.contains("key")) {
     throw runtime_error("VolatileKeyValueSet parameters must contain 'key'.");
@@ -278,8 +299,7 @@ VolatileKeyValueSet::VolatileKeyValueSet(
   const auto storage = make_shared<StorageMap>();
 
   mPartitions[kAdderPartitionName].name = kAdderPartitionName;
-  mPartitions[kAdderPartitionName].node =
-      make_shared<Adder>(storage, keyName, valueName);
+  mPartitions[kAdderPartitionName].node = make_shared<Adder>(storage, keyName, valueName);
 
   auto getter = make_shared<Getter>(storage, keyName, valueName);
   mPartitions[kGetterPartitionName].name = kGetterPartitionName;
@@ -311,8 +331,7 @@ string VolatileKeyValueSet::getNodeName(size_t partitionIndex) {
   }
 }
 
-std::shared_ptr<INode> VolatileKeyValueSet::getNode(
-    const string& partitionName) {
+std::shared_ptr<INode> VolatileKeyValueSet::getNode(const string& partitionName) {
   return mPartitions[partitionName].node;
 }
 

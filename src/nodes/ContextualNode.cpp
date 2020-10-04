@@ -16,9 +16,10 @@
 
 #include "nodes/ContextualNode.h"
 
-#include "maplang/NodeRegistration.h"
-#include "logging.h"
 #include <sstream>
+
+#include "logging.h"
+#include "maplang/NodeRegistration.h"
 
 using namespace std;
 using namespace nlohmann;
@@ -55,7 +56,7 @@ class SingleNodeRouter;
 
 class ContextualNode::Impl : public IRouterInstanceCreator, public enable_shared_from_this<ContextualNode::Impl> {
  public:
-  Impl(const json &initData);
+  Impl(const json& initData);
   ~Impl() override;
 
   void initialize();
@@ -71,27 +72,26 @@ class ContextualNode::Impl : public IRouterInstanceCreator, public enable_shared
   unordered_map<string, shared_ptr<INode>> mNodeMap;
 };
 
-class CohesiveGroupRouter
-    : public INode,
-      public ICohesiveGroup,
-      public IRouterInstanceCreator,
-      public IContextRouter,
-      public enable_shared_from_this<CohesiveGroupRouter> {
+class CohesiveGroupRouter : public INode,
+                            public ICohesiveGroup,
+                            public IRouterInstanceCreator,
+                            public IContextRouter,
+                            public enable_shared_from_this<CohesiveGroupRouter> {
  public:
   CohesiveGroupRouter(
       const weak_ptr<IRouterInstanceCreator>& subinstanceCreator,
-      ICohesiveGroup *const templateGroup,
+      ICohesiveGroup* const templateGroup,
       const string& key);
 
   // Implementation needs to pass a weak pointer of "this", which can only be done after the constructor.
-  void initialize(ICohesiveGroup *const templateGroup);
+  void initialize(ICohesiveGroup* const templateGroup);
 
   ~CohesiveGroupRouter() override = default;
 
-  static vector<string> createGroupNamesVector(ICohesiveGroup *const templateGroup);
+  static vector<string> createGroupNamesVector(ICohesiveGroup* const templateGroup);
   unordered_map<string, shared_ptr<IContextRouter>> createGroupRouterNodes(
       const weak_ptr<IRouterInstanceCreator>& subinstanceCreator,
-      ICohesiveGroup *const templateGroup,
+      ICohesiveGroup* const templateGroup,
       const string& key);
 
   shared_ptr<INode> asINode() { return shared_from_this(); }
@@ -130,11 +130,9 @@ class SingleNodeRouter : public INode,
       const weak_ptr<IRouterInstanceCreator>& instanceCreator,
       const shared_ptr<INode>& templateNode,
       const string& key)
-      : mInstanceCreator(instanceCreator),
-        mThisAsSink(templateNode->asSink() ? this : nullptr),
+      : mInstanceCreator(instanceCreator), mThisAsSink(templateNode->asSink() ? this : nullptr),
         mThisAsSource(templateNode->asSource() ? this : nullptr),
-        mThisAsPathable(templateNode->asPathable() ? this : nullptr),
-        mKey(key) {}
+        mThisAsPathable(templateNode->asPathable() ? this : nullptr), mKey(key) {}
 
   ~SingleNodeRouter() override = default;
 
@@ -192,9 +190,7 @@ class SingleNodeRouter : public INode,
     node->asSink()->handlePacket(packet);
   }
 
-  void setSubgraphContext(const shared_ptr<ISubgraphContext>& context) override {
-    mOriginalSubgraphContext = context;
-  }
+  void setSubgraphContext(const shared_ptr<ISubgraphContext>& context) override { mOriginalSubgraphContext = context; }
 
   bool removeNode(const string& contextLookup) {
     auto nodeIt = mNodes.find(contextLookup);
@@ -211,9 +207,7 @@ class SingleNodeRouter : public INode,
     return true;
   }
 
-  shared_ptr<uv_loop_t> getUvLoop() const override {
-    return mOriginalSubgraphContext->getUvLoop();
-  }
+  shared_ptr<uv_loop_t> getUvLoop() const override { return mOriginalSubgraphContext->getUvLoop(); }
 
   void removeFromGraph(INode* node) override {
     auto it = mReverseNodeLookup.find(node);
@@ -264,11 +258,11 @@ static shared_ptr<IContextRouter> createContextRouter(
 
 class ContextualPacketPusher : public IPacketPusher {
  public:
-  ContextualPacketPusher(const shared_ptr<IPacketPusher>& wrapped,
-                         SingleNodeRouter* contextRouter, const string& nodeKey)
-      : mWrappedPusher(wrapped),
-        mContextRouter(contextRouter),
-        mNodeKey(nodeKey) {}
+  ContextualPacketPusher(
+      const shared_ptr<IPacketPusher>& wrapped,
+      SingleNodeRouter* contextRouter,
+      const string& nodeKey)
+      : mWrappedPusher(wrapped), mContextRouter(contextRouter), mNodeKey(nodeKey) {}
 
   void pushPacket(const Packet& packet, const string& channelName) override {
     mWrappedPusher->pushPacket(packet, channelName);
@@ -298,8 +292,7 @@ void SingleNodeRouter::setPacketPusher(const shared_ptr<IPacketPusher>& pusher) 
 
 class ContextRemover : public INode, public IPathable {
  public:
-  ContextRemover(const weak_ptr<IContextRouter>& contextRouter,
-                 const string& key)
+  ContextRemover(const weak_ptr<IContextRouter>& contextRouter, const string& key)
       : mContextRouter(contextRouter), mKey(key) {}
 
   void handlePacket(const PathablePacket& incomingPacket) override {
@@ -315,8 +308,7 @@ class ContextRemover : public INode, public IPathable {
 
     Packet removedHandleKeyPacket;
     removedHandleKeyPacket.parameters[mKey] = incomingPacket.parameters[mKey];
-    incomingPacket.packetPusher->pushPacket(move(removedHandleKeyPacket),
-                                             "Removed Key");
+    incomingPacket.packetPusher->pushPacket(move(removedHandleKeyPacket), "Removed Key");
   }
 
   IPathable* asPathable() override { return this; }
@@ -329,19 +321,18 @@ class ContextRemover : public INode, public IPathable {
   const string mKey;
 };
 
-CohesiveGroupRouter::CohesiveGroupRouter(const weak_ptr<IRouterInstanceCreator> &subinstanceCreator,
-                                         ICohesiveGroup *const templateGroup,
-                                         const string& key)
-                                         : mSubinstanceCreator(subinstanceCreator),
-                                           mGroupNodeCount(templateGroup->getNodeCount()),
-                                           mGroupNodeNames(createGroupNamesVector(templateGroup)),
-                                           mKey(key) {}
+CohesiveGroupRouter::CohesiveGroupRouter(
+    const weak_ptr<IRouterInstanceCreator>& subinstanceCreator,
+    ICohesiveGroup* const templateGroup,
+    const string& key)
+    : mSubinstanceCreator(subinstanceCreator), mGroupNodeCount(templateGroup->getNodeCount()),
+      mGroupNodeNames(createGroupNamesVector(templateGroup)), mKey(key) {}
 
-void CohesiveGroupRouter::initialize(ICohesiveGroup *const templateGroup) {
+void CohesiveGroupRouter::initialize(ICohesiveGroup* const templateGroup) {
   mNodeRouters = createGroupRouterNodes(shared_from_this(), templateGroup, mKey);
 }
 
-vector<string> CohesiveGroupRouter::createGroupNamesVector(ICohesiveGroup *const templateGroup) {
+vector<string> CohesiveGroupRouter::createGroupNamesVector(ICohesiveGroup* const templateGroup) {
   const size_t nodeCount = templateGroup != nullptr ? templateGroup->getNodeCount() : 0;
   vector<string> nodeNames(nodeCount);
   if (templateGroup == nullptr) {
@@ -358,7 +349,7 @@ vector<string> CohesiveGroupRouter::createGroupNamesVector(ICohesiveGroup *const
 
 unordered_map<string, shared_ptr<IContextRouter>> CohesiveGroupRouter::createGroupRouterNodes(
     const weak_ptr<IRouterInstanceCreator>& subinstanceCreator,
-    ICohesiveGroup *const templateGroup,
+    ICohesiveGroup* const templateGroup,
     const string& key) {
   unordered_map<string, shared_ptr<IContextRouter>> routerNodes;
   if (templateGroup == nullptr) {
@@ -377,15 +368,11 @@ unordered_map<string, shared_ptr<IContextRouter>> CohesiveGroupRouter::createGro
   return routerNodes;
 }
 
-size_t CohesiveGroupRouter::getNodeCount() {
-  return mGroupNodeCount;
-}
+size_t CohesiveGroupRouter::getNodeCount() { return mGroupNodeCount; }
 
-string CohesiveGroupRouter::getNodeName(size_t nodeIndex) {
-  return mGroupNodeNames[nodeIndex];
-}
+string CohesiveGroupRouter::getNodeName(size_t nodeIndex) { return mGroupNodeNames[nodeIndex]; }
 
-shared_ptr<INode> CohesiveGroupRouter::getNode(const string &nodeName) {
+shared_ptr<INode> CohesiveGroupRouter::getNode(const string& nodeName) {
   auto it = mNodeRouters.find(nodeName);
   if (it == mNodeRouters.end()) {
     return nullptr;
@@ -422,7 +409,7 @@ bool CohesiveGroupRouter::removeNode(const string& contextLookup) {
   return true;
 }
 
-void CohesiveGroupRouter::createNewInstance(const string &forNewContextLookup) {
+void CohesiveGroupRouter::createNewInstance(const string& forNewContextLookup) {
   const auto subinstanceCreator = mSubinstanceCreator.lock();
   if (!subinstanceCreator) {
     return;
@@ -431,8 +418,8 @@ void CohesiveGroupRouter::createNewInstance(const string &forNewContextLookup) {
   subinstanceCreator->createNewInstance(forNewContextLookup);
 }
 
-ContextualNode::ContextualNode(const json &initData) : mImpl(make_shared<Impl>(initData)){
-  mImpl->initialize(); // internal implementation needs a weak pointer, which it can only get after the constructor.
+ContextualNode::ContextualNode(const json& initData) : mImpl(make_shared<Impl>(initData)) {
+  mImpl->initialize();  // internal implementation needs a weak pointer, which it can only get after the constructor.
 }
 
 ContextualNode::Impl::Impl(const json& initParameters)
@@ -451,7 +438,7 @@ void ContextualNode::Impl::initialize() {
   mNodeMap[kPartitionName_ContextRemover] = mContextRemover;
 }
 
-void ContextualNode::Impl::createNewInstance(const string &forNewContextLookup) {
+void ContextualNode::Impl::createNewInstance(const string& forNewContextLookup) {
   const auto newInstance = NodeRegistration::defaultRegistration()->createNode(mNodeImplementation, mInitParameters);
   mContextRouter->addNode(forNewContextLookup, newInstance);
 }

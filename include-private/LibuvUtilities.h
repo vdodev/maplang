@@ -25,4 +25,4 @@ std::string uvStrError(int status);
 
 }  // namespace maplang
 
-#endif //MAPLANG__LIBUVUTILITIES_H_
+#endif  // MAPLANG__LIBUVUTILITIES_H_

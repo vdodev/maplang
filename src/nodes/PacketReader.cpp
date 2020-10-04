@@ -15,6 +15,7 @@
  */
 
 #include "nodes/PacketReader.h"
+
 #include <sstream>
 
 using namespace std;
@@ -25,14 +26,10 @@ namespace maplang {
 static uint64_t readUInt64BE(const uint8_t** where) {
   uint64_t val = 0;
   const uint8_t* startFrom = *where;
-  val = static_cast<uint64_t>(startFrom[0]) << 56
-      | static_cast<uint64_t>(startFrom[1]) << 48
-      | static_cast<uint64_t>(startFrom[2]) << 40
-      | static_cast<uint64_t>(startFrom[3]) << 32
-      | static_cast<uint64_t>(startFrom[4]) << 24
-      | static_cast<uint64_t>(startFrom[5]) << 16
-      | static_cast<uint64_t>(startFrom[6]) <<  8
-      | static_cast<uint64_t>(startFrom[7]);
+  val = static_cast<uint64_t>(startFrom[0]) << 56 | static_cast<uint64_t>(startFrom[1]) << 48
+        | static_cast<uint64_t>(startFrom[2]) << 40 | static_cast<uint64_t>(startFrom[3]) << 32
+        | static_cast<uint64_t>(startFrom[4]) << 24 | static_cast<uint64_t>(startFrom[5]) << 16
+        | static_cast<uint64_t>(startFrom[6]) << 8 | static_cast<uint64_t>(startFrom[7]);
 
   *where += sizeof(uint64_t);
 
@@ -45,11 +42,8 @@ void PacketReader::handlePacket(const PathablePacket& incomingPacket) {
   while (mPendingBytes.size() > 0) {
     if (mLength == 0 && mPendingBytes.size() >= sizeof(uint64_t)) {
       uint64_t followingLengthBigEndian;
-      mPendingBytes.read(
-          0,
-          sizeof(followingLengthBigEndian),
-          &followingLengthBigEndian,
-          sizeof(followingLengthBigEndian));
+      mPendingBytes
+          .read(0, sizeof(followingLengthBigEndian), &followingLengthBigEndian, sizeof(followingLengthBigEndian));
 
       mLength = sizeof(followingLengthBigEndian) + be64toh(followingLengthBigEndian);
     }
@@ -63,7 +57,7 @@ void PacketReader::handlePacket(const PathablePacket& incomingPacket) {
         mLength = 0;
 
         incomingPacket.packetPusher->pushPacket(move(packet), "Packet Ready");
-      } catch (exception &e) {
+      } catch (exception& e) {
         Packet errorPacket;
         errorPacket.parameters["errorMessage"] = e.what();
 
@@ -77,11 +71,7 @@ Packet PacketReader::readPacket(const MemoryStream& stream) {
   uint64_t offset = sizeof(uint64_t);
 
   uint64_t parametersLengthBigEndian;
-  stream.read(
-      offset,
-      sizeof(parametersLengthBigEndian),
-      &parametersLengthBigEndian,
-      sizeof(parametersLengthBigEndian));
+  stream.read(offset, sizeof(parametersLengthBigEndian), &parametersLengthBigEndian, sizeof(parametersLengthBigEndian));
   uint64_t parametersLength = be64toh(parametersLengthBigEndian);
   offset += parametersLength;
 

@@ -42,4 +42,4 @@ std::string getDefaultReasonForHttpStatus(int status);
 }  // namespace http
 }  // namespace maplang
 
-#endif //MAPLANG_INCLUDE_PRIVATE_HTTPUTILITIES_H_
+#endif  // MAPLANG_INCLUDE_PRIVATE_HTTPUTILITIES_H_

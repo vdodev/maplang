@@ -30,9 +30,7 @@ class Cleanup final {
     }
   }
 
-  void cancelCleanup() {
-    mCleanup = nullptr;
-  }
+  void cancelCleanup() { mCleanup = nullptr; }
 
  private:
   std::function<void()> mCleanup;
@@ -40,4 +38,4 @@ class Cleanup final {
 
 }  // namespace maplang
 
-#endif //MAPLANG_SRC_CLEANUP_H_
+#endif  // MAPLANG_SRC_CLEANUP_H_

@@ -18,6 +18,7 @@
 #define __MAPLANG_DATA_GRAPH_H__
 
 #include <memory>
+
 #include "maplang/INode.h"
 
 namespace maplang {
@@ -43,15 +44,9 @@ class DataGraph final {
       const std::string& fromPathableId = "",
       const std::string& toPathableId = "");
 
-  void sendPacket(
-      const Packet& packet,
-      const std::shared_ptr<INode>& toNode,
-      const std::string& toPathableId = "");
+  void sendPacket(const Packet& packet, const std::shared_ptr<INode>& toNode, const std::string& toPathableId = "");
 
-  void sendPacket(
-      Packet&& packet,
-      const std::shared_ptr<INode>& toNode,
-      const std::string& toPathableId = "");
+  void sendPacket(Packet&& packet, const std::shared_ptr<INode>& toNode, const std::string& toPathableId = "");
 
  private:
   const std::shared_ptr<DataGraphImpl> impl;

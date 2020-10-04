@@ -29,12 +29,11 @@ class VolatileKeyValueSet : public ICohesiveGroup, public INode {
   size_t getNodeCount() override;
   std::string getNodeName(size_t partitionIndex) override;
 
-  std::shared_ptr<INode> getNode(
-      const std::string& partitionName) override;
+  std::shared_ptr<INode> getNode(const std::string& partitionName) override;
 
-  IPathable *asPathable() override { return nullptr; }
-  ISink *asSink() override { return nullptr; }
-  ISource *asSource() override { return nullptr; }
+  IPathable* asPathable() override { return nullptr; }
+  ISink* asSink() override { return nullptr; }
+  ISource* asSource() override { return nullptr; }
   ICohesiveGroup* asGroup() override { return this; }
 
  private:

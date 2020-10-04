@@ -15,26 +15,26 @@
  */
 
 #include "maplang/BlueprintBuilder.h"
-#include <unordered_map>
-#include <unordered_set>
-#include "maplang/json.hpp"
-#include "maplang/graph/Graph.h"
-#include "maplang/ICohesiveGroup.h"
-#include "logging.h"
+
 #include <queue>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
+
+#include "logging.h"
+#include "maplang/ICohesiveGroup.h"
+#include "maplang/graph/Graph.h"
+#include "maplang/json.hpp"
 
 using namespace std;
 using namespace nlohmann;
 
 namespace std {
-template<>
+template <>
 struct hash<maplang::GraphElement<string>> {
-  std::size_t operator()(const maplang::GraphElement<string>& element) const {
-    return hash<string>()(element.item);
-  }
+  std::size_t operator()(const maplang::GraphElement<string>& element) const { return hash<string>()(element.item); }
 };
-}  // namespace std;
+}  // namespace std
 
 namespace maplang {
 
@@ -55,7 +55,8 @@ static const string kConnectionKey_ToPathable = "toPathable";
 static const string kNodeInstanceKey_Type = "type";
 static const string kNodeInstanceKey_CohesiveGroup = "cohesiveGroup";
 
-static void requireKeys(const vector<string>& requiredKeys, const json& inParameters, const std::string niceParameterObjectName) {
+static void
+requireKeys(const vector<string>& requiredKeys, const json& inParameters, const std::string niceParameterObjectName) {
   for (const auto& requiredKey : requiredKeys) {
     if (!inParameters.contains(requiredKey)) {
       throw runtime_error("'" + requiredKey + "' element is missing from " + niceParameterObjectName + ".");
@@ -63,33 +64,36 @@ static void requireKeys(const vector<string>& requiredKeys, const json& inParame
   }
 }
 
-void BlueprintBuilder::build(DataGraph *graph, const nlohmann::json &blueprint) {
-  requireKeys({
-                  kKey_Graphs,
-                  kKey_NodeTypes,
-                  kKey_NodeInstances,
-                  kKey_Connections,
-              }, blueprint, "blueprint");
-
+void BlueprintBuilder::build(DataGraph* graph, const nlohmann::json& blueprint) {
+  requireKeys(
+      {
+          kKey_Graphs,
+          kKey_NodeTypes,
+          kKey_NodeInstances,
+          kKey_Connections,
+      },
+      blueprint,
+      "blueprint");
 
   if (!blueprint.contains(kKey_TypeImplementations) && !blueprint.contains(kKey_NodeImplementations)) {
-    throw runtime_error("'" + kKey_TypeImplementations + "' or '" + kKey_NodeImplementations + "' element is required in blueprint.");
+    throw runtime_error(
+        "'" + kKey_TypeImplementations + "' or '" + kKey_NodeImplementations + "' element is required in blueprint.");
   }
 
   const auto& typeConfig = blueprint[kKey_NodeTypes];
   const auto& instanceConfig = blueprint[kKey_NodeInstances];
   const auto& connectionsConfig = blueprint[kKey_Connections];
 
-  // Build a graph of the connections, find the tails, work backward to find the heads, then add to the graph in stack-order.
+  // Build a graph of the connections, find the tails, work backward to find the heads, then add to the graph in
+  // stack-order.
   Graph<string> instanceGraph;
   for (auto it = connectionsConfig.cbegin(); it != connectionsConfig.end(); it++) {
     const json& connection = it.value();
 
-    requireKeys({
-                    kConnectionKey_FromInstance,
-                    kConnectionKey_FromChannel,
-                    kConnectionKey_ToInstance
-    }, connection, "connections[" + it.key() + "]");
+    requireKeys(
+        {kConnectionKey_FromInstance, kConnectionKey_FromChannel, kConnectionKey_ToInstance},
+        connection,
+        "connections[" + it.key() + "]");
 
     const string& fromInstance = connection[kConnectionKey_FromInstance].get<string>();
     const string& fromChannel = connection[kConnectionKey_FromChannel].get<string>();
@@ -110,8 +114,7 @@ void BlueprintBuilder::build(DataGraph *graph, const nlohmann::json &blueprint) 
   }
 
   queue<shared_ptr<GraphElement<string>>> toProcess;
-  instanceGraph.visitGraphElements(
-      [&toProcess](const shared_ptr<GraphElement<string>>& graphElement) {
+  instanceGraph.visitGraphElements([&toProcess](const shared_ptr<GraphElement<string>>& graphElement) {
     if (graphElement->forwardEdges.empty()) {
       toProcess.push(graphElement);
     }
@@ -130,16 +133,17 @@ void BlueprintBuilder::build(DataGraph *graph, const nlohmann::json &blueprint) 
   bool anyError = false;
   unordered_set<shared_ptr<GraphElement<string>>> alreadyProcessed;
   queue<ConnectionInfo> connectInOrder;
-  unordered_map<string, shared_ptr<INode>> nodes; // Instance ID => implementation
-  unordered_map<string, shared_ptr<ICohesiveGroup>> cohesiveGroups; // Instance ID => implementation
+  unordered_map<string, shared_ptr<INode>> nodes;                    // Instance ID => implementation
+  unordered_map<string, shared_ptr<ICohesiveGroup>> cohesiveGroups;  // Instance ID => implementation
 
   // Create CohesiveGroup instances
-  instanceGraph.visitGraphElementsHeadsLast([&cohesiveGroups, &instanceConfig](const shared_ptr<GraphElement<string>>& graphElement) {
-    // Get the instance info from instanceConfig
-    // Find its implementation - instance or type impl
-    // Instantiate
-    // Add to cohesiveGroups
-  });
+  instanceGraph.visitGraphElementsHeadsLast(
+      [&cohesiveGroups, &instanceConfig](const shared_ptr<GraphElement<string>>& graphElement) {
+        // Get the instance info from instanceConfig
+        // Find its implementation - instance or type impl
+        // Instantiate
+        // Add to cohesiveGroups
+      });
 
   // Create Node Instances
   instanceGraph.visitGraphElementsHeadsLast([&nodes](const shared_ptr<GraphElement<string>>& graphElement) {
@@ -148,7 +152,7 @@ void BlueprintBuilder::build(DataGraph *graph, const nlohmann::json &blueprint) 
 
   // Connect
 
-  while(!toProcess.empty()) {
+  while (!toProcess.empty()) {
     const shared_ptr<GraphElement<string>> toElement = toProcess.front();
     toProcess.pop();
 
@@ -206,8 +210,6 @@ void BlueprintBuilder::build(DataGraph *graph, const nlohmann::json &blueprint) 
   while (!connectInOrder.empty()) {
     ConnectionInfo connectionInfo = move(connectInOrder.front());
     connectInOrder.pop();
-
-
   }
 }
 

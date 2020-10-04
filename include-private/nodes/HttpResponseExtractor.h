@@ -17,11 +17,12 @@
 #ifndef MAPLANG_SRC_NODES_HTTPRESPONSEEXTRACTOR_H_
 #define MAPLANG_SRC_NODES_HTTPRESPONSEEXTRACTOR_H_
 
+#include <random>
+
 #include "maplang/INode.h"
 #include "maplang/ISink.h"
 #include "maplang/ISource.h"
 #include "maplang/MemoryStream.h"
-#include <random>
 
 namespace maplang {
 
@@ -33,9 +34,9 @@ class HttpResponseExtractor final : public INode, public ISink, public ISource {
   void handlePacket(const Packet& packet) override;
   void setPacketPusher(const std::shared_ptr<IPacketPusher>& pusher) override;
 
-  IPathable *asPathable() override { return nullptr; }
-  ISink *asSink() override { return this; }
-  ISource *asSource() override { return this; }
+  IPathable* asPathable() override { return nullptr; }
+  ISink* asSink() override { return this; }
+  ISource* asSource() override { return this; }
   ICohesiveGroup* asGroup() override { return nullptr; }
 
  private:
@@ -58,4 +59,4 @@ class HttpResponseExtractor final : public INode, public ISink, public ISource {
 
 }  // namespace maplang
 
-#endif //MAPLANG_SRC_NODES_HTTPRESPONSEEXTRACTOR_H_
+#endif  // MAPLANG_SRC_NODES_HTTPRESPONSEEXTRACTOR_H_

@@ -17,16 +17,17 @@
 #ifndef __MAPLANG_OBJECTPOOL_H__
 #define __MAPLANG_OBJECTPOOL_H__
 
-#include "maplang/Buffer.h"
 #include <stack>
+
+#include "maplang/Buffer.h"
 
 namespace maplang {
 
-template<class T>
+template <class T>
 class ObjectPool final {
  public:
-  ObjectPool(std::function<T* ()>&& objectFactory, std::function<void (T* obj)>&& disposer)
-    : mFactory(move(objectFactory)), mDisposer(move(disposer)) {}
+  ObjectPool(std::function<T*()>&& objectFactory, std::function<void(T* obj)>&& disposer)
+      : mFactory(move(objectFactory)), mDisposer(move(disposer)) {}
 
   ~ObjectPool() {
     printf("~ObjectPool()\n");
@@ -48,17 +49,15 @@ class ObjectPool final {
     }
   }
 
-  void returnToPool(T* item) {
-    mObjects.push(item);
-  }
+  void returnToPool(T* item) { mObjects.push(item); }
 
  private:
-  const std::function<T* ()> mFactory;
-  const std::function<void (T* obj)> mDisposer;
+  const std::function<T*()> mFactory;
+  const std::function<void(T* obj)> mDisposer;
 
   std::stack<T*> mObjects;
 };
 
 }  // namespace maplang
 
-#endif // __MAPLANG_OBJECTPOOL_H__
+#endif  // __MAPLANG_OBJECTPOOL_H__

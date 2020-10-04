@@ -17,8 +17,8 @@
 #ifndef __MAPLANG_PACKETWRITER_H__
 #define __MAPLANG_PACKETWRITER_H__
 
-#include "maplang/IPathable.h"
 #include "maplang/INode.h"
+#include "maplang/IPathable.h"
 
 namespace maplang {
 
@@ -26,12 +26,12 @@ class PacketWriter : public INode, public IPathable {
  public:
   ~PacketWriter() override = default;
 
-  void handlePacket(const PathablePacket& incomingPacket) override;
+  void handlePacket(const PathablePacket &incomingPacket) override;
 
   IPathable *asPathable() override { return this; }
   ISink *asSink() override { return nullptr; }
   ISource *asSource() override { return nullptr; }
-  ICohesiveGroup* asGroup() override { return nullptr; }
+  ICohesiveGroup *asGroup() override { return nullptr; }
 };
 
 }  // namespace maplang

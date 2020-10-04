@@ -29,4 +29,4 @@ class BlueprintBuilder final {
 
 }  // namespace maplang
 
-#endif //__MAPLANG_BLUEPRINT_BUILDER_H__
+#endif  //__MAPLANG_BLUEPRINT_BUILDER_H__

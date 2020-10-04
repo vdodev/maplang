@@ -17,19 +17,19 @@
 #ifndef __MAPLANG_DEFAULTGRAPHEDGE_H_
 #define __MAPLANG_DEFAULTGRAPHEDGE_H_
 
-#include <string>
 #include <memory>
+#include <string>
 
 namespace maplang {
 
-template<class ItemClass, class EdgeClass>
+template <class ItemClass, class EdgeClass>
 struct GraphElement;
 
-template<class ItemClass>
+template <class ItemClass>
 struct DefaultGraphEdge {
   std::shared_ptr<GraphElement<ItemClass, DefaultGraphEdge<ItemClass>>> otherGraphElement;
 };
 
 }  // namespace maplang
 
-#endif // __MAPLANG_DEFAULTGRAPHEDGE_H_
+#endif  // __MAPLANG_DEFAULTGRAPHEDGE_H_

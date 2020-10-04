@@ -39,11 +39,9 @@ class IPacketPusher {
    * @param packet Packet to push into the Graph
    * @param channelName Channel this packet is coming from.
    */
-  virtual void pushPacket(const Packet& packet,
-                          const std::string& channelName) = 0;
+  virtual void pushPacket(const Packet& packet, const std::string& channelName) = 0;
 
-  virtual void pushPacket(Packet&& packet,
-                          const std::string& channelName) = 0;
+  virtual void pushPacket(Packet&& packet, const std::string& channelName) = 0;
 };
 
 }  // namespace maplang

@@ -32,8 +32,7 @@ class ISinkFactory {
  public:
   virtual ~ISinkFactory() = default;
 
-  virtual std::shared_ptr<ISink> create(
-      const nlohmann::json& initParameters) = 0;
+  virtual std::shared_ptr<ISink> create(const nlohmann::json& initParameters) = 0;
 };
 
 }  // namespace maplang

@@ -18,8 +18,9 @@
 #define MAPLANG__ERRORS_H_
 
 #include <string>
-#include "maplang/Packet.h"
+
 #include "maplang/IPacketPusher.h"
+#include "maplang/Packet.h"
 
 namespace maplang {
 
@@ -29,7 +30,9 @@ const extern std::string kParameter_ErrorName;
 const extern std::string kParameter_ErrorMessage;
 
 inline Packet createErrorPacket(
-    const std::string& errorName, const std::string& errorMessage, const nlohmann::json& extraParameters = nullptr) {
+    const std::string& errorName,
+    const std::string& errorMessage,
+    const nlohmann::json& extraParameters = nullptr) {
   Packet packet;
   if (extraParameters != nullptr) {
     packet.parameters = extraParameters;
@@ -59,4 +62,4 @@ inline void sendErrorPacket(
 }
 
 }  // namespace maplang
-#endif //MAPLANG__ERRORS_H_
+#endif  // MAPLANG__ERRORS_H_

@@ -61,8 +61,7 @@ uint8_t MemoryStream::byteAt(size_t index) const {
   return mBuffers[bufferIndex].data.get()[bufferOffset];
 }
 
-size_t MemoryStream::firstIndexOf(uint8_t findThis, size_t startOffset,
-                                  size_t endOffset) const {
+size_t MemoryStream::firstIndexOf(uint8_t findThis, size_t startOffset, size_t endOffset) const {
   if (endOffset > mSize) {
     endOffset = mSize;
   }
@@ -73,23 +72,22 @@ size_t MemoryStream::firstIndexOf(uint8_t findThis, size_t startOffset,
 
   size_t foundAtIndex = kNotFound;
   size_t lengthOfPreviousBuffers = 0;
-  visitBuffers(startOffset, endOffset,
-               [findThis, &foundAtIndex, &lengthOfPreviousBuffers](
-                   size_t bufferIndex, Buffer&& buffer) {
-                 const void* foundAt =
-                     memchr(buffer.data.get(), findThis, buffer.length);
+  visitBuffers(
+      startOffset,
+      endOffset,
+      [findThis, &foundAtIndex, &lengthOfPreviousBuffers](size_t bufferIndex, Buffer&& buffer) {
+        const void* foundAt = memchr(buffer.data.get(), findThis, buffer.length);
 
-                 if (foundAt == nullptr) {
-                   lengthOfPreviousBuffers += buffer.length;
-                   return true;  // keep iterating through buffers.
-                 }
+        if (foundAt == nullptr) {
+          lengthOfPreviousBuffers += buffer.length;
+          return true;  // keep iterating through buffers.
+        }
 
-                 const size_t offsetInCurrentBuffer =
-                     reinterpret_cast<intptr_t>(foundAt) -
-                     reinterpret_cast<intptr_t>(buffer.data.get());
-                 foundAtIndex = lengthOfPreviousBuffers + offsetInCurrentBuffer;
-                 return false;  // Stop iterating through buffers
-               });
+        const size_t offsetInCurrentBuffer =
+            reinterpret_cast<intptr_t>(foundAt) - reinterpret_cast<intptr_t>(buffer.data.get());
+        foundAtIndex = lengthOfPreviousBuffers + offsetInCurrentBuffer;
+        return false;  // Stop iterating through buffers
+      });
 
   if (foundAtIndex == kNotFound) {
     return kNotFound;
@@ -98,10 +96,11 @@ size_t MemoryStream::firstIndexOf(uint8_t findThis, size_t startOffset,
   return startOffset + foundAtIndex;
 }
 
-size_t MemoryStream::lastIndexOfAnyInSet(const void* findAnyOfTheseBytes,
-                                         size_t findAnyOfTheseBytesLength,
-                                         size_t startOffset,
-                                         size_t endOffset) const {
+size_t MemoryStream::lastIndexOfAnyInSet(
+    const void* findAnyOfTheseBytes,
+    size_t findAnyOfTheseBytesLength,
+    size_t startOffset,
+    size_t endOffset) const {
   if (endOffset > mSize) {
     endOffset = mSize;
   }
@@ -111,8 +110,7 @@ size_t MemoryStream::lastIndexOfAnyInSet(const void* findAnyOfTheseBytes,
   }
 
   for (size_t i = endOffset - 1;; i--) {
-    if (memchr(findAnyOfTheseBytes, byteAt(i), findAnyOfTheseBytesLength) !=
-        nullptr) {
+    if (memchr(findAnyOfTheseBytes, byteAt(i), findAnyOfTheseBytesLength) != nullptr) {
       return i;
     }
 
@@ -122,10 +120,11 @@ size_t MemoryStream::lastIndexOfAnyInSet(const void* findAnyOfTheseBytes,
   }
 }
 
-size_t MemoryStream::lastIndexNotOfAnyInSet(const void* findAnyOfTheseBytes,
-                                            size_t findAnyOfTheseBytesLength,
-                                            size_t startOffset,
-                                            size_t endOffset) const {
+size_t MemoryStream::lastIndexNotOfAnyInSet(
+    const void* findAnyOfTheseBytes,
+    size_t findAnyOfTheseBytesLength,
+    size_t startOffset,
+    size_t endOffset) const {
   if (endOffset > mSize) {
     endOffset = mSize;
   }
@@ -135,8 +134,7 @@ size_t MemoryStream::lastIndexNotOfAnyInSet(const void* findAnyOfTheseBytes,
   }
 
   for (size_t i = endOffset - 1;; i--) {
-    if (memchr(findAnyOfTheseBytes, byteAt(i), findAnyOfTheseBytesLength) ==
-        nullptr) {
+    if (memchr(findAnyOfTheseBytes, byteAt(i), findAnyOfTheseBytesLength) == nullptr) {
       return i;
     }
 
@@ -146,10 +144,11 @@ size_t MemoryStream::lastIndexNotOfAnyInSet(const void* findAnyOfTheseBytes,
   }
 }
 
-size_t MemoryStream::firstIndexOfAnyInSet(const void* findAnyOfTheseBytes,
-                                          size_t findAnyOfTheseBytesLength,
-                                          size_t startOffset,
-                                          size_t endOffset) const {
+size_t MemoryStream::firstIndexOfAnyInSet(
+    const void* findAnyOfTheseBytes,
+    size_t findAnyOfTheseBytesLength,
+    size_t startOffset,
+    size_t endOffset) const {
   if (endOffset > mSize) {
     endOffset = mSize;
   }
@@ -159,8 +158,7 @@ size_t MemoryStream::firstIndexOfAnyInSet(const void* findAnyOfTheseBytes,
   }
 
   for (size_t i = startOffset; i < endOffset; i++) {
-    if (memchr(findAnyOfTheseBytes, byteAt(i), findAnyOfTheseBytesLength) !=
-        nullptr) {
+    if (memchr(findAnyOfTheseBytes, byteAt(i), findAnyOfTheseBytesLength) != nullptr) {
       return i;
     }
   }
@@ -168,10 +166,11 @@ size_t MemoryStream::firstIndexOfAnyInSet(const void* findAnyOfTheseBytes,
   return kNotFound;
 }
 
-size_t MemoryStream::firstIndexNotOfAnyInSet(const void* findAnyOfTheseBytes,
-                                             size_t findAnyOfTheseBytesLength,
-                                             size_t startOffset,
-                                             size_t endOffset) const {
+size_t MemoryStream::firstIndexNotOfAnyInSet(
+    const void* findAnyOfTheseBytes,
+    size_t findAnyOfTheseBytesLength,
+    size_t startOffset,
+    size_t endOffset) const {
   if (endOffset > mSize) {
     endOffset = mSize;
   }
@@ -181,8 +180,7 @@ size_t MemoryStream::firstIndexNotOfAnyInSet(const void* findAnyOfTheseBytes,
   }
 
   for (size_t i = startOffset; i < endOffset; i++) {
-    if (memchr(findAnyOfTheseBytes, byteAt(i), findAnyOfTheseBytesLength) ==
-        nullptr) {
+    if (memchr(findAnyOfTheseBytes, byteAt(i), findAnyOfTheseBytesLength) == nullptr) {
       return i;
     }
   }
@@ -190,8 +188,8 @@ size_t MemoryStream::firstIndexNotOfAnyInSet(const void* findAnyOfTheseBytes,
   return kNotFound;
 }
 
-size_t MemoryStream::firstIndexOf(const void* findThis, size_t findThisLength,
-                                  size_t startOffset, size_t endOffset) const {
+size_t MemoryStream::firstIndexOf(const void* findThis, size_t findThisLength, size_t startOffset, size_t endOffset)
+    const {
   if (endOffset > mSize) {
     endOffset = mSize;
   }
@@ -208,12 +206,10 @@ size_t MemoryStream::firstIndexOf(const void* findThis, size_t findThisLength,
   const uint8_t findThisFirstByte = findThisU8[0];
 
   while (true) {
-    size_t candidateOffset =
-        firstIndexOf(findThisFirstByte, startOffset, endOffset);
+    size_t candidateOffset = firstIndexOf(findThisFirstByte, startOffset, endOffset);
     if (candidateOffset == kNotFound) {
       return kNotFound;
-    } else if (equals(findThisU8 + 1, findThisLength - 1,
-                      candidateOffset + 1)) {
+    } else if (equals(findThisU8 + 1, findThisLength - 1, candidateOffset + 1)) {
       return candidateOffset;
     } else {
       startOffset++;
@@ -229,8 +225,7 @@ bool MemoryStream::equalsString(const string& str, size_t streamOffset) const {
   return equals(str.c_str(), str.length(), streamOffset);
 }
 
-bool MemoryStream::equals(const void* data, size_t compareLength,
-                          size_t streamOffset) const {
+bool MemoryStream::equals(const void* data, size_t compareLength, size_t streamOffset) const {
   if (streamOffset + compareLength > mSize) {
     return false;
   }
@@ -247,26 +242,23 @@ bool MemoryStream::equals(const void* data, size_t compareLength,
   return compareIndex == compareLength;
 }
 
-void MemoryStream::split(char separator, const OnFragment& onFragment,
-                         size_t maxTokens) const {
+void MemoryStream::split(char separator, const OnFragment& onFragment, size_t maxTokens) const {
   split(&separator, 1, onFragment, maxTokens);
 }
 
-void MemoryStream::split(uint8_t separator, const OnFragment& onFragment,
-                         size_t maxTokens) const {
+void MemoryStream::split(uint8_t separator, const OnFragment& onFragment, size_t maxTokens) const {
   split(&separator, 1, onFragment, maxTokens);
 }
 
-void MemoryStream::split(const void* separator, size_t separatorLength,
-                         const OnFragment& onFragment, size_t maxTokens) const {
+void MemoryStream::split(const void* separator, size_t separatorLength, const OnFragment& onFragment, size_t maxTokens)
+    const {
   size_t startOffset = 0;
   for (size_t fragmentIndex = 0;; fragmentIndex++) {
     size_t endOffset;
     if (fragmentIndex == maxTokens - 1) {
       endOffset = mSize;
     } else {
-      endOffset = firstIndexOf(separator, separatorLength, startOffset,
-                               mSize - startOffset);
+      endOffset = firstIndexOf(separator, separatorLength, startOffset, mSize - startOffset);
       if (endOffset == kNotFound) {
         endOffset = mSize;
       }
@@ -289,9 +281,10 @@ vector<string> MemoryStream::splitIntoStrings(const void* separator, size_t sepa
       separator,
       separatorLength,
       [&tokens](size_t fragmentIndex, MemoryStream&& stream) {
-    tokens.push_back(stream.asString());
-    return true;
-  }, maxTokens);
+        tokens.push_back(stream.asString());
+        return true;
+      },
+      maxTokens);
 
   return tokens;
 }
@@ -300,8 +293,8 @@ vector<string> MemoryStream::splitIntoStrings(char separator, size_t maxTokens) 
   return splitIntoStrings(&separator, 1, maxTokens);
 }
 
-vector<MemoryStream> MemoryStream::splitIntoMemoryStreams(
-    const void* separator, size_t separatorLength, size_t maxTokens) const {
+vector<MemoryStream>
+MemoryStream::splitIntoMemoryStreams(const void* separator, size_t separatorLength, size_t maxTokens) const {
   vector<MemoryStream> tokens;
 
   split(
@@ -310,7 +303,8 @@ vector<MemoryStream> MemoryStream::splitIntoMemoryStreams(
       [&tokens](size_t fragmentIndex, MemoryStream&& stream) {
         tokens.push_back(move(stream));
         return true;
-      }, maxTokens);
+      },
+      maxTokens);
 
   return tokens;
 }
@@ -323,15 +317,13 @@ vector<MemoryStream> MemoryStream::splitIntoMemoryStreams(uint8_t separator, siz
   return splitIntoMemoryStreams(&separator, 1, maxTokens);
 }
 
-MemoryStream MemoryStream::subStream(size_t startOffset,
-                                     size_t endOffset) const {
+MemoryStream MemoryStream::subStream(size_t startOffset, size_t endOffset) const {
   MemoryStream stream;
 
-  visitBuffers(startOffset, endOffset,
-               [&stream](size_t bufferIndex, Buffer&& buffer) {
-                 stream.append(buffer);
-                 return true;
-               });
+  visitBuffers(startOffset, endOffset, [&stream](size_t bufferIndex, Buffer&& buffer) {
+    stream.append(buffer);
+    return true;
+  });
 
   return stream;
 }
@@ -345,13 +337,11 @@ void MemoryStream::visitBuffers(const OnBuffer& onBuffer) const {
   }
 }
 
-void MemoryStream::visitBuffers(size_t startOffset,
-                                const OnBuffer& onBuffer) const {
+void MemoryStream::visitBuffers(size_t startOffset, const OnBuffer& onBuffer) const {
   visitBuffers(startOffset, mSize, onBuffer);
 }
 
-void MemoryStream::visitBuffers(size_t startOffset, size_t endOffset,
-                                const OnBuffer& onBuffer) const {
+void MemoryStream::visitBuffers(size_t startOffset, size_t endOffset, const OnBuffer& onBuffer) const {
   if (endOffset > mSize) {
     endOffset = mSize;
   }
@@ -369,8 +359,7 @@ void MemoryStream::visitBuffers(size_t startOffset, size_t endOffset,
   findIndex(endOffset - 1, &lastBufferIndex, &lastBufferEndOffset);
   lastBufferEndOffset++;
 
-  for (size_t bufferIndex = firstBufferIndex; bufferIndex <= lastBufferIndex;
-       bufferIndex++) {
+  for (size_t bufferIndex = firstBufferIndex; bufferIndex <= lastBufferIndex; bufferIndex++) {
     const Buffer& buffer = mBuffers[bufferIndex];
 
     size_t bufferStartOffset = 0;
@@ -385,8 +374,7 @@ void MemoryStream::visitBuffers(size_t startOffset, size_t endOffset,
     }
 
     Buffer sendBuffer;
-    sendBuffer.data =
-        shared_ptr<uint8_t>(buffer.data, buffer.data.get() + bufferStartOffset);
+    sendBuffer.data = shared_ptr<uint8_t>(buffer.data, buffer.data.get() + bufferStartOffset);
     sendBuffer.length = bufferEndOffset - bufferStartOffset;
 
     if (!onBuffer(bufferIndex, move(sendBuffer))) {
@@ -397,13 +385,10 @@ void MemoryStream::visitBuffers(size_t startOffset, size_t endOffset,
 
 MemoryStream MemoryStream::trim() const {
   static constexpr char whitespace[] = " \r\n\t";
-  static constexpr size_t NUM_WHITE_SPACE_CHARS =
-      sizeof(whitespace) - 1;  // -1 for null-terminator
+  static constexpr size_t NUM_WHITE_SPACE_CHARS = sizeof(whitespace) - 1;  // -1 for null-terminator
 
-  const size_t firstNonWhitespaceIndex =
-      firstIndexNotOfAnyInSet(whitespace, NUM_WHITE_SPACE_CHARS);
-  const size_t lastNonWhitespaceIndex =
-      lastIndexNotOfAnyInSet(whitespace, NUM_WHITE_SPACE_CHARS);
+  const size_t firstNonWhitespaceIndex = firstIndexNotOfAnyInSet(whitespace, NUM_WHITE_SPACE_CHARS);
+  const size_t lastNonWhitespaceIndex = lastIndexNotOfAnyInSet(whitespace, NUM_WHITE_SPACE_CHARS);
 
   if (firstNonWhitespaceIndex == kNotFound) {
     return MemoryStream();
@@ -412,16 +397,14 @@ MemoryStream MemoryStream::trim() const {
   return subStream(firstNonWhitespaceIndex, lastNonWhitespaceIndex + 1);
 }
 
-void MemoryStream::findIndex(size_t byteIndex, size_t* bufferIndex,
-                             size_t* offsetInBuffer) const {
+void MemoryStream::findIndex(size_t byteIndex, size_t* bufferIndex, size_t* offsetInBuffer) const {
   size_t lengthOfPreviousBuffers = 0;
 
   const size_t bufferCount = mBuffers.size();
   for (size_t i = 0; i < bufferCount; i++) {
     const auto& buffer = mBuffers[i];
 
-    if (byteIndex >= lengthOfPreviousBuffers &&
-        byteIndex < lengthOfPreviousBuffers + buffer.length) {
+    if (byteIndex >= lengthOfPreviousBuffers && byteIndex < lengthOfPreviousBuffers + buffer.length) {
       *bufferIndex = i;
       *offsetInBuffer = byteIndex - lengthOfPreviousBuffers;
       return;
@@ -435,24 +418,23 @@ void MemoryStream::findIndex(size_t byteIndex, size_t* bufferIndex,
 
 size_t MemoryStream::size() const { return mSize; }
 
-size_t MemoryStream::read(size_t streamOffset, size_t numberOfBytesToRead,
-                          Buffer* buffer) const {
-  return read(streamOffset, numberOfBytesToRead, buffer->data.get(),
-              buffer->length);
+size_t MemoryStream::read(size_t streamOffset, size_t numberOfBytesToRead, Buffer* buffer) const {
+  return read(streamOffset, numberOfBytesToRead, buffer->data.get(), buffer->length);
 }
 
-size_t MemoryStream::read(size_t streamOffset, size_t numberOfBytesToRead,
-                          void* copyToBuffer, size_t bufferLength) const {
+size_t MemoryStream::read(size_t streamOffset, size_t numberOfBytesToRead, void* copyToBuffer, size_t bufferLength)
+    const {
   size_t readByteCount = 0;
   uint8_t* copyToBufferU8 = reinterpret_cast<uint8_t*>(copyToBuffer);
 
-  visitBuffers(streamOffset, streamOffset + numberOfBytesToRead,
-               [&readByteCount, copyToBufferU8](size_t index, Buffer&& buffer) {
-                 memcpy(copyToBufferU8 + readByteCount, buffer.data.get(),
-                        buffer.length);
-                 readByteCount += buffer.length;
-                 return true;
-               });
+  visitBuffers(
+      streamOffset,
+      streamOffset + numberOfBytesToRead,
+      [&readByteCount, copyToBufferU8](size_t index, Buffer&& buffer) {
+        memcpy(copyToBufferU8 + readByteCount, buffer.data.get(), buffer.length);
+        readByteCount += buffer.length;
+        return true;
+      });
 
   return readByteCount;
 }

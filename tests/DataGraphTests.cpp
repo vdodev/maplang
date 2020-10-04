@@ -16,9 +16,9 @@
 
 #include <functional>
 
+#include "gtest/gtest.h"
 #include "maplang/DataGraph.h"
 #include "maplang/UvLoopRunner.h"
-#include "gtest/gtest.h"
 
 using namespace std;
 
@@ -26,19 +26,17 @@ namespace maplang {
 
 class LambdaSink : public INode, public ISink {
  public:
-  LambdaSink(function<void (const Packet& packet)>&& onPacket) : mOnPacket(move(onPacket)) {}
+  LambdaSink(function<void(const Packet& packet)>&& onPacket) : mOnPacket(move(onPacket)) {}
 
-  void handlePacket(const Packet& packet) override {
-    mOnPacket(packet);
-  }
+  void handlePacket(const Packet& packet) override { mOnPacket(packet); }
 
-  IPathable *asPathable() override { return nullptr;}
-  ISink *asSink() override { return this; }
-  ISource *asSource() override { return nullptr; }
-  ICohesiveGroup *asGroup() override { return nullptr; };
+  IPathable* asPathable() override { return nullptr; }
+  ISink* asSink() override { return this; }
+  ISource* asSource() override { return nullptr; }
+  ICohesiveGroup* asGroup() override { return nullptr; };
 
  private:
-  function<void (const Packet& packet)> mOnPacket;
+  function<void(const Packet& packet)> mOnPacket;
 };
 
 TEST(WhenSendPacketIsCalledOnce, ThenOnePacketIsDeliveredToTheSink) {
@@ -48,9 +46,7 @@ TEST(WhenSendPacketIsCalledOnce, ThenOnePacketIsDeliveredToTheSink) {
 
   Packet packet;
   size_t receivedPacketCount = 0;
-  auto lambdaSink = make_shared<LambdaSink>([&receivedPacketCount](const Packet& packet) {
-    receivedPacketCount++;
-  });
+  auto lambdaSink = make_shared<LambdaSink>([&receivedPacketCount](const Packet& packet) { receivedPacketCount++; });
 
   graph.sendPacket(packet, lambdaSink);
 

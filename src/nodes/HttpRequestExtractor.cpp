@@ -15,35 +15,26 @@
  */
 
 #include "nodes/HttpRequestExtractor.h"
-#include "maplang/Errors.h"
-#include "maplang/HttpUtilities.h"
 
 #include <memory>
+
+#include "maplang/Errors.h"
+#include "maplang/HttpUtilities.h"
 
 using namespace std;
 using namespace nlohmann;
 
 namespace maplang {
 
-
-
 static const string kChannel_BodyData = "Body Data";
 static const string kChannel_RequestEnded = "Request Ended";
 static const string kChannel_NewRequest = "New Request";
 
+HttpRequestExtractor::HttpRequestExtractor(const nlohmann::json& parameters) { reset(); }
 
-HttpRequestExtractor::HttpRequestExtractor(const nlohmann::json& parameters) {
-  reset();
-}
+HttpRequestExtractor::~HttpRequestExtractor() { sendEndOfRequestPacketIfRequestPending(); }
 
-HttpRequestExtractor::~HttpRequestExtractor() {
-  sendEndOfRequestPacketIfRequestPending();
-}
-
-void HttpRequestExtractor::setPacketPusher(
-    const std::shared_ptr<IPacketPusher>& pusher) {
-  mPacketPusher = pusher;
-}
+void HttpRequestExtractor::setPacketPusher(const std::shared_ptr<IPacketPusher>& pusher) { mPacketPusher = pusher; }
 
 void HttpRequestExtractor::handlePacket(const Packet& incomingPacket) {
   try {
@@ -56,8 +47,7 @@ void HttpRequestExtractor::handlePacket(const Packet& incomingPacket) {
        */
       bool knownLastBufferInRequest = false;
       const Buffer& incomingBuffer = incomingPacket.buffers[0];
-      Packet bodyPacket =
-          createBodyPacket(incomingPacket.buffers[0]);
+      Packet bodyPacket = createBodyPacket(incomingPacket.buffers[0]);
       if (mBodyLength != SIZE_MAX) {
         const size_t remainingBodyLength = mBodyLength - mSentBodyDataByteCount;
         knownLastBufferInRequest = incomingBuffer.length <= remainingBodyLength;
@@ -82,8 +72,7 @@ void HttpRequestExtractor::handlePacket(const Packet& incomingPacket) {
 
     static constexpr char kDoubleCrLf[] = "\r\n\r\n";
     static constexpr size_t kDoubleCrLfLength = sizeof(kDoubleCrLf) - 1;
-    const size_t headersEnd =
-        mHeaderData.firstIndexOf(kDoubleCrLf, kDoubleCrLfLength);
+    const size_t headersEnd = mHeaderData.firstIndexOf(kDoubleCrLf, kDoubleCrLfLength);
     if (headersEnd == MemoryStream::kNotFound) {
       return;
     }
@@ -93,9 +82,8 @@ void HttpRequestExtractor::handlePacket(const Packet& incomingPacket) {
     size_t contentLength = SIZE_MAX;
     const json& httpHeaders = headerPacket.parameters[http::kParameter_HttpHeaders];
     if (httpHeaders.contains(http::kHttpHeaderNormalized_ContentLength)) {
-      contentLength =
-          headerPacket.parameters[http::kParameter_HttpHeaders][http::kHttpHeaderNormalized_ContentLength]
-              .get<uint64_t>();
+      contentLength = headerPacket.parameters[http::kParameter_HttpHeaders][http::kHttpHeaderNormalized_ContentLength]
+                          .get<uint64_t>();
     }
 
     mPacketPusher->pushPacket(move(headerPacket), kChannel_NewRequest);
@@ -106,18 +94,13 @@ void HttpRequestExtractor::handlePacket(const Packet& incomingPacket) {
     const size_t bodyStart = headersEnd + kDoubleCrLfLength;
     const size_t availableBodyLength = mHeaderData.size() - bodyStart;
     if (availableBodyLength > 0) {
-      const size_t offsetOfBodyInLastBuffer =
-          bodyStart - bufferSizeBeforeAppending;
-      uint8_t* body =
-          incomingPacket.buffers[0].data.get() + offsetOfBodyInLastBuffer;
+      const size_t offsetOfBodyInLastBuffer = bodyStart - bufferSizeBeforeAppending;
+      uint8_t* body = incomingPacket.buffers[0].data.get() + offsetOfBodyInLastBuffer;
 
       Buffer bodyBuffer;
-      bodyBuffer.data =
-          shared_ptr<uint8_t>(incomingPacket.buffers[0].data, body);
+      bodyBuffer.data = shared_ptr<uint8_t>(incomingPacket.buffers[0].data, body);
 
-      const size_t bodyLength = availableBodyLength < contentLength
-                                    ? availableBodyLength
-                                    : contentLength;
+      const size_t bodyLength = availableBodyLength < contentLength ? availableBodyLength : contentLength;
       bodyBuffer.length = bodyLength;
 
       mPacketPusher->pushPacket(createBodyPacket(bodyBuffer), kChannel_BodyData);
@@ -136,17 +119,15 @@ Packet HttpRequestExtractor::createHeaderPacket(const MemoryStream& memoryStream
 
   size_t firstNonCrLfIndex = memoryStream.firstIndexNotOfAnyInSet("\r\n", 2);
   MemoryStream trimmedStream = memoryStream.subStream(firstNonCrLfIndex);
-  memoryStream.split(
-      "\r\n", 2,
-      [&firstLine, &headersStream](size_t index, MemoryStream&& stream) {
-        if (index == 0) {
-          firstLine = move(stream);
-        } else {
-          headersStream = move(stream);
-        }
+  memoryStream.split("\r\n", 2, [&firstLine, &headersStream](size_t index, MemoryStream&& stream) {
+    if (index == 0) {
+      firstLine = move(stream);
+    } else {
+      headersStream = move(stream);
+    }
 
-        return true;
-      });
+    return true;
+  });
 
   json parameters;
 
@@ -203,27 +184,26 @@ static string toLower(const string& str) {
 
 json HttpRequestExtractor::parseHeaders(const MemoryStream& headers) {
   json parsedHeaders;
-  headers.split(
-      "\r\n", 2, [&parsedHeaders](size_t lineIndex, MemoryStream&& headerLine) {
-        static constexpr size_t maxTokens = 2;
-        ostringstream key;
-        ostringstream value;
-        headerLine.split(
-            ':',
-            [&key, &value](size_t kvIndex, MemoryStream&& keyOrValue) {
-              if (kvIndex == 0) {
-                key << keyOrValue.trim();
-              } else {
-                value << keyOrValue.trim();
-              }
+  headers.split("\r\n", 2, [&parsedHeaders](size_t lineIndex, MemoryStream&& headerLine) {
+    static constexpr size_t maxTokens = 2;
+    ostringstream key;
+    ostringstream value;
+    headerLine.split(
+        ':',
+        [&key, &value](size_t kvIndex, MemoryStream&& keyOrValue) {
+          if (kvIndex == 0) {
+            key << keyOrValue.trim();
+          } else {
+            value << keyOrValue.trim();
+          }
 
-              return true;
-            },
-            maxTokens);
+          return true;
+        },
+        maxTokens);
 
-        parsedHeaders[toLower(key.str())] = value.str();
-        return true;  // keep iterating until the end
-      });
+    parsedHeaders[toLower(key.str())] = value.str();
+    return true;  // keep iterating until the end
+  });
 
   return parsedHeaders;
 }

@@ -26,14 +26,14 @@ class OrderedPacketSender final : public INode, public IPathable {
  public:
   ~OrderedPacketSender() override = default;
 
-  void handlePacket(const PathablePacket& incomingPacket) override;
+  void handlePacket(const PathablePacket &incomingPacket) override;
 
   IPathable *asPathable() override { return this; }
   ISink *asSink() override { return nullptr; }
   ISource *asSource() override { return nullptr; }
-  ICohesiveGroup* asGroup() override { return nullptr; }
+  ICohesiveGroup *asGroup() override { return nullptr; }
 };
 
 }  // namespace maplang
 
-#endif //MAPLANG_SRC_NODES_ORDEREDPACKETSENDER_H_
+#endif  // MAPLANG_SRC_NODES_ORDEREDPACKETSENDER_H_

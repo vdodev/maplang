@@ -29,9 +29,9 @@ class SendOnce : public INode, public ISource {
 
   void setPacketPusher(const std::shared_ptr<IPacketPusher>& pusher) override;
 
-  IPathable *asPathable() override { return nullptr; }
-  ISink *asSink() override { return nullptr; }
-  ISource *asSource() override { return this; }
+  IPathable* asPathable() override { return nullptr; }
+  ISink* asSink() override { return nullptr; }
+  ISource* asSource() override { return this; }
   ICohesiveGroup* asGroup() override { return nullptr; }
 
  private:

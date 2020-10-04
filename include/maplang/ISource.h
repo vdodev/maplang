@@ -37,8 +37,7 @@ class ISource {
    *
    * @param output When a Packet is ready, push witih pusher->pushPacket().
    */
-  virtual void setPacketPusher(
-      const std::shared_ptr<IPacketPusher>& pusher) = 0;
+  virtual void setPacketPusher(const std::shared_ptr<IPacketPusher>& pusher) = 0;
 };
 
 }  // namespace maplang

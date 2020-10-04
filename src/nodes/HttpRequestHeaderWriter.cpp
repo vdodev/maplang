@@ -16,8 +16,9 @@
 
 #include "nodes/HttpRequestHeaderWriter.h"
 
-#include "logging.h"
 #include <sstream>
+
+#include "logging.h"
 #include "maplang/HttpUtilities.h"
 
 using namespace std;
@@ -27,10 +28,9 @@ namespace maplang {
 
 static const char* const kChannel_HttpData = "Http Data";
 
-HttpRequestHeaderWriter::HttpRequestHeaderWriter(const nlohmann::json &initParameters) {}
+HttpRequestHeaderWriter::HttpRequestHeaderWriter(const nlohmann::json& initParameters) {}
 
-void HttpRequestHeaderWriter::setPacketPusher(
-    const std::shared_ptr<IPacketPusher>& packetPusher) {
+void HttpRequestHeaderWriter::setPacketPusher(const std::shared_ptr<IPacketPusher>& packetPusher) {
   mPacketPusher = packetPusher;
 }
 
@@ -71,8 +71,7 @@ void HttpRequestHeaderWriter::handlePacket(const Packet& packet) {
     const size_t bufferLength = httpBytes.tellg();
     httpBytes.seekg(0, ios::beg);
 
-    auto bodyData = shared_ptr<uint8_t>(new uint8_t[bufferLength],
-                                        default_delete<uint8_t[]>());
+    auto bodyData = shared_ptr<uint8_t>(new uint8_t[bufferLength], default_delete<uint8_t[]>());
     httpBytes.read(reinterpret_cast<char*>(bodyData.get()), bufferLength);
     Buffer bodyBuffer(bodyData, bufferLength);
     httpBytesPacket.buffers.push_back(bodyBuffer);

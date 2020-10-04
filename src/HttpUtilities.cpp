@@ -38,10 +38,14 @@ const int kHttpStatus_BadRequest = 400;
 
 string getDefaultReasonForHttpStatus(int status) {
   switch (status) {
-    case kHttpStatus_Continue: return "CONTINUE";
-    case kHttpStatus_Ok: return "OK";
-    case kHttpStatus_BadRequest: return "BAD REQUEST";
-    default: return "UNSPECIFIED";
+    case kHttpStatus_Continue:
+      return "CONTINUE";
+    case kHttpStatus_Ok:
+      return "OK";
+    case kHttpStatus_BadRequest:
+      return "BAD REQUEST";
+    default:
+      return "UNSPECIFIED";
   }
 }
 

@@ -18,10 +18,11 @@
 #define __MAPLANG_UVLOOPRUNNER_H_
 
 #include <uv.h>
-#include <memory>
-#include <thread>
-#include <mutex>
+
 #include <condition_variable>
+#include <memory>
+#include <mutex>
+#include <thread>
 
 namespace maplang {
 
@@ -44,4 +45,4 @@ class UvLoopRunner final {
 
 }  // namespace maplang
 
-#endif //__MAPLANG_UVLOOPRUNNER_H_
+#endif  //__MAPLANG_UVLOOPRUNNER_H_

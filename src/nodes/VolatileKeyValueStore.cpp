@@ -15,6 +15,7 @@
  */
 
 #include "nodes/VolatileKeyValueStore.h"
+
 #include <iostream>
 
 using namespace std;
@@ -23,8 +24,8 @@ using namespace nlohmann;
 static constexpr size_t kSetPartitionIndex = 0;
 static constexpr size_t kGetPartitionIndex = 1;
 
-static const string kSetPartitionName{"set"};
-static const string kGetPartitionName{"get"};
+static const string kSetPartitionName {"set"};
+static const string kGetPartitionName {"get"};
 
 namespace maplang {
 
@@ -32,8 +33,7 @@ using StorageMap = unordered_map<string, Packet>;
 
 class Setter : public INode, public ISink {
  public:
-  Setter(const shared_ptr<StorageMap>& storage, const string& keyName,
-         bool retainBuffers)
+  Setter(const shared_ptr<StorageMap>& storage, const string& keyName, bool retainBuffers)
       : mKeyName(keyName), mRetainBuffers(retainBuffers) {}
 
   ~Setter() override = default;
@@ -54,10 +54,9 @@ class Setter : public INode, public ISink {
       storeBuffers = incomingPacket.buffers;
     }
 
-    (*mStorage).emplace(
-        pair<string, Packet>(
-            key.get<string>(),
-            {incomingPacket.parameters, move(storeBuffers)}));//[key.get<string>()] = move(toStore);
+    (*mStorage).emplace(pair<string, Packet>(
+        key.get<string>(),
+        {incomingPacket.parameters, move(storeBuffers)}));  //[key.get<string>()] = move(toStore);
   }
 
  private:
@@ -68,8 +67,7 @@ class Setter : public INode, public ISink {
 
 class Getter : public INode, public IPathable {
  public:
-  Getter(const shared_ptr<const StorageMap>& storage, const string& keyName)
-      : mKeyName(keyName) {}
+  Getter(const shared_ptr<const StorageMap>& storage, const string& keyName) : mKeyName(keyName) {}
 
   ~Getter() override = default;
 
@@ -98,9 +96,7 @@ class Getter : public INode, public IPathable {
   const shared_ptr<const StorageMap> mStorage;
 };
 
-VolatileKeyValueStore::VolatileKeyValueStore(
-    const nlohmann::json& initParameters) {
-
+VolatileKeyValueStore::VolatileKeyValueStore(const nlohmann::json& initParameters) {
   cout << initParameters << endl;
   if (!initParameters.contains("key")) {
     throw runtime_error("VolatileKeyValueStore parameters must contain 'key'.");
@@ -112,12 +108,10 @@ VolatileKeyValueStore::VolatileKeyValueStore(
     retainBuffers = initParameters["retainBuffers"].get<bool>();
   }
 
-  shared_ptr<unordered_map<string, Packet>> storage =
-      make_shared<unordered_map<string, Packet>>();
+  shared_ptr<unordered_map<string, Packet>> storage = make_shared<unordered_map<string, Packet>>();
 
   mPartitions[kSetPartitionName].name = kSetPartitionName;
-  mPartitions[kSetPartitionName].node =
-      make_shared<Setter>(storage, keyName, retainBuffers);
+  mPartitions[kSetPartitionName].node = make_shared<Setter>(storage, keyName, retainBuffers);
 
   auto getter = make_shared<Getter>(storage, keyName);
   mPartitions[kGetPartitionName].name = kGetPartitionName;
@@ -137,8 +131,7 @@ string VolatileKeyValueStore::getNodeName(size_t partitionIndex) {
   }
 }
 
-std::shared_ptr<INode> VolatileKeyValueStore::getNode(
-    const string& partitionName) {
+std::shared_ptr<INode> VolatileKeyValueStore::getNode(const string& partitionName) {
   return mPartitions[partitionName].node;
 }
 

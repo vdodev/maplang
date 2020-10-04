@@ -29,12 +29,11 @@ class ContextualNode final : public ICohesiveGroup, public INode {
   size_t getNodeCount() override;
   virtual std::string getNodeName(size_t partitionIndex) override;
 
-  virtual std::shared_ptr<INode> getNode(
-      const std::string& partition) override;
+  virtual std::shared_ptr<INode> getNode(const std::string& partition) override;
 
-  IPathable *asPathable() override { return nullptr; }
-  ISink *asSink() override { return nullptr; }
-  ISource *asSource() override { return nullptr; }
+  IPathable* asPathable() override { return nullptr; }
+  ISink* asSink() override { return nullptr; }
+  ISource* asSource() override { return nullptr; }
   ICohesiveGroup* asGroup() override { return this; }
 
  private:

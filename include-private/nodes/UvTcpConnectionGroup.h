@@ -17,8 +17,9 @@
 #ifndef __MAPLANG_UVTCPCONNECTIONGROUP_H__
 #define __MAPLANG_UVTCPCONNECTIONGROUP_H__
 
-#include "maplang/ICohesiveGroup.h"
 #include <unordered_map>
+
+#include "maplang/ICohesiveGroup.h"
 
 namespace maplang {
 
@@ -32,12 +33,12 @@ class UvTcpConnectionGroup : public ICohesiveGroup, public INode {
   size_t getNodeCount() override;
   std::string getNodeName(size_t nodeIndex) override;
 
-  std::shared_ptr<INode> getNode(const std::string& nodeName) override;
+  std::shared_ptr<INode> getNode(const std::string &nodeName) override;
 
   IPathable *asPathable() override { return nullptr; }
   ISink *asSink() override { return nullptr; }
   ISource *asSource() override { return nullptr; }
-  ICohesiveGroup* asGroup() override { return this; }
+  ICohesiveGroup *asGroup() override { return this; }
 
  private:
   const std::shared_ptr<UvTcpImpl> mImpl;
