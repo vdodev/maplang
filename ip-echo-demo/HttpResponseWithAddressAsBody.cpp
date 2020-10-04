@@ -24,11 +24,11 @@ namespace maplang {
 
 static const char* const kParameter_RemoteAddress = "RemoteAddress";
 
-void HttpResponseWithAddressAsBody::handlePacket(const PathablePacket* incomingPacket) {
+void HttpResponseWithAddressAsBody::handlePacket(const PathablePacket& incomingPacket) {
   string address = "unknown";
 
-  if (incomingPacket->parameters.find(kParameter_RemoteAddress) != incomingPacket->parameters.end()) {
-    address = incomingPacket->parameters[kParameter_RemoteAddress];
+  if (incomingPacket.parameters.find(kParameter_RemoteAddress) != incomingPacket.parameters.end()) {
+    address = incomingPacket.parameters[kParameter_RemoteAddress];
   }
 
   shared_ptr<uint8_t> body = shared_ptr<uint8_t>(new uint8_t[address.length()],
@@ -36,7 +36,7 @@ void HttpResponseWithAddressAsBody::handlePacket(const PathablePacket* incomingP
 
   address.copy(reinterpret_cast<char*>(body.get()), address.length());
   Packet response;
-  response.parameters = incomingPacket->parameters;
+  response.parameters = incomingPacket.parameters;
   json httpHeaders;
   httpHeaders[http::kHttpHeaderNormalized_ContentType] = "text/plain";
   response.parameters[http::kParameter_HttpHeaders] = httpHeaders;
@@ -44,7 +44,7 @@ void HttpResponseWithAddressAsBody::handlePacket(const PathablePacket* incomingP
 
   response.buffers.push_back(Buffer(body, address.length()));
 
-  incomingPacket->packetPusher->pushPacket(&response, "On Response");
+  incomingPacket.packetPusher->pushPacket(move(response), "On Response");
 }
 
 }  // namespace maplang

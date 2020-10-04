@@ -43,21 +43,21 @@ class Setter : public INode, public ISink {
   ISink* asSink() override { return this; }
   ICohesiveGroup* asGroup() override { return nullptr; }
 
-  void handlePacket(const Packet* incomingPacket) override {
-    const json& key = incomingPacket->parameters[mKeyName];
+  void handlePacket(const Packet& incomingPacket) override {
+    const json& key = incomingPacket.parameters[mKeyName];
     if (key.is_null() || !key.is_string()) {
       return;
     }
 
     vector<Buffer> storeBuffers;
     if (mRetainBuffers) {
-      storeBuffers = incomingPacket->buffers;
+      storeBuffers = incomingPacket.buffers;
     }
 
     (*mStorage).emplace(
         pair<string, Packet>(
             key.get<string>(),
-            {incomingPacket->parameters, move(storeBuffers)}));//[key.get<string>()] = move(toStore);
+            {incomingPacket.parameters, move(storeBuffers)}));//[key.get<string>()] = move(toStore);
   }
 
  private:
@@ -78,19 +78,19 @@ class Getter : public INode, public IPathable {
   ISink* asSink() override { return nullptr; }
   ICohesiveGroup* asGroup() override { return nullptr; }
 
-  void handlePacket(const PathablePacket* packet) override {
-    const string key = packet->parameters[mKeyName].get<string>();
+  void handlePacket(const PathablePacket& packet) override {
+    const string key = packet.parameters[mKeyName].get<string>();
 
     auto it = mStorage->find(key);
     if (it == mStorage->end()) {
       Packet notFoundPacket;
       notFoundPacket.parameters["keyNotPresent"] = key;
-      packet->packetPusher->pushPacket(&notFoundPacket, "keyNotFound");
+      packet.packetPusher->pushPacket(move(notFoundPacket), "keyNotFound");
       return;
     }
 
     const Packet& result = it->second;
-    packet->packetPusher->pushPacket(&result, "gotValue");
+    packet.packetPusher->pushPacket(move(result), "gotValue");
   }
 
  private:

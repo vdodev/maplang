@@ -26,9 +26,9 @@ namespace maplang {
 
 class LambdaSink : public INode, public ISink {
  public:
-  LambdaSink(function<void (const Packet* packet)>&& onPacket) : mOnPacket(move(onPacket)) {}
+  LambdaSink(function<void (const Packet& packet)>&& onPacket) : mOnPacket(move(onPacket)) {}
 
-  void handlePacket(const Packet* packet) override {
+  void handlePacket(const Packet& packet) override {
     mOnPacket(packet);
   }
 
@@ -38,7 +38,7 @@ class LambdaSink : public INode, public ISink {
   ICohesiveGroup *asGroup() override { return nullptr; };
 
  private:
-  function<void (const Packet* packet)> mOnPacket;
+  function<void (const Packet& packet)> mOnPacket;
 };
 
 TEST(WhenSendPacketIsCalledOnce, ThenOnePacketIsDeliveredToTheSink) {
@@ -48,11 +48,11 @@ TEST(WhenSendPacketIsCalledOnce, ThenOnePacketIsDeliveredToTheSink) {
 
   Packet packet;
   size_t receivedPacketCount = 0;
-  auto lambdaSink = make_shared<LambdaSink>([&receivedPacketCount](const Packet* packet) {
+  auto lambdaSink = make_shared<LambdaSink>([&receivedPacketCount](const Packet& packet) {
     receivedPacketCount++;
   });
 
-  graph.sendPacket(&packet, lambdaSink);
+  graph.sendPacket(packet, lambdaSink);
 
   usleep(1000);
   uv_stop(uvLoopRunner.getLoop().get());

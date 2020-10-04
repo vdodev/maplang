@@ -26,7 +26,7 @@ class PrintBufferAsString final : public INode, public ISink {
  public:
   ~PrintBufferAsString() override = default;
 
-  void handlePacket(const Packet* incomingPacket) override;
+  void handlePacket(const Packet& incomingPacket) override;
 
   IPathable* asPathable() override { return nullptr; }
   ISource* asSource() override { return nullptr; }

@@ -44,7 +44,12 @@ class DataGraph final {
       const std::string& toPathableId = "");
 
   void sendPacket(
-      const Packet* packet,
+      const Packet& packet,
+      const std::shared_ptr<INode>& toNode,
+      const std::string& toPathableId = "");
+
+  void sendPacket(
+      Packet&& packet,
       const std::shared_ptr<INode>& toNode,
       const std::string& toPathableId = "");
 

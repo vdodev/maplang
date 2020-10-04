@@ -23,13 +23,13 @@ static const string kChannel_Last = "last";
 
 namespace maplang {
 
-void OrderedPacketSender::handlePacket(const PathablePacket *incomingPacket) {
+void OrderedPacketSender::handlePacket(const PathablePacket& incomingPacket) {
   Packet p;
-  p.parameters = incomingPacket->parameters;
-  p.buffers = incomingPacket->buffers;
+  p.parameters = incomingPacket.parameters;
+  p.buffers = incomingPacket.buffers;
 
-  incomingPacket->packetPusher->pushPacket(&p, kChannel_First);
-  incomingPacket->packetPusher->pushPacket(&p, kChannel_Last);
+  incomingPacket.packetPusher->pushPacket(p, kChannel_First);
+  incomingPacket.packetPusher->pushPacket(move(p), kChannel_Last);
 }
 
 }  // namespace maplang

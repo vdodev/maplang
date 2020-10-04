@@ -47,7 +47,7 @@ inline void sendErrorPacket(
     const std::string& errorMessage,
     const nlohmann::json& extraParameters = nullptr) {
   Packet errorPacket = createErrorPacket(errorName, errorMessage, extraParameters);
-  packetPusher->pushPacket(&errorPacket, kChannel_Error);
+  packetPusher->pushPacket(std::move(errorPacket), kChannel_Error);
 }
 
 inline void sendErrorPacket(
@@ -55,7 +55,7 @@ inline void sendErrorPacket(
     const std::exception& ex,
     const nlohmann::json& extraParameters = nullptr) {
   Packet errorPacket = createErrorPacket("exception", ex.what(), extraParameters);
-  packetPusher->pushPacket(&errorPacket, kChannel_Error);
+  packetPusher->pushPacket(std::move(errorPacket), kChannel_Error);
 }
 
 }  // namespace maplang

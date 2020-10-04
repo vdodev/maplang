@@ -39,8 +39,8 @@ static uint64_t readUInt64BE(const uint8_t** where) {
   return val;
 }
 
-void PacketReader::handlePacket(const PathablePacket* incomingPacket) {
-  mPendingBytes.append(incomingPacket->buffers[0]);
+void PacketReader::handlePacket(const PathablePacket& incomingPacket) {
+  mPendingBytes.append(incomingPacket.buffers[0]);
 
   while (mPendingBytes.size() > 0) {
     if (mLength == 0 && mPendingBytes.size() >= sizeof(uint64_t)) {
@@ -62,12 +62,12 @@ void PacketReader::handlePacket(const PathablePacket* incomingPacket) {
         mPendingBytes = mPendingBytes.subStream(mLength);
         mLength = 0;
 
-        incomingPacket->packetPusher->pushPacket(&packet, "Packet Ready");
+        incomingPacket.packetPusher->pushPacket(move(packet), "Packet Ready");
       } catch (exception &e) {
         Packet errorPacket;
         errorPacket.parameters["errorMessage"] = e.what();
 
-        incomingPacket->packetPusher->pushPacket(&errorPacket, "error");
+        incomingPacket.packetPusher->pushPacket(move(errorPacket), "error");
       }
     }
   }

@@ -25,7 +25,7 @@ class IPathable {
  public:
   virtual ~IPathable() = default;
 
-  virtual void handlePacket(const PathablePacket* incomingPacket) = 0;
+  virtual void handlePacket(const PathablePacket& incomingPacket) = 0;
 };
 
 }  // namespace maplang

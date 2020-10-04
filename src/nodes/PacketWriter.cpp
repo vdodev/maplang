@@ -33,19 +33,19 @@ static void writeUInt64BE(uint64_t val, uint8_t** where) {
   **where++ = 0xFF & val;
 }
 
-void PacketWriter::handlePacket(const PathablePacket* incomingPacket) {
+void PacketWriter::handlePacket(const PathablePacket& incomingPacket) {
   basic_stringstream<uint8_t> parameterStream;
-  json::to_msgpack(incomingPacket->parameters, parameterStream);
+  json::to_msgpack(incomingPacket.parameters, parameterStream);
 
   parameterStream.seekg(0, ios::end);
   const size_t parametersLength = parameterStream.tellg();
   parameterStream.seekg(0, ios::beg);
 
   //number of bytes following the first length field
-  size_t totalLength = parametersLength + (1 + incomingPacket->buffers.size()) * sizeof(uint64_t);
+  size_t totalLength = parametersLength + (1 + incomingPacket.buffers.size()) * sizeof(uint64_t);
 
-  for (size_t i = 0; i < incomingPacket->buffers.size(); i++) {
-    totalLength += incomingPacket->buffers[i].length;
+  for (size_t i = 0; i < incomingPacket.buffers.size(); i++) {
+    totalLength += incomingPacket.buffers[i].length;
   }
 
   Buffer buffer;
@@ -58,16 +58,16 @@ void PacketWriter::handlePacket(const PathablePacket* incomingPacket) {
   parameterStream.read(writeTo, parametersLength);
   writeTo += parametersLength;
 
-  for (size_t i = 0; i < incomingPacket->buffers.size(); i++) {
-    const size_t bufferLength = incomingPacket->buffers[i].length;
+  for (size_t i = 0; i < incomingPacket.buffers.size(); i++) {
+    const size_t bufferLength = incomingPacket.buffers[i].length;
     writeUInt64BE(bufferLength, &writeTo);
-    memcpy(writeTo, incomingPacket->buffers[i].data.get(), bufferLength);
+    memcpy(writeTo, incomingPacket.buffers[i].data.get(), bufferLength);
     writeTo += bufferLength;
   }
 
   Packet sendPacket;
   sendPacket.buffers.push_back(buffer);
-  incomingPacket->packetPusher->pushPacket(&sendPacket, "Message Ready");
+  incomingPacket.packetPusher->pushPacket(move(sendPacket), "Message Ready");
 }
 
 }  // namespace maplang

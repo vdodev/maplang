@@ -25,7 +25,7 @@ class ISink {
  public:
   virtual ~ISink() = default;
 
-  virtual void handlePacket(const Packet* incomingPacket) = 0;
+  virtual void handlePacket(const Packet& incomingPacket) = 0;
 };
 
 class ISinkFactory {

@@ -152,8 +152,8 @@ class SingleNodeRouter : public INode,
     }
   }
 
-  void handlePacket(const PathablePacket* packet) override {
-    const auto contextLookup = packet->parameters[mKey].get<string>();
+  void handlePacket(const PathablePacket& packet) override {
+    const auto contextLookup = packet.parameters[mKey].get<string>();
     shared_ptr<INode> node;
     auto it = mNodes.find(contextLookup);
     if (it != mNodes.end()) {
@@ -173,11 +173,11 @@ class SingleNodeRouter : public INode,
     node->asPathable()->handlePacket(packet);
   }
 
-  void handlePacket(const Packet* packet) override {
-    if (!packet->parameters.contains(mKey)) {
+  void handlePacket(const Packet& packet) override {
+    if (!packet.parameters.contains(mKey)) {
       throw runtime_error("Packet parameters must contain key '" + mKey + "'.");
     }
-    const auto contextLookup = packet->parameters[mKey].get<string>();
+    const auto contextLookup = packet.parameters[mKey].get<string>();
     shared_ptr<INode> node;
     const auto it = mNodes.find(contextLookup);
     if (it != mNodes.end()) {
@@ -270,8 +270,12 @@ class ContextualPacketPusher : public IPacketPusher {
         mContextRouter(contextRouter),
         mNodeKey(nodeKey) {}
 
-  void pushPacket(const Packet* packet, const string& channelName) override {
+  void pushPacket(const Packet& packet, const string& channelName) override {
     mWrappedPusher->pushPacket(packet, channelName);
+  }
+
+  void pushPacket(Packet&& packet, const string& channelName) override {
+    mWrappedPusher->pushPacket(move(packet), channelName);
   }
 
  private:
@@ -298,20 +302,20 @@ class ContextRemover : public INode, public IPathable {
                  const string& key)
       : mContextRouter(contextRouter), mKey(key) {}
 
-  void handlePacket(const PathablePacket* incomingPacket) override {
+  void handlePacket(const PathablePacket& incomingPacket) override {
     const auto contextRouter = mContextRouter.lock();
     if (!contextRouter) {
       return;
     }
 
-    string nodeKey = incomingPacket->parameters[mKey].get<string>();
+    string nodeKey = incomingPacket.parameters[mKey].get<string>();
     if (!contextRouter->removeNode(nodeKey)) {
       return;
     }
 
     Packet removedHandleKeyPacket;
-    removedHandleKeyPacket.parameters[mKey] = incomingPacket->parameters[mKey];
-    incomingPacket->packetPusher->pushPacket(&removedHandleKeyPacket,
+    removedHandleKeyPacket.parameters[mKey] = incomingPacket.parameters[mKey];
+    incomingPacket.packetPusher->pushPacket(move(removedHandleKeyPacket),
                                              "Removed Key");
   }
 

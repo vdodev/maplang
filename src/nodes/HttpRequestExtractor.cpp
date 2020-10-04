@@ -45,7 +45,7 @@ void HttpRequestExtractor::setPacketPusher(
   mPacketPusher = pusher;
 }
 
-void HttpRequestExtractor::handlePacket(const Packet* incomingPacket) {
+void HttpRequestExtractor::handlePacket(const Packet& incomingPacket) {
   try {
     if (mSentHeaders) {
       /*
@@ -55,9 +55,9 @@ void HttpRequestExtractor::handlePacket(const Packet* incomingPacket) {
        * this class will handle the next request.
        */
       bool knownLastBufferInRequest = false;
-      const Buffer& incomingBuffer = incomingPacket->buffers[0];
+      const Buffer& incomingBuffer = incomingPacket.buffers[0];
       Packet bodyPacket =
-          createBodyPacket(incomingPacket->buffers[0]);
+          createBodyPacket(incomingPacket.buffers[0]);
       if (mBodyLength != SIZE_MAX) {
         const size_t remainingBodyLength = mBodyLength - mSentBodyDataByteCount;
         knownLastBufferInRequest = incomingBuffer.length <= remainingBodyLength;
@@ -67,7 +67,7 @@ void HttpRequestExtractor::handlePacket(const Packet* incomingPacket) {
         }
       }
 
-      mPacketPusher->pushPacket(&bodyPacket, kChannel_BodyData);
+      mPacketPusher->pushPacket(move(bodyPacket), kChannel_BodyData);
 
       if (knownLastBufferInRequest) {
         sendEndOfRequestPacketIfRequestPending();
@@ -78,7 +78,7 @@ void HttpRequestExtractor::handlePacket(const Packet* incomingPacket) {
     }
 
     const size_t bufferSizeBeforeAppending = mHeaderData.size();
-    mHeaderData.append(incomingPacket->buffers[0]);
+    mHeaderData.append(incomingPacket.buffers[0]);
 
     static constexpr char kDoubleCrLf[] = "\r\n\r\n";
     static constexpr size_t kDoubleCrLfLength = sizeof(kDoubleCrLf) - 1;
@@ -98,7 +98,7 @@ void HttpRequestExtractor::handlePacket(const Packet* incomingPacket) {
               .get<uint64_t>();
     }
 
-    mPacketPusher->pushPacket(&headerPacket, kChannel_NewRequest);
+    mPacketPusher->pushPacket(move(headerPacket), kChannel_NewRequest);
     mSentHeaders = true;
 
     // If the incoming packet has part of the body, send body data as a separate
@@ -109,19 +109,18 @@ void HttpRequestExtractor::handlePacket(const Packet* incomingPacket) {
       const size_t offsetOfBodyInLastBuffer =
           bodyStart - bufferSizeBeforeAppending;
       uint8_t* body =
-          incomingPacket->buffers[0].data.get() + offsetOfBodyInLastBuffer;
+          incomingPacket.buffers[0].data.get() + offsetOfBodyInLastBuffer;
 
       Buffer bodyBuffer;
       bodyBuffer.data =
-          shared_ptr<uint8_t>(incomingPacket->buffers[0].data, body);
+          shared_ptr<uint8_t>(incomingPacket.buffers[0].data, body);
 
       const size_t bodyLength = availableBodyLength < contentLength
                                     ? availableBodyLength
                                     : contentLength;
       bodyBuffer.length = bodyLength;
 
-      Packet bodyPacket = createBodyPacket(bodyBuffer);
-      mPacketPusher->pushPacket(&bodyPacket, kChannel_BodyData);
+      mPacketPusher->pushPacket(createBodyPacket(bodyBuffer), kChannel_BodyData);
       mSentBodyDataByteCount += bodyBuffer.length;
     }
 
@@ -238,7 +237,7 @@ void HttpRequestExtractor::sendEndOfRequestPacketIfRequestPending() {
   packet.parameters[http::kParameter_HttpRequestId] = mRequestId;
 
   if (mPacketPusher) {
-    mPacketPusher->pushPacket(&packet, kChannel_RequestEnded);
+    mPacketPusher->pushPacket(move(packet), kChannel_RequestEnded);
   }
 }
 

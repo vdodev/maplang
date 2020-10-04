@@ -147,7 +147,12 @@ class GraphPacketPusher : public IPacketPusher {
 
   ~GraphPacketPusher() override = default;
 
-  void pushPacket(const Packet* packet, const string& channel) override {
+  void pushPacket(const Packet& packet, const string& channel) override {
+    Packet copy = packet;
+    pushPacket(move(copy), channel);
+  }
+
+  void pushPacket(Packet&& packet, const string& channel) override {
     const auto graphElement = mGraphElement.lock();
     if (graphElement == nullptr) {
       return;
@@ -155,20 +160,16 @@ class GraphPacketPusher : public IPacketPusher {
 
     PushedPacketInfo info;
 
-    Packet packetWithAccumulatedParameters;
+    Packet packetWithAccumulatedParameters = move(packet);
     const auto lastReceivedParameters = graphElement->item.lastReceivedParameters;
     if (lastReceivedParameters != nullptr) {
-      packetWithAccumulatedParameters.parameters = *lastReceivedParameters;
-    }
-
-    if (!packet->parameters.empty()) {
-      if (packetWithAccumulatedParameters.parameters.empty()) {
-        packetWithAccumulatedParameters.parameters = packet->parameters;
+      if (packetWithAccumulatedParameters.parameters == nullptr) {
+        packetWithAccumulatedParameters.parameters = *lastReceivedParameters;
       } else {
-        packetWithAccumulatedParameters.parameters.insert(packet->parameters.begin(), packet->parameters.end());
+        packetWithAccumulatedParameters.parameters.insert(lastReceivedParameters->begin(), lastReceivedParameters->end());
       }
+
     }
-    packetWithAccumulatedParameters.buffers = packet->buffers;
 
     info.packet = move(packetWithAccumulatedParameters);
     info.fromGraphElement = graphElement;
@@ -241,10 +242,10 @@ void DataGraphImpl::sendPacketToNode(
     pathablePacket.buffers = packet.buffers;
     pathablePacket.packetPusher = receivingGraphElement->item.pathablePacketPusher;
 
-    pathable->handlePacket(&pathablePacket);
+    pathable->handlePacket(pathablePacket);
   } else {
     const auto sink = receivingGraphElement->item.node->asSink();
-    sink->handlePacket(&packet);
+    sink->handlePacket(packet);
   }
 }
 
@@ -315,7 +316,7 @@ void DataGraphImpl::validateNodeTypesAreCompatible(const shared_ptr<INode>& node
   }
 }
 
-void DataGraph::sendPacket(const Packet* packet,
+void DataGraph::sendPacket(const Packet& packet,
                            const std::shared_ptr<INode>& toNode,
                            const string& toPathableId) {
   const auto sink = toNode->asSink();
@@ -324,13 +325,28 @@ void DataGraph::sendPacket(const Packet* packet,
   }
 
   PushedPacketInfo packetInfo;
-  packetInfo.packet = *packet;
+  packetInfo.packet = packet;
   packetInfo.manualSendToGraphElement = impl->getOrCreateDataGraphElement(toNode, toPathableId);
 
   impl->mPacketQueue.enqueue(move(packetInfo));
   uv_async_send(&impl->mPacketReadyAsync);
 }
 
+void DataGraph::sendPacket(Packet&& packet,
+                           const std::shared_ptr<INode>& toNode,
+                           const string& toPathableId) {
+  const auto sink = toNode->asSink();
+  if (!sink) {
+    throw runtime_error("Can only call sendPacket() with an ISink node.");
+  }
+
+  PushedPacketInfo packetInfo;
+  packetInfo.packet = move(packet);
+  packetInfo.manualSendToGraphElement = impl->getOrCreateDataGraphElement(toNode, toPathableId);
+
+  impl->mPacketQueue.enqueue(move(packetInfo));
+  uv_async_send(&impl->mPacketReadyAsync);
+}
 
 bool DataGraphImpl::hasDataGraphElement(const std::shared_ptr<INode>& node, const std::string& pathableId) {
   DataGraphItem item;

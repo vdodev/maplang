@@ -26,7 +26,7 @@ class OrderedPacketSender final : public INode, public IPathable {
  public:
   ~OrderedPacketSender() override = default;
 
-  void handlePacket(const PathablePacket* incomingPacket) override;
+  void handlePacket(const PathablePacket& incomingPacket) override;
 
   IPathable *asPathable() override { return this; }
   ISink *asSink() override { return nullptr; }

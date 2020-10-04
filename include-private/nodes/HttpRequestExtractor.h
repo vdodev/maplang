@@ -32,7 +32,7 @@ class HttpRequestExtractor final : public INode, public ISink, public ISource {
   HttpRequestExtractor(const nlohmann::json& parameters);
   ~HttpRequestExtractor() override;
 
-  void handlePacket(const Packet* packet) override;
+  void handlePacket(const Packet& packet) override;
   void setPacketPusher(const std::shared_ptr<IPacketPusher>& pusher) override;
 
   IPathable *asPathable() override { return nullptr; }

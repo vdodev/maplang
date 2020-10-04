@@ -34,18 +34,18 @@ void HttpRequestHeaderWriter::setPacketPusher(
   mPacketPusher = packetPusher;
 }
 
-void HttpRequestHeaderWriter::handlePacket(const Packet* packet) {
+void HttpRequestHeaderWriter::handlePacket(const Packet& packet) {
   stringstream httpBytes;
-  const auto method = packet->parameters[http::kParameter_HttpMethod].get<string>();
-  const auto path = packet->parameters[http::kParameter_HttpPath].get<string>();
+  const auto method = packet.parameters[http::kParameter_HttpMethod].get<string>();
+  const auto path = packet.parameters[http::kParameter_HttpPath].get<string>();
 
   static const char* const CRLF = "\r\n";
   httpBytes << method << ' ' << path << " HTTP/1.1" << CRLF;
 
-  json httpHeaders = packet->parameters[http::kParameter_HttpHeaders];
+  json httpHeaders = packet.parameters[http::kParameter_HttpHeaders];
 
-  if (!packet->buffers.empty() && packet->buffers[0].length > 0) {
-    const size_t contentLength = packet->buffers[0].length;
+  if (!packet.buffers.empty() && packet.buffers[0].length > 0) {
+    const size_t contentLength = packet.buffers[0].length;
     httpHeaders[http::kHttpHeaderNormalized_ContentLength] = to_string(contentLength);
   } else if (httpHeaders.contains(http::kHttpHeaderNormalized_ContentLength)) {
     httpHeaders.erase(http::kHttpHeaderNormalized_ContentLength);
@@ -63,8 +63,8 @@ void HttpRequestHeaderWriter::handlePacket(const Packet* packet) {
 
   Packet httpBytesPacket;
 
-  if (!packet->buffers.empty()) {
-    const Buffer& buffer = packet->buffers[0];
+  if (!packet.buffers.empty()) {
+    const Buffer& buffer = packet.buffers[0];
     httpBytes.write((const char*)buffer.data.get(), buffer.length);
 
     httpBytes.seekg(0, ios::end);
@@ -78,7 +78,7 @@ void HttpRequestHeaderWriter::handlePacket(const Packet* packet) {
     httpBytesPacket.buffers.push_back(bodyBuffer);
   }
 
-  mPacketPusher->pushPacket(&httpBytesPacket, kChannel_HttpData);
+  mPacketPusher->pushPacket(move(httpBytesPacket), kChannel_HttpData);
 }
 
 }  // namespace maplang

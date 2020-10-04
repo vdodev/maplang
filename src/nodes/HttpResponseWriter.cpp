@@ -33,12 +33,12 @@ void HttpResponseWriter::setPacketPusher(
   mPacketPusher = packetPusher;
 }
 
-void HttpResponseWriter::handlePacket(const Packet* packet) {
+void HttpResponseWriter::handlePacket(const Packet& packet) {
   stringstream httpBytes;
-  auto statusCode = packet->parameters[http::kParameter_HttpStatusCode].get<uint64_t>();
+  auto statusCode = packet.parameters[http::kParameter_HttpStatusCode].get<uint64_t>();
   string statusReason;
-  if (packet->parameters.contains(http::kParameter_HttpStatusReason)) {
-    statusReason = packet->parameters[http::kParameter_HttpStatusReason].get<string>();
+  if (packet.parameters.contains(http::kParameter_HttpStatusReason)) {
+    statusReason = packet.parameters[http::kParameter_HttpStatusReason].get<string>();
   } else {
     statusReason = http::getDefaultReasonForHttpStatus(statusCode);
   }
@@ -46,10 +46,10 @@ void HttpResponseWriter::handlePacket(const Packet* packet) {
   static const char* const CRLF = "\r\n";
   httpBytes << "HTTP/1.1 " << statusCode << " " << statusReason << CRLF;
 
-  json httpHeaders = packet->parameters[http::kParameter_HttpHeaders];
+  json httpHeaders = packet.parameters[http::kParameter_HttpHeaders];
 
-  if (!packet->buffers.empty() && packet->buffers[0].length > 0) {
-    const size_t contentLength = packet->buffers[0].length;
+  if (!packet.buffers.empty() && packet.buffers[0].length > 0) {
+    const size_t contentLength = packet.buffers[0].length;
     httpHeaders[http::kHttpHeaderNormalized_ContentLength] = to_string(contentLength);
   } else if (httpHeaders.contains(http::kHttpHeaderNormalized_ContentLength)) {
     httpHeaders.erase(http::kHttpHeaderNormalized_ContentLength);
@@ -67,8 +67,8 @@ void HttpResponseWriter::handlePacket(const Packet* packet) {
 
   Packet httpBytesPacket;
 
-  if (!packet->buffers.empty()) {
-    const Buffer& buffer = packet->buffers[0];
+  if (!packet.buffers.empty()) {
+    const Buffer& buffer = packet.buffers[0];
     httpBytes.write((const char*)buffer.data.get(), buffer.length);
 
     httpBytes.seekg(0, ios::end);
@@ -82,7 +82,7 @@ void HttpResponseWriter::handlePacket(const Packet* packet) {
     httpBytesPacket.buffers.push_back(bodyBuffer);
   }
 
-  mPacketPusher->pushPacket(&httpBytesPacket, kChannel_HttpData);
+  mPacketPusher->pushPacket(move(httpBytesPacket), kChannel_HttpData);
 }
 
 }  // namespace maplang

@@ -24,7 +24,7 @@ SendOnce::SendOnce(const nlohmann::json& sendOnceData)
 void SendOnce::setPacketPusher(const std::shared_ptr<IPacketPusher>& pusher) {
   Packet sendOncePacket;
   sendOncePacket.parameters = mSendOnceData;
-  pusher->pushPacket(&sendOncePacket, "initialized");
+  pusher->pushPacket(std::move(sendOncePacket), "initialized");
 }
 
 }  // namespace maplang

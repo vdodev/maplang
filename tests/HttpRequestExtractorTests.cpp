@@ -28,17 +28,21 @@ namespace maplang {
 class LambdaPacketPusher : public IPacketPusher {
  public:
   LambdaPacketPusher(
-      function<void(const Packet* packet, const string& channel)>&& onPacket)
+      function<void(const Packet& packet, const string& channel)>&& onPacket)
       : mOnPacket(move(onPacket)) {}
 
   ~LambdaPacketPusher() override = default;
 
-  void pushPacket(const Packet* packet, const string& channel) override {
+  void pushPacket(const Packet& packet, const string& channel) override {
+    mOnPacket(packet, channel);
+  }
+
+  void pushPacket(Packet&& packet, const string& channel) override {
     mOnPacket(packet, channel);
   }
 
  private:
-  function<void(const Packet* packet, const string& channel)> mOnPacket;
+  function<void(const Packet& packet, const string& channel)> mOnPacket;
 };
 
 TEST(WhenAnHttpRequestIsProcessed, HeaderFieldsAndBodyAreCorrect) {
@@ -72,23 +76,23 @@ TEST(WhenAnHttpRequestIsProcessed, HeaderFieldsAndBodyAreCorrect) {
   extractor->setPacketPusher(make_shared<LambdaPacketPusher>(
       [&receivedHeaderPacketCount, &headerPacket, &bodyPackets,
        &lastUnexpectedChannel, &requestEndedPacketCount, &requestEndedPacket,
-       &unexpectedChannelCount](const Packet* packet, const string& channel) {
+       &unexpectedChannelCount](const Packet& packet, const string& channel) {
         if (channel == "New Request") {
-          headerPacket = *packet;
+          headerPacket = packet;
           receivedHeaderPacketCount++;
         } else if (channel == "Body Data") {
-          bodyPackets.push_back(*packet);
+          bodyPackets.push_back(packet);
         } else if (channel == "Request Ended") {
           requestEndedPacketCount++;
-          requestEndedPacket = *packet;
+          requestEndedPacket = packet;
         } else {
           lastUnexpectedChannel = channel;
           unexpectedChannelCount++;
         }
       }));
 
-  extractor->handlePacket(&packet);
-  extractor->handlePacket(&bodyOnlyPacket);
+  extractor->handlePacket(packet);
+  extractor->handlePacket(bodyOnlyPacket);
 
   ASSERT_EQ(1, receivedHeaderPacketCount);
   ASSERT_EQ(0, unexpectedChannelCount)

@@ -28,7 +28,7 @@ class HttpRequestHeaderWriter : public INode, public ISink, public ISource {
   HttpRequestHeaderWriter(const nlohmann::json& initParameters);
   ~HttpRequestHeaderWriter() override = default;
 
-  void handlePacket(const Packet* packet) override;
+  void handlePacket(const Packet& packet) override;
   void setPacketPusher(
       const std::shared_ptr<IPacketPusher>& packetPusher) override;
 

@@ -21,9 +21,9 @@ using namespace std;
 
 namespace maplang {
 
-void PrintBufferAsString::handlePacket(const Packet* incomingPacket) {
+void PrintBufferAsString::handlePacket(const Packet& incomingPacket) {
   string message(
-      reinterpret_cast<const char*>(incomingPacket->buffers[0].data.get()), 0, incomingPacket->buffers[0].length);
+      reinterpret_cast<const char*>(incomingPacket.buffers[0].data.get()), 0, incomingPacket->buffers[0].length);
   cout << message;
 }
 
