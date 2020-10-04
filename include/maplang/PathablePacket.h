@@ -34,6 +34,15 @@ struct PathablePacket {
   std::shared_ptr<IPacketPusher> packetPusher;
 };
 
+template<class T>
+void fromPathablePacket(const PathablePacket& pathablePacket, T& to) {
+  Packet maplangPacket;
+  maplangPacket.parameters = pathablePacket.parameters;
+  maplangPacket.buffers = pathablePacket.buffers;
+
+  fromMaplangPacket(maplangPacket, to);
+}
+
 }  // namespace maplang
 
 #endif  // __MAPLANG_PATHABLEPACKET_H__
