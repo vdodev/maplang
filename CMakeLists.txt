@@ -66,7 +66,8 @@ add_library(maplang
         src/nodes/HttpResponseExtractor.cpp
         include-private/nodes/HttpResponseExtractor.h
         src/HttpUtilities.cpp
-        include/maplang/HttpUtilities.h)
+        include/maplang/HttpUtilities.h
+        include/maplang/LambdaSink.h)
 
 target_include_directories(maplang PUBLIC /usr/local/include)
 target_include_directories(maplang PUBLIC ${PROJECT_SOURCE_DIR}/include)
