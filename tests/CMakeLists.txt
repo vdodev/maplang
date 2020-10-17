@@ -19,7 +19,8 @@ add_executable(
         maplang_tests
         MemoryStreamTests.cpp
         HttpRequestExtractorTests.cpp
-        DataGraphTests.cpp)
+        DataGraphTests.cpp
+        BufferPoolTests.cpp)
 
 target_link_libraries(
         maplang_tests

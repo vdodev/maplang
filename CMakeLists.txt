@@ -68,7 +68,10 @@ add_library(maplang
         src/HttpUtilities.cpp
         include/maplang/HttpUtilities.h
         include/maplang/LambdaSink.h
-        src/PathablePacket.cpp)
+        src/PathablePacket.cpp
+        src/BufferPool.cpp
+        include/maplang/BufferPool.h
+        include-private/concurrentqueue.h)
 
 target_include_directories(maplang PUBLIC /usr/local/include)
 target_include_directories(maplang PUBLIC ${PROJECT_SOURCE_DIR}/include)
