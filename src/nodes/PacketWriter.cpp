@@ -34,7 +34,8 @@ static void writeUInt64BE(uint64_t val, uint8_t** where) {
   **where++ = 0xFF & val;
 }
 
-void PacketWriter::handlePacket(const PathablePacket& incomingPacket) {
+void PacketWriter::handlePacket(const PathablePacket& incomingPathablePacket) {
+  const Packet& incomingPacket = incomingPathablePacket.packet;
   basic_stringstream<uint8_t> parameterStream;
   json::to_msgpack(incomingPacket.parameters, parameterStream);
 
@@ -68,7 +69,7 @@ void PacketWriter::handlePacket(const PathablePacket& incomingPacket) {
 
   Packet sendPacket;
   sendPacket.buffers.push_back(buffer);
-  incomingPacket.packetPusher->pushPacket(move(sendPacket), "Message Ready");
+  incomingPathablePacket.packetPusher->pushPacket(move(sendPacket), "Message Ready");
 }
 
 }  // namespace maplang

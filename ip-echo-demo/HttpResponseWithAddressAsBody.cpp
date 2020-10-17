@@ -25,7 +25,8 @@ namespace maplang {
 
 static const char* const kParameter_RemoteAddress = "RemoteAddress";
 
-void HttpResponseWithAddressAsBody::handlePacket(const PathablePacket& incomingPacket) {
+void HttpResponseWithAddressAsBody::handlePacket(const PathablePacket& incomingPathablePacket) {
+  const Packet& incomingPacket = incomingPathablePacket.packet;
   string address = "unknown";
 
   if (incomingPacket.parameters.find(kParameter_RemoteAddress) != incomingPacket.parameters.end()) {
@@ -44,7 +45,7 @@ void HttpResponseWithAddressAsBody::handlePacket(const PathablePacket& incomingP
 
   response.buffers.push_back(Buffer(body, address.length()));
 
-  incomingPacket.packetPusher->pushPacket(move(response), "On Response");
+  incomingPathablePacket.packetPusher->pushPacket(move(response), "On Response");
 }
 
 }  // namespace maplang

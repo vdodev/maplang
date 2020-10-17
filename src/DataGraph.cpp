@@ -229,10 +229,7 @@ void DataGraphImpl::sendPacketToNode(const shared_ptr<DataGraphElement>& receivi
 
   const auto pathable = receivingGraphElement->item.node->asPathable();
   if (pathable) {
-    PathablePacket pathablePacket;
-    pathablePacket.parameters = packet.parameters;
-    pathablePacket.buffers = packet.buffers;
-    pathablePacket.packetPusher = receivingGraphElement->item.pathablePacketPusher;
+    PathablePacket pathablePacket(packet, receivingGraphElement->item.pathablePacketPusher);
 
     pathable->handlePacket(pathablePacket);
   } else {

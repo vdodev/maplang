@@ -59,16 +59,17 @@ class Adder : public INode, public IPathable {
   ISink* asSink() override { return nullptr; }
   ICohesiveGroup* asGroup() override { return nullptr; }
 
-  void handlePacket(const PathablePacket& incomingPacket) override {
+  void handlePacket(const PathablePacket& incomingPathablePacket) override {
+    const Packet& incomingPacket = incomingPathablePacket.packet;
     if (!incomingPacket.parameters.contains(mKeyName)) {
       sendErrorPacket(
-          incomingPacket.packetPusher,
+          incomingPathablePacket.packetPusher,
           "Key-lookup missing",
           "Missing parameter for key-lookup: " + mKeyName);
       return;
     } else if (!incomingPacket.parameters.contains(mValueName)) {
       sendErrorPacket(
-          incomingPacket.packetPusher,
+          incomingPathablePacket.packetPusher,
           "Value-lookup missing",
           "Missing parameter for value-lookup: " + mValueName);
       return;
@@ -90,7 +91,7 @@ class Adder : public INode, public IPathable {
     existingValues.emplace(move(value));
 
     Packet addedPacket;
-    incomingPacket.packetPusher->pushPacket(move(addedPacket), "added");
+    incomingPathablePacket.packetPusher->pushPacket(move(addedPacket), "added");
   }
 
  private:
@@ -111,10 +112,11 @@ class Getter : public INode, public IPathable {
   ISink* asSink() override { return nullptr; }
   ICohesiveGroup* asGroup() override { return nullptr; }
 
-  void handlePacket(const PathablePacket& incomingPacket) override {
+  void handlePacket(const PathablePacket& incomingPathablePacket) override {
+    const Packet& incomingPacket = incomingPathablePacket.packet;
     if (!incomingPacket.parameters.contains(mKeyName)) {
       sendErrorPacket(
-          incomingPacket.packetPusher,
+          incomingPathablePacket.packetPusher,
           "Key-lookup missing",
           "Missing parameter for key-lookup: " + mKeyName);
       return;
@@ -126,7 +128,7 @@ class Getter : public INode, public IPathable {
     if (it == mStorage->end()) {
       Packet notFoundPacket;
       notFoundPacket.parameters[kParameter_KeyWhichIsNotPresent] = key;
-      incomingPacket.packetPusher->pushPacket(move(notFoundPacket), kChannel_ValueNotFound);
+      incomingPathablePacket.packetPusher->pushPacket(move(notFoundPacket), kChannel_ValueNotFound);
       return;
     }
 
@@ -141,7 +143,7 @@ class Getter : public INode, public IPathable {
     packetWithValues.parameters[mKeyName] = key;
     packetWithValues.parameters[mValueName] = move(jsonValues);
 
-    incomingPacket.packetPusher->pushPacket(move(packetWithValues), kChannel_GotValue);
+    incomingPathablePacket.packetPusher->pushPacket(move(packetWithValues), kChannel_GotValue);
   }
 
  private:
@@ -162,16 +164,17 @@ class Remover : public INode, public IPathable {
   ISink* asSink() override { return nullptr; }
   ICohesiveGroup* asGroup() override { return nullptr; }
 
-  void handlePacket(const PathablePacket& incomingPacket) override {
+  void handlePacket(const PathablePacket& incomingPathablePacket) override {
+    const Packet& incomingPacket = incomingPathablePacket.packet;
     if (!incomingPacket.parameters.contains(mKeyName)) {
       sendErrorPacket(
-          incomingPacket.packetPusher,
+          incomingPathablePacket.packetPusher,
           "Key-lookup missing",
           "Missing parameter for key-lookup: " + mKeyName);
       return;
     } else if (!incomingPacket.parameters.contains(mValueName)) {
       sendErrorPacket(
-          incomingPacket.packetPusher,
+          incomingPathablePacket.packetPusher,
           "Value-lookup missing",
           "Missing parameter for value-lookup: " + mValueName);
       return;
@@ -184,7 +187,7 @@ class Remover : public INode, public IPathable {
     if (it == mStorage->end()) {
       Packet notFoundPacket;
       notFoundPacket.parameters[kParameter_KeyWhichIsNotPresent] = key;
-      incomingPacket.packetPusher->pushPacket(move(notFoundPacket), kChannel_KeyNotFound);
+      incomingPathablePacket.packetPusher->pushPacket(move(notFoundPacket), kChannel_KeyNotFound);
       return;
     }
 
@@ -193,7 +196,7 @@ class Remover : public INode, public IPathable {
     if (setIt == values.end()) {
       Packet notFoundPacket;
       notFoundPacket.parameters[kParameter_ValueWhichIsNotPresent] = value;
-      incomingPacket.packetPusher->pushPacket(move(notFoundPacket), kChannel_ValueNotFound);
+      incomingPathablePacket.packetPusher->pushPacket(move(notFoundPacket), kChannel_ValueNotFound);
       return;
     }
 
@@ -207,7 +210,7 @@ class Remover : public INode, public IPathable {
     packetWithValues.parameters[mKeyName] = key;
     packetWithValues.parameters[mValueName] = value;
 
-    incomingPacket.packetPusher->pushPacket(move(packetWithValues), kChannel_RemovedValue);
+    incomingPathablePacket.packetPusher->pushPacket(move(packetWithValues), kChannel_RemovedValue);
   }
 
  private:
@@ -228,16 +231,17 @@ class RemoveAll : public INode, public IPathable {
   ISink* asSink() override { return nullptr; }
   ICohesiveGroup* asGroup() override { return nullptr; }
 
-  void handlePacket(const PathablePacket& incomingPacket) override {
+  void handlePacket(const PathablePacket& incomingPathablePacket) override {
+    const Packet& incomingPacket = incomingPathablePacket.packet;
     if (!incomingPacket.parameters.contains(mKeyName)) {
       sendErrorPacket(
-          incomingPacket.packetPusher,
+          incomingPathablePacket.packetPusher,
           "Key-lookup missing",
           "Missing parameter for key-lookup: " + mKeyName);
       return;
     } else if (!incomingPacket.parameters.contains(mValueName)) {
       sendErrorPacket(
-          incomingPacket.packetPusher,
+          incomingPathablePacket.packetPusher,
           "Value-lookup missing",
           "Missing parameter for value-lookup: " + mValueName);
       return;
@@ -250,7 +254,7 @@ class RemoveAll : public INode, public IPathable {
     if (it == mStorage->end()) {
       Packet notFoundPacket;
       notFoundPacket.parameters[kParameter_KeyWhichIsNotPresent] = key;
-      incomingPacket.packetPusher->pushPacket(move(notFoundPacket), kChannel_KeyNotFound);
+      incomingPathablePacket.packetPusher->pushPacket(move(notFoundPacket), kChannel_KeyNotFound);
       return;
     }
 
@@ -266,7 +270,7 @@ class RemoveAll : public INode, public IPathable {
     if (setIt == values.end()) {
       Packet notFoundPacket;
       notFoundPacket.parameters[kParameter_ValueWhichIsNotPresent] = value;
-      incomingPacket.packetPusher->pushPacket(move(notFoundPacket), kChannel_ValueNotFound);
+      incomingPathablePacket.packetPusher->pushPacket(move(notFoundPacket), kChannel_ValueNotFound);
       return;
     }
 
@@ -274,7 +278,7 @@ class RemoveAll : public INode, public IPathable {
     packetWithValues.parameters[mKeyName] = key;
     packetWithValues.parameters[mValueName] = move(removedValuesJsonArray);
 
-    incomingPacket.packetPusher->pushPacket(move(packetWithValues), kChannel_RemovedValue);
+    incomingPathablePacket.packetPusher->pushPacket(move(packetWithValues), kChannel_RemovedValue);
   }
 
  private:

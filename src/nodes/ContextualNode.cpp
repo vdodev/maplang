@@ -150,8 +150,9 @@ class SingleNodeRouter : public INode,
     }
   }
 
-  void handlePacket(const PathablePacket& packet) override {
-    const auto contextLookup = packet.parameters[mKey].get<string>();
+  void handlePacket(const PathablePacket& incomingPathablePacket) override {
+    const Packet& incomingPacket = incomingPathablePacket.packet;
+    const auto contextLookup = incomingPacket.parameters[mKey].get<string>();
     shared_ptr<INode> node;
     auto it = mNodes.find(contextLookup);
     if (it != mNodes.end()) {
@@ -168,7 +169,7 @@ class SingleNodeRouter : public INode,
       node = mNodes[contextLookup];
     }
 
-    node->asPathable()->handlePacket(packet);
+    node->asPathable()->handlePacket(incomingPathablePacket);
   }
 
   void handlePacket(const Packet& packet) override {
@@ -295,7 +296,8 @@ class ContextRemover : public INode, public IPathable {
   ContextRemover(const weak_ptr<IContextRouter>& contextRouter, const string& key)
       : mContextRouter(contextRouter), mKey(key) {}
 
-  void handlePacket(const PathablePacket& incomingPacket) override {
+  void handlePacket(const PathablePacket& incomingPathablePacket) override {
+    const Packet& incomingPacket = incomingPathablePacket.packet;
     const auto contextRouter = mContextRouter.lock();
     if (!contextRouter) {
       return;
@@ -308,7 +310,7 @@ class ContextRemover : public INode, public IPathable {
 
     Packet removedHandleKeyPacket;
     removedHandleKeyPacket.parameters[mKey] = incomingPacket.parameters[mKey];
-    incomingPacket.packetPusher->pushPacket(move(removedHandleKeyPacket), "Removed Key");
+    incomingPathablePacket.packetPusher->pushPacket(move(removedHandleKeyPacket), "Removed Key");
   }
 
   IPathable* asPathable() override { return this; }

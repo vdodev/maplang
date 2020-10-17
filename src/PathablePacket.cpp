@@ -14,19 +14,11 @@
  *  limitations under the License.
  */
 
-#include "nodes/OrderedPacketSender.h"
-
-using namespace std;
-
-static const string kChannel_First = "first";
-static const string kChannel_Last = "last";
+#include "maplang/PathablePacket.h"
 
 namespace maplang {
 
-void OrderedPacketSender::handlePacket(const PathablePacket& incomingPathablePacket) {
-  const Packet& incomingPacket = incomingPathablePacket.packet;
-  incomingPathablePacket.packetPusher->pushPacket(incomingPacket, kChannel_First);
-  incomingPathablePacket.packetPusher->pushPacket(incomingPacket, kChannel_Last);
-}
+PathablePacket::PathablePacket(const Packet& packet, const std::shared_ptr<IPacketPusher>& packetPusher)
+  : packet(packet), packetPusher(packetPusher) {}
 
 }  // namespace maplang

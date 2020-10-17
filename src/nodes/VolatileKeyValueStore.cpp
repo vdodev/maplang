@@ -76,19 +76,20 @@ class Getter : public INode, public IPathable {
   ISink* asSink() override { return nullptr; }
   ICohesiveGroup* asGroup() override { return nullptr; }
 
-  void handlePacket(const PathablePacket& packet) override {
-    const string key = packet.parameters[mKeyName].get<string>();
+  void handlePacket(const PathablePacket& incomingPathablePacket) override {
+    const Packet& incomingPacket = incomingPathablePacket.packet;
+    const string key = incomingPacket.parameters[mKeyName].get<string>();
 
     auto it = mStorage->find(key);
     if (it == mStorage->end()) {
       Packet notFoundPacket;
       notFoundPacket.parameters["keyNotPresent"] = key;
-      packet.packetPusher->pushPacket(move(notFoundPacket), "keyNotFound");
+      incomingPathablePacket.packetPusher->pushPacket(move(notFoundPacket), "keyNotFound");
       return;
     }
 
     const Packet& result = it->second;
-    packet.packetPusher->pushPacket(move(result), "gotValue");
+    incomingPathablePacket.packetPusher->pushPacket(move(result), "gotValue");
   }
 
  private:

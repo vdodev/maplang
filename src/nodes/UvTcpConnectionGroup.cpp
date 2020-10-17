@@ -589,8 +589,9 @@ class UvTcpImpl final {
     uv_close(reinterpret_cast<uv_handle_t*>(uvSocket.get()), onConnectionRemovedWrapper);
   }
 
-  void shutdownSender(const PathablePacket& packet) {
-    const string connectionId = packet.parameters[kParameter_TcpConnectionId];
+  void shutdownSender(const PathablePacket& incomingPathablePacket) {
+    const Packet& incomingPacket = incomingPathablePacket.packet;
+    const string connectionId = incomingPacket.parameters[kParameter_TcpConnectionId];
     const auto it = mConnections.find(connectionId);
     if (it == mConnections.end()) {
       return;
@@ -605,7 +606,7 @@ class UvTcpImpl final {
       throw bad_alloc();
     }
 
-    shutdown->packetPusher = packet.packetPusher;
+    shutdown->packetPusher = incomingPathablePacket.packetPusher;
 
     int status = uv_shutdown(
         reinterpret_cast<uv_shutdown_t*>(shutdown),
@@ -613,7 +614,7 @@ class UvTcpImpl final {
         onSenderShutdownWrapper);
 
     if (status != 0) {
-      sendUvErrorPacket("Failed to shutdown sender", status, connection.connectionId, packet.packetPusher);
+      sendUvErrorPacket("Failed to shutdown sender", status, connection.connectionId, incomingPathablePacket.packetPusher);
       return;
     }
   }

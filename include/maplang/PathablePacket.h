@@ -23,25 +23,18 @@
 #include "maplang/Buffer.h"
 #include "maplang/IPacketPusher.h"
 #include "maplang/json.hpp"
+#include "maplang/Packet.h"
 
 namespace maplang {
 
 class IPacketPusher;
 
 struct PathablePacket {
-  nlohmann::json parameters;
-  std::vector<Buffer> buffers;
+  PathablePacket(const Packet& packet, const std::shared_ptr<IPacketPusher>& packetPusher);
+
+  const Packet& packet;
   std::shared_ptr<IPacketPusher> packetPusher;
 };
-
-template <class T>
-void fromPathablePacket(const PathablePacket& pathablePacket, T& to) {
-  Packet maplangPacket;
-  maplangPacket.parameters = pathablePacket.parameters;
-  maplangPacket.buffers = pathablePacket.buffers;
-
-  fromMaplangPacket(maplangPacket, to);
-}
 
 }  // namespace maplang
 
