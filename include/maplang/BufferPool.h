@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef SR_TRANSCODE__FRAMEPOOL_H_
-#define SR_TRANSCODE__FRAMEPOOL_H_
+#ifndef SR_TRANSCODE__BUFFERPOOL_H_
+#define SR_TRANSCODE__BUFFERPOOL_H_
 
 #include <functional>
 #include <memory>
@@ -24,13 +24,12 @@ namespace maplang {
 
 class BufferPool final {
  public:
-  using Allocator = std::function<uint8_t* (size_t length)>;
-  using Deallocator = std::function<void (uint8_t* buffer)>;
+  using Allocator = std::function<std::shared_ptr<uint8_t> (size_t length)>;
 
   BufferPool();
 
-  void setAllocator(Allocator&& allocator, Deallocator&& deallocator);
-  void setAllocator(const Allocator& allocator, const Deallocator& deallocator);
+  void setAllocator(Allocator&& allocator);
+  void setAllocator(const Allocator& allocator);
 
   std::shared_ptr<uint8_t> get(size_t minimumSize);
 
@@ -41,4 +40,4 @@ class BufferPool final {
 
 }  // namespace maplang
 
-#endif  // SR_TRANSCODE__FRAMEPOOL_H_
+#endif  // SR_TRANSCODE__BUFFERPOOL_H_

@@ -17,101 +17,35 @@
 #include "maplang/BufferPool.h"
 
 #include <stack>
+
 #include "concurrentqueue.h"
 
 using namespace std;
 
 namespace maplang {
 
-
-struct AllocDealloc final {
-  BufferPool::Allocator allocator;
-  BufferPool::Deallocator deallocator;
-};
-
-class QueuedBuffer final {
- public:
-  uint8_t* buffer;
-
- public:
-  QueuedBuffer() : buffer(nullptr), stolen(false) {}
-
-  QueuedBuffer(uint8_t* buffer, const shared_ptr<AllocDealloc>& allocDealloc) : buffer(buffer), allocDealloc(allocDealloc), stolen(false) {}
-  QueuedBuffer(QueuedBuffer&& b) {
-    allocDealloc = move(b.allocDealloc);
-    stolen = b.stolen;
-    buffer = b.buffer;
-
-    b.steal();
-  }
-
-  QueuedBuffer(const QueuedBuffer& b) = delete;
-
-  ~QueuedBuffer() {
-    clear();
-  }
-
-  void steal() {
-    stolen = true;
-  }
-
-  QueuedBuffer& operator=(const QueuedBuffer& b) = delete;
-
-  QueuedBuffer& operator=(QueuedBuffer&& b) {
-    clear();
-
-    allocDealloc = move(b.allocDealloc);
-    stolen = b.stolen;
-    buffer = b.buffer;
-
-    b.steal();
-
-    return *this;
-  }
-
-  void clear() {
-    if (!stolen && buffer != nullptr && allocDealloc->deallocator != nullptr) {
-      allocDealloc->deallocator(buffer);
-    }
-  }
-
- private:
-  shared_ptr<AllocDealloc> allocDealloc;
-  bool stolen;
-};
-
 struct BufferPool::Impl final {
-  using QueueType = moodycamel::ConcurrentQueue<QueuedBuffer>;
+  using QueueType = moodycamel::ConcurrentQueue<shared_ptr<uint8_t>>;
 
-  Impl() : bufferSize(0), allocDealloc(make_shared<AllocDealloc>()) {}
+  Impl() : bufferSize(0) {}
 
-  shared_ptr<AllocDealloc> allocDealloc;
+  Allocator allocator;
   shared_ptr<QueueType> bufferQueue;
   size_t bufferSize;
 };
 
 BufferPool::BufferPool() : mImpl(make_shared<BufferPool::Impl>()) {}
 
-void BufferPool::setAllocator(Allocator&& allocator, Deallocator&& deallocator) {
+void BufferPool::setAllocator(Allocator&& allocator) {
   mImpl->bufferQueue.reset();
   mImpl->bufferSize = 0;
-
-  shared_ptr<AllocDealloc> allocDealloc = make_shared<AllocDealloc>();
-  allocDealloc->allocator = move(allocator);
-  allocDealloc->deallocator = move(deallocator);
-
-  mImpl->allocDealloc = allocDealloc;
+  mImpl->allocator = allocator;
 }
 
-void BufferPool::setAllocator(const Allocator& allocator, const Deallocator& deallocator) {
+void BufferPool::setAllocator(const Allocator& allocator) {
   mImpl->bufferQueue.reset();
   mImpl->bufferSize = 0;
-
-  shared_ptr<AllocDealloc> allocDealloc = make_shared<AllocDealloc>();
-  allocDealloc->allocator = allocator;
-  allocDealloc->deallocator = deallocator;
-
-  mImpl->allocDealloc = allocDealloc;
+  mImpl->allocator = allocator;
 }
 
 shared_ptr<uint8_t> BufferPool::get(size_t bufferSize) {
@@ -125,39 +59,28 @@ shared_ptr<uint8_t> BufferPool::get(size_t bufferSize) {
     mImpl->bufferSize = bufferSize;
   }
 
-  QueuedBuffer bufferFromQueue;
-  uint8_t* rawBuffer = nullptr;
-
-  if (mImpl->bufferQueue->try_dequeue(bufferFromQueue)) {
-    rawBuffer = bufferFromQueue.buffer;
-    bufferFromQueue.steal();
-  } else {
-    if (mImpl->allocDealloc->allocator == nullptr) {
-      throw runtime_error("BufferPool Allocator was not set before requesting frames.");
+  shared_ptr<uint8_t> sourceBuffer;
+  if (!mImpl->bufferQueue->try_dequeue(sourceBuffer)) {
+    if (mImpl->allocator == nullptr) {
+      throw runtime_error(
+          "BufferPool Allocator was not set before requesting frames.");
     }
 
-    rawBuffer = mImpl->allocDealloc->allocator(bufferSize);
-    if (rawBuffer == nullptr) {
-      throw bad_alloc();
-    }
+    sourceBuffer = mImpl->allocator(bufferSize);
   }
 
   const weak_ptr<Impl::QueueType> weakBufferQueue = mImpl->bufferQueue;
-  const shared_ptr<AllocDealloc> allocDealloc = mImpl->allocDealloc;
+  return shared_ptr<uint8_t>(
+      sourceBuffer.get(),
+      [weakBufferQueue, sourceBuffer](uint8_t* rawBuffer) {
+        const auto bufferQueue = weakBufferQueue.lock();
 
-  return shared_ptr<uint8_t>(rawBuffer, [weakBufferQueue, allocDealloc](uint8_t* rawBuffer) {
-    const auto bufferQueue = weakBufferQueue.lock();
+        if (bufferQueue == nullptr) {
+          return;
+        }
 
-    if (bufferQueue == nullptr) {
-      if (allocDealloc->deallocator != nullptr) {
-        allocDealloc->deallocator(rawBuffer);
-      }
-
-      return;
-    }
-
-    bufferQueue->enqueue(QueuedBuffer(rawBuffer, allocDealloc));
-  });
+        bufferQueue->enqueue(sourceBuffer);
+      });
 }
 
 }  // namespace maplang

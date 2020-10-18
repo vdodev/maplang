@@ -23,28 +23,43 @@ namespace maplang {
 
 static BufferPool::Allocator createAllocator() {
   return [](size_t size) {
-    return new uint8_t[size];
+    return shared_ptr<uint8_t>(new uint8_t[size], default_delete<uint8_t[]>());
   };
 }
 
-static BufferPool::Deallocator createDeallocator() {
-  return [](uint8_t* buffer) {
-    delete[] buffer;
-  };
-}
-
-TEST(WhenTheFirstBufferIsRequested, ItReturnsABuffer) {
+TEST(WhenTheFirstBufferIsRequestedWithAMovableAllocator, ItReturnsABuffer) {
   BufferPool pool;
-  pool.setAllocator(createAllocator(), createDeallocator());
+  pool.setAllocator(createAllocator());
 
   const auto buffer = pool.get(1);
 
   ASSERT_NE(nullptr, buffer);
 }
 
+TEST(WhenTheFirstBufferIsRequestedWithAConstReferenceAllocator, ItReturnsABuffer) {
+  BufferPool pool;
+  const auto allocator = createAllocator();
+  pool.setAllocator(allocator);
+
+  const auto buffer = pool.get(1);
+
+  ASSERT_NE(nullptr, buffer);
+}
+
+TEST(WhenThePoolIsDeallocatedBeforeABuffer, ItDoesntCrash) {
+  shared_ptr<uint8_t> buffer;
+
+  {
+    BufferPool pool;
+    pool.setAllocator(createAllocator());
+
+    buffer = pool.get(1);
+  }
+}
+
 TEST(WhenASecondBufferIsRequestedBeforeTheFirstBufferIsReturned, ItReturnsADifferentBuffer) {
   BufferPool pool;
-  pool.setAllocator(createAllocator(), createDeallocator());
+  pool.setAllocator(createAllocator());
 
   const auto buffer1 = pool.get(1);
   const auto buffer2 = pool.get(1);
@@ -56,7 +71,7 @@ TEST(WhenASecondBufferIsRequestedBeforeTheFirstBufferIsReturned, ItReturnsADiffe
 
 TEST(WhenASecondBufferIsRequestedAfterTheFirstBufferIsReturned, ItReturnsTheSameBuffer) {
   BufferPool pool;
-  pool.setAllocator(createAllocator(), createDeallocator());
+  pool.setAllocator(createAllocator());
 
   auto buffer1 = pool.get(1);
   uint8_t *const rawBuffer1 = buffer1.get();
@@ -72,6 +87,20 @@ TEST(WhenASecondBufferIsRequestedAfterTheFirstBufferIsReturned, ItReturnsTheSame
 TEST(WhenABufferIsRequestedAndTheAllocatorIsNotSet, ItThrowsAnException) {
   BufferPool pool;
   ASSERT_ANY_THROW(pool.get(1));
+}
+
+TEST(WhenAnEmptyBufferIsRequested, ItReturnsAnEmptyBuffer) {
+  BufferPool pool;
+  pool.setAllocator(createAllocator());
+
+  const auto buffer = pool.get(0);
+  ASSERT_EQ(nullptr, buffer);
+}
+
+TEST(WhenAnEmptyBufferIsRequestedAndTheAllocatorIsNotSet, ItReturnsAnEmptyBuffer) {
+  BufferPool pool;
+  const auto buffer = pool.get(0);
+  ASSERT_EQ(nullptr, buffer);
 }
 
 }  // namespace maplang

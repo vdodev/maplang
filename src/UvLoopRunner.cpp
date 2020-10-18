@@ -31,6 +31,7 @@ static shared_ptr<uv_loop_t> createUvLoop() {
       return;
     }
 
+    uv_stop(loop);
     uv_loop_close(loop);
     free(loop);
   });

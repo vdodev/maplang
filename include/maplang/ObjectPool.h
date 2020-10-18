@@ -26,7 +26,9 @@ namespace maplang {
 template <class T>
 class ObjectPool final {
  public:
-  ObjectPool(std::function<T*()>&& objectFactory, std::function<void(T* obj)>&& disposer)
+  ObjectPool(
+      std::function<T*()>&& objectFactory,
+      std::function<void(T* obj)>&& disposer)
       : mFactory(move(objectFactory)), mDisposer(move(disposer)) {}
 
   ~ObjectPool() {
