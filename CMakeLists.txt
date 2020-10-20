@@ -86,11 +86,11 @@ add_executable(http-ip-echo
         ip-echo-demo/HttpResponseWithAddressAsBody.h)
 target_link_libraries(http-ip-echo maplang)
 
-add_executable(http-get
-        http-get-demo/http-get-main.cpp
-        http-get-demo/PrintBufferAsString.cpp
-        http-get-demo/PrintBufferAsString.h)
-target_link_libraries(http-get maplang)
+#add_executable(http-get
+#        http-get-demo/http-get-main.cpp
+#        http-get-demo/PrintBufferAsString.cpp
+#        http-get-demo/PrintBufferAsString.h)
+#target_link_libraries(http-get maplang)
 
 option(USE_TESTS "Enable unit testing" ON)
 if(USE_TESTS)
