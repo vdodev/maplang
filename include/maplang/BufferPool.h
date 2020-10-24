@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef SR_TRANSCODE__BUFFERPOOL_H_
-#define SR_TRANSCODE__BUFFERPOOL_H_
+#ifndef MAPLANG__BUFFERPOOL_H_
+#define MAPLANG__BUFFERPOOL_H_
 
 #include <functional>
 #include <memory>
@@ -40,4 +40,4 @@ class BufferPool final {
 
 }  // namespace maplang
 
-#endif  // SR_TRANSCODE__BUFFERPOOL_H_
+#endif  // MAPLANG__BUFFERPOOL_H_

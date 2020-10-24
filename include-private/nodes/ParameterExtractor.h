@@ -37,7 +37,8 @@ class ParameterExtractor : public IPathable, public INode {
   ICohesiveGroup* asGroup() override { return nullptr; }
 
  private:
-  const std::string mParameterNameToExtract;
+  const nlohmann::json_pointer<nlohmann::basic_json<>>
+      mParameterJsonPointerToExtract;
 };
 
 }  // namespace maplang

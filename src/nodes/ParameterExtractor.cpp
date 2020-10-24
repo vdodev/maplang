@@ -19,6 +19,7 @@
 #include <sstream>
 
 using namespace std;
+using namespace nlohmann;
 
 namespace maplang {
 
@@ -26,19 +27,19 @@ const std::string ParameterExtractor::kChannel_ExtractedParameter =
     "Extracted Parameter";
 
 ParameterExtractor::ParameterExtractor(const nlohmann::json& initParameters)
-    : mParameterNameToExtract(
-        initParameters["extractParameter"].get<string>()) {}
+    : mParameterJsonPointerToExtract(json_pointer<basic_json<>>(
+        initParameters["extractParameter"].get<string>())) {}
 
 void ParameterExtractor::handlePacket(const PathablePacket& incomingPacket) {
   Packet packetWithExtractedParameter;
 
   const auto& incomingParams = incomingPacket.packet.parameters;
-  if (!incomingParams.contains(mParameterNameToExtract)) {
+  if (!incomingParams.contains(mParameterJsonPointerToExtract)) {
     return;
   }
 
   packetWithExtractedParameter.parameters =
-      incomingParams[mParameterNameToExtract];
+      incomingParams[mParameterJsonPointerToExtract];
 
   incomingPacket.packetPusher->pushPacket(
       move(packetWithExtractedParameter),

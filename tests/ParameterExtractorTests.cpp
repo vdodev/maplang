@@ -46,7 +46,7 @@ class LambdaPacketPusher : public IPacketPusher {
 
 TEST(WhenAParameterExtractorIsGivenAValidKey, ItOnlyExtractsThatKeysValue) {
   auto extractor = make_shared<ParameterExtractor>(R"({
-    "extractParameter": "key3"
+    "extractParameter": "/key3"
   })"_json);
 
   json objectToExtract = R"({
@@ -78,7 +78,7 @@ TEST(WhenAParameterExtractorIsGivenAValidKey, ItOnlyExtractsThatKeysValue) {
 
 TEST(WhenAParameterExtractorIsGivenAMissingKey, ItDoesNotSendAPacket) {
   auto extractor = make_shared<ParameterExtractor>(R"({
-    "extractParameter": "key3"
+    "extractParameter": "/key3"
   })"_json);
 
   Packet packet;
@@ -98,6 +98,27 @@ TEST(WhenAParameterExtractorIsGivenAMissingKey, ItDoesNotSendAPacket) {
   extractor->handlePacket(pathablePacket);
 
   ASSERT_FALSE(pushedPacket);
+}
+
+TEST(WhenAParameterExtractorIsGivenANestedKey, ItSendTheRightParameters) {
+  auto extractor = make_shared<ParameterExtractor>(R"({
+    "extractParameter": "/key2/1"
+  })"_json);
+
+  Packet packet;
+  packet.parameters = R"({
+    "key1": "value1",
+    "key2": [ 4, 5, 6 ]
+  })"_json;
+
+  PathablePacket pathablePacket(
+      packet,
+      make_shared<LambdaPacketPusher>(
+          [](const Packet& packet, const string& channel) {
+            ASSERT_EQ(5, packet.parameters.get<uint32_t>());
+          }));
+
+  extractor->handlePacket(pathablePacket);
 }
 
 }  // namespace maplang
