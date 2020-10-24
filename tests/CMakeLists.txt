@@ -20,7 +20,8 @@ add_executable(
         MemoryStreamTests.cpp
         HttpRequestExtractorTests.cpp
         DataGraphTests.cpp
-        BufferPoolTests.cpp)
+        BufferPoolTests.cpp
+        ParameterExtractorTests.cpp)
 
 target_link_libraries(
         maplang_tests

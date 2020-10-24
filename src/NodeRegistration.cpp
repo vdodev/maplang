@@ -24,6 +24,7 @@
 #include "nodes/HttpResponseExtractor.h"
 #include "nodes/HttpResponseWriter.h"
 #include "nodes/OrderedPacketSender.h"
+#include "nodes/ParameterExtractor.h"
 #include "nodes/SendOnce.h"
 #include "nodes/UvTcpConnectionGroup.h"
 #include "nodes/VolatileKeyValueSet.h"
@@ -38,6 +39,10 @@ static once_flag createRegistrationOnce;
 static NodeRegistration* gDefaultRegistration;
 
 static void registerNodes(NodeRegistration* registration) {
+  registration->registerNodeFactory("Parameter Extractor", [](const nlohmann::json& initParameters) {
+    return make_shared<ParameterExtractor>(initParameters);
+  });
+
   registration->registerNodeFactory("Contextual Node", [](const nlohmann::json& initParameters) {
     return make_shared<ContextualNode>(initParameters);
   });

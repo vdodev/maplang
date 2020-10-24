@@ -71,7 +71,9 @@ add_library(maplang
         src/PathablePacket.cpp
         src/BufferPool.cpp
         include/maplang/BufferPool.h
-        include-private/concurrentqueue.h)
+        include-private/concurrentqueue.h
+        src/nodes/ParameterExtractor.cpp
+        include-private/nodes/ParameterExtractor.h)
 
 target_include_directories(maplang PUBLIC /usr/local/include)
 target_include_directories(maplang PUBLIC ${PROJECT_SOURCE_DIR}/include)
