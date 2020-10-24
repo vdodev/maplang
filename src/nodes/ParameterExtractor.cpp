@@ -18,9 +18,6 @@
 
 #include <sstream>
 
-#include "logging.h"
-#include "maplang/Errors.h"
-
 using namespace std;
 
 namespace maplang {
@@ -37,17 +34,6 @@ void ParameterExtractor::handlePacket(const PathablePacket& incomingPacket) {
 
   const auto& incomingParams = incomingPacket.packet.parameters;
   if (!incomingParams.contains(mParameterNameToExtract)) {
-    ostringstream out;
-    out << "Parameter '" << mParameterNameToExtract << "' is not present.";
-
-    string errorMessage = out.str();
-    loge("%s\n", errorMessage.c_str());
-
-    sendErrorPacket(
-        incomingPacket.packetPusher,
-        "Cannot extract parameter.",
-        errorMessage);
-
     return;
   }
 

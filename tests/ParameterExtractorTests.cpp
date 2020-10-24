@@ -26,14 +26,19 @@ namespace maplang {
 
 class LambdaPacketPusher : public IPacketPusher {
  public:
-  LambdaPacketPusher(function<void(const Packet& packet, const string& channel)>&& onPacket)
+  LambdaPacketPusher(
+      function<void(const Packet& packet, const string& channel)>&& onPacket)
       : mOnPacket(move(onPacket)) {}
 
   ~LambdaPacketPusher() override = default;
 
-  void pushPacket(const Packet& packet, const string& channel) override { mOnPacket(packet, channel); }
+  void pushPacket(const Packet& packet, const string& channel) override {
+    mOnPacket(packet, channel);
+  }
 
-  void pushPacket(Packet&& packet, const string& channel) override { mOnPacket(packet, channel); }
+  void pushPacket(Packet&& packet, const string& channel) override {
+    mOnPacket(packet, channel);
+  }
 
  private:
   function<void(const Packet& packet, const string& channel)> mOnPacket;
@@ -61,12 +66,38 @@ TEST(WhenAParameterExtractorIsGivenAValidKey, ItOnlyExtractsThatKeysValue) {
 
   packet.parameters["key3"] = objectToExtract;
 
-  PathablePacket pathablePacket(packet,
-      make_shared<LambdaPacketPusher>([&objectToExtract](const Packet& packet, const string& channel) {
-        ASSERT_EQ(packet.parameters, objectToExtract);
-      }));
+  PathablePacket pathablePacket(
+      packet,
+      make_shared<LambdaPacketPusher>(
+          [&objectToExtract](const Packet& packet, const string& channel) {
+            ASSERT_EQ(packet.parameters, objectToExtract);
+          }));
 
   extractor->handlePacket(pathablePacket);
+}
+
+TEST(WhenAParameterExtractorIsGivenAMissingKey, ItDoesNotSendAPacket) {
+  auto extractor = make_shared<ParameterExtractor>(R"({
+    "extractParameter": "key3"
+  })"_json);
+
+  Packet packet;
+  packet.parameters = R"({
+    "key1": "value1",
+    "key2": [ 0, 1, 2 ]
+  })"_json;
+
+  bool pushedPacket = false;
+  PathablePacket pathablePacket(
+      packet,
+      make_shared<LambdaPacketPusher>(
+          [&pushedPacket](const Packet& packet, const string& channel) {
+            pushedPacket = true;
+          }));
+
+  extractor->handlePacket(pathablePacket);
+
+  ASSERT_FALSE(pushedPacket);
 }
 
 }  // namespace maplang
