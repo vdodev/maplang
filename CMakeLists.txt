@@ -74,7 +74,8 @@ add_library(maplang
         include-private/concurrentqueue.h
         src/nodes/ParameterExtractor.cpp
         include-private/nodes/ParameterExtractor.h
-        include/maplang/JsonUtil.h)
+        include/maplang/JsonUtil.h
+        include/maplang/Util.h)
 
 target_include_directories(maplang PUBLIC /usr/local/include)
 target_include_directories(maplang PUBLIC ${PROJECT_SOURCE_DIR}/include)
