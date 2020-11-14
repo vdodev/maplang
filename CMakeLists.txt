@@ -75,7 +75,9 @@ add_library(maplang
         src/nodes/ParameterExtractor.cpp
         include-private/nodes/ParameterExtractor.h
         include/maplang/JsonUtil.h
-        include/maplang/Util.h)
+        include/maplang/Util.h
+        src/nodes/AddParametersNode.cpp
+        include-private/nodes/AddParametersNode.h)
 
 target_include_directories(maplang PUBLIC /usr/local/include)
 target_include_directories(maplang PUBLIC ${PROJECT_SOURCE_DIR}/include)
@@ -88,6 +90,7 @@ add_executable(http-ip-echo
         ip-echo-demo/ip-echo-main.cpp
         ip-echo-demo/HttpResponseWithAddressAsBody.cpp
         ip-echo-demo/HttpResponseWithAddressAsBody.h)
+
 target_link_libraries(http-ip-echo maplang)
 
 #add_executable(http-get

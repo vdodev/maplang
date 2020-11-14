@@ -160,7 +160,7 @@ class GraphPacketPusher : public IPacketPusher {
       if (packetWithAccumulatedParameters.parameters == nullptr) {
         packetWithAccumulatedParameters.parameters = *lastReceivedParameters;
       } else {
-        packetWithAccumulatedParameters.parameters.insert(
+        packetWithAccumulatedParameters.parameters.update(
             lastReceivedParameters->begin(),
             lastReceivedParameters->end());
       }

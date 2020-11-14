@@ -21,7 +21,8 @@ add_executable(
         HttpRequestExtractorTests.cpp
         DataGraphTests.cpp
         BufferPoolTests.cpp
-        ParameterExtractorTests.cpp)
+        ParameterExtractorTests.cpp
+        AddParameterTests.cpp)
 
 target_link_libraries(
         maplang_tests

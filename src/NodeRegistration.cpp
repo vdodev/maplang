@@ -18,6 +18,7 @@
 #include <mutex>
 
 #include "maplang/json.hpp"
+#include "nodes/AddParametersNode.h"
 #include "nodes/ContextualNode.h"
 #include "nodes/HttpRequestExtractor.h"
 #include "nodes/HttpRequestHeaderWriter.h"
@@ -39,6 +40,10 @@ static once_flag createRegistrationOnce;
 static NodeRegistration* gDefaultRegistration;
 
 static void registerNodes(NodeRegistration* registration) {
+  registration->registerNodeFactory("Add Parameters", [](const nlohmann::json& initParams) {
+    return make_shared<AddParametersNode>(initParams);
+  });
+
   registration->registerNodeFactory("Parameter Extractor", [](const nlohmann::json& initParameters) {
     return make_shared<ParameterExtractor>(initParameters);
   });
