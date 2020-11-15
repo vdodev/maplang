@@ -41,6 +41,19 @@ bool jsonTryGet(const nlohmann::json& j, const std::string& key, T* valueOut) {
   return true;
 }
 
+#if __cpp_lib_optional
+#include <optional>
+
+template <class T>
+std::optional<T> jsonGet(const nlohmann::json& j, const std::string& key) {
+  if (!j.contains(key)) {
+    return std::optional<T>();
+  }
+
+  return j[key].get<T>();
+}
+#endif
+
 }  // namespace maplang
 
 #endif  // MAPLANG__JSONUTIL_H_
