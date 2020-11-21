@@ -46,7 +46,7 @@
                                                                         \
    private:                                                             \
     const std::shared_ptr<SHARED_CLASS__> mSharedObject;                \
-    std::shared_ptr<IPacketPusher> mPacketPusher;                       \
+    std::shared_ptr<maplang::IPacketPusher> mPacketPusher;              \
   };
 
 #define ML_CREATE_GROUP_SOURCE(                                               \
@@ -71,7 +71,7 @@
                                                                               \
    private:                                                                   \
     const std::shared_ptr<SHARED_CLASS__> mSharedObject;                      \
-    std::shared_ptr<IPacketPusher> mPacketPusher;                             \
+    std::shared_ptr<maplang::IPacketPusher> mPacketPusher;                    \
   };
 
 #define ML_CREATE_GROUP_SINK(                                               \
