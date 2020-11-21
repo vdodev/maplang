@@ -49,6 +49,31 @@
     std::shared_ptr<IPacketPusher> mPacketPusher;                       \
   };
 
+#define ML_CREATE_GROUP_SOURCE(                                               \
+    CLASS_NAME__,                                                             \
+    SHARED_CLASS__,                                                           \
+    PUSHER_SETTER_METHOD__)                                                   \
+  class CLASS_NAME__ final : public maplang::INode, public maplang::ISource { \
+   public:                                                                    \
+    CLASS_NAME__(const std::shared_ptr<SHARED_CLASS__>& sharedObject)         \
+        : mSharedObject(sharedObject) {}                                      \
+    ~CLASS_NAME__() override = default;                                       \
+                                                                              \
+    void setPacketPusher(const std::shared_ptr<maplang::IPacketPusher>&       \
+                             packetPusher) override {                         \
+      mSharedObject->PUSHER_SETTER_METHOD__(packetPusher);                    \
+    }                                                                         \
+                                                                              \
+    maplang::ISink* asSink() override { return nullptr; }                     \
+    maplang::ISource* asSource() override { return this; }                    \
+    maplang::IPathable* asPathable() override { return nullptr; }             \
+    maplang::ICohesiveGroup* asGroup() override { return nullptr; }           \
+                                                                              \
+   private:                                                                   \
+    const std::shared_ptr<SHARED_CLASS__> mSharedObject;                      \
+    std::shared_ptr<IPacketPusher> mPacketPusher;                             \
+  };
+
 #define ML_CREATE_GROUP_SINK(                                               \
     CLASS_NAME__,                                                           \
     SHARED_CLASS__,                                                         \
