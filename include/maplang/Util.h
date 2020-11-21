@@ -17,36 +17,41 @@
 #ifndef MAPLANG_INCLUDE_MAPLANG_UTIL_H_
 #define MAPLANG_INCLUDE_MAPLANG_UTIL_H_
 
-#define ML_CREATE_GROUP_SOURCE_SINK(                                    \
-    CLASS_NAME__,                                                       \
-    SHARED_CLASS__,                                                     \
-    HANDLE_PACKET_METHOD__,                                             \
-    PUSHER_SETTER_METHOD__)                                             \
-  class CLASS_NAME__ final : public maplang::INode,                     \
-                             public maplang::ISource,                   \
-                             public maplang::ISink {                    \
-   public:                                                              \
-    CLASS_NAME__(const std::shared_ptr<SHARED_CLASS__>& sharedObject)   \
-        : mSharedObject(sharedObject) {}                                \
-    ~CLASS_NAME__() override = default;                                 \
-                                                                        \
-    void setPacketPusher(const std::shared_ptr<maplang::IPacketPusher>& \
-                             packetPusher) override {                   \
-      mSharedObject->PUSHER_SETTER_METHOD__(packetPusher);              \
-    }                                                                   \
-                                                                        \
-    void handlePacket(const maplang::Packet& packet) override {         \
-      mSharedObject->HANDLE_PACKET_METHOD__(packet);                    \
-    }                                                                   \
-                                                                        \
-    maplang::ISink* asSink() override { return this; }                  \
-    maplang::ISource* asSource() override { return this; }              \
-    maplang::IPathable* asPathable() override { return nullptr; }       \
-    maplang::ICohesiveGroup* asGroup() override { return nullptr; }     \
-                                                                        \
-   private:                                                             \
-    const std::shared_ptr<SHARED_CLASS__> mSharedObject;                \
-    std::shared_ptr<maplang::IPacketPusher> mPacketPusher;              \
+#define ML_CREATE_GROUP_SOURCE_SINK(                                          \
+    CLASS_NAME__,                                                             \
+    SHARED_CLASS__,                                                           \
+    HANDLE_PACKET_METHOD__,                                                   \
+    PUSHER_SETTER_METHOD__)                                                   \
+  class CLASS_NAME__ final : public maplang::INode,                           \
+                             public maplang::ISource,                         \
+                             public maplang::ISink {                          \
+   public:                                                                    \
+    CLASS_NAME__(const std::shared_ptr<SHARED_CLASS__>& sharedObject)         \
+        : mSharedObject(sharedObject) {}                                      \
+    ~CLASS_NAME__() override = default;                                       \
+                                                                              \
+    void setPacketPusher(const std::shared_ptr<maplang::IPacketPusher>&       \
+                             packetPusher) override {                         \
+      mSharedObject->PUSHER_SETTER_METHOD__(packetPusher);                    \
+    }                                                                         \
+                                                                              \
+    void handlePacket(const maplang::Packet& packet) override {               \
+      mSharedObject->HANDLE_PACKET_METHOD__(packet);                          \
+    }                                                                         \
+                                                                              \
+    void setSubgraphContext(                                                  \
+        const std::shared_ptr<maplang::ISubgraphContext>& context) override { \
+      mSharedObject->setSubgraphContext(context);                             \
+    }                                                                         \
+                                                                              \
+    maplang::ISink* asSink() override { return this; }                        \
+    maplang::ISource* asSource() override { return this; }                    \
+    maplang::IPathable* asPathable() override { return nullptr; }             \
+    maplang::ICohesiveGroup* asGroup() override { return nullptr; }           \
+                                                                              \
+   private:                                                                   \
+    const std::shared_ptr<SHARED_CLASS__> mSharedObject;                      \
+    std::shared_ptr<maplang::IPacketPusher> mPacketPusher;                    \
   };
 
 #define ML_CREATE_GROUP_SOURCE(                                               \
@@ -64,6 +69,11 @@
       mSharedObject->PUSHER_SETTER_METHOD__(packetPusher);                    \
     }                                                                         \
                                                                               \
+    void setSubgraphContext(                                                  \
+        const std::shared_ptr<maplang::ISubgraphContext>& context) override { \
+      mSharedObject->setSubgraphContext(context);                             \
+    }                                                                         \
+                                                                              \
     maplang::ISink* asSink() override { return nullptr; }                     \
     maplang::ISource* asSource() override { return this; }                    \
     maplang::IPathable* asPathable() override { return nullptr; }             \
@@ -74,51 +84,61 @@
     std::shared_ptr<maplang::IPacketPusher> mPacketPusher;                    \
   };
 
-#define ML_CREATE_GROUP_SINK(                                               \
-    CLASS_NAME__,                                                           \
-    SHARED_CLASS__,                                                         \
-    HANDLE_PACKET_METHOD__)                                                 \
-  class CLASS_NAME__ final : public maplang::INode, public maplang::ISink { \
-   public:                                                                  \
-    CLASS_NAME__(const std::shared_ptr<SHARED_CLASS__>& sharedObject)       \
-        : mSharedObject(sharedObject) {}                                    \
-    ~CLASS_NAME__() override = default;                                     \
-                                                                            \
-    void handlePacket(const maplang::Packet& packet) override {             \
-      mSharedObject->HANDLE_PACKET_METHOD__(packet);                        \
-    }                                                                       \
-                                                                            \
-    maplang::ISink* asSink() override { return this; }                      \
-    maplang::ISource* asSource() override { return nullptr; }               \
-    maplang::IPathable* asPathable() override { return nullptr; }           \
-    maplang::ICohesiveGroup* asGroup() override { return nullptr; }         \
-                                                                            \
-   private:                                                                 \
-    const std::shared_ptr<SHARED_CLASS__> mSharedObject;                    \
+#define ML_CREATE_GROUP_SINK(                                                 \
+    CLASS_NAME__,                                                             \
+    SHARED_CLASS__,                                                           \
+    HANDLE_PACKET_METHOD__)                                                   \
+  class CLASS_NAME__ final : public maplang::INode, public maplang::ISink {   \
+   public:                                                                    \
+    CLASS_NAME__(const std::shared_ptr<SHARED_CLASS__>& sharedObject)         \
+        : mSharedObject(sharedObject) {}                                      \
+    ~CLASS_NAME__() override = default;                                       \
+                                                                              \
+    void handlePacket(const maplang::Packet& packet) override {               \
+      mSharedObject->HANDLE_PACKET_METHOD__(packet);                          \
+    }                                                                         \
+                                                                              \
+    void setSubgraphContext(                                                  \
+        const std::shared_ptr<maplang::ISubgraphContext>& context) override { \
+      mSharedObject->setSubgraphContext(context);                             \
+    }                                                                         \
+                                                                              \
+    maplang::ISink* asSink() override { return this; }                        \
+    maplang::ISource* asSource() override { return nullptr; }                 \
+    maplang::IPathable* asPathable() override { return nullptr; }             \
+    maplang::ICohesiveGroup* asGroup() override { return nullptr; }           \
+                                                                              \
+   private:                                                                   \
+    const std::shared_ptr<SHARED_CLASS__> mSharedObject;                      \
   };
 
-#define ML_CREATE_GROUP_PATHABLE(                                       \
-    CLASS_NAME__,                                                       \
-    SHARED_CLASS__,                                                     \
-    HANDLE_PACKET_METHOD__)                                             \
-  class CLASS_NAME__ final : public maplang::INode,                     \
-                             public maplang::IPathable {                \
-   public:                                                              \
-    CLASS_NAME__(const std::shared_ptr<SHARED_CLASS__>& sharedObject)   \
-        : mSharedObject(sharedObject) {}                                \
-    ~CLASS_NAME__() override = default;                                 \
-                                                                        \
-    void handlePacket(const maplang::PathablePacket& packet) override { \
-      mSharedObject->HANDLE_PACKET_METHOD__(packet);                    \
-    }                                                                   \
-                                                                        \
-    maplang::ISink* asSink() override { return nullptr; }               \
-    maplang::ISource* asSource() override { return nullptr; }           \
-    maplang::IPathable* asPathable() override { return this; }          \
-    maplang::ICohesiveGroup* asGroup() override { return nullptr; }     \
-                                                                        \
-   private:                                                             \
-    const std::shared_ptr<SHARED_CLASS__> mSharedObject;                \
+#define ML_CREATE_GROUP_PATHABLE(                                             \
+    CLASS_NAME__,                                                             \
+    SHARED_CLASS__,                                                           \
+    HANDLE_PACKET_METHOD__)                                                   \
+  class CLASS_NAME__ final : public maplang::INode,                           \
+                             public maplang::IPathable {                      \
+   public:                                                                    \
+    CLASS_NAME__(const std::shared_ptr<SHARED_CLASS__>& sharedObject)         \
+        : mSharedObject(sharedObject) {}                                      \
+    ~CLASS_NAME__() override = default;                                       \
+                                                                              \
+    void handlePacket(const maplang::PathablePacket& packet) override {       \
+      mSharedObject->HANDLE_PACKET_METHOD__(packet);                          \
+    }                                                                         \
+                                                                              \
+    void setSubgraphContext(                                                  \
+        const std::shared_ptr<maplang::ISubgraphContext>& context) override { \
+      mSharedObject->setSubgraphContext(context);                             \
+    }                                                                         \
+                                                                              \
+    maplang::ISink* asSink() override { return nullptr; }                     \
+    maplang::ISource* asSource() override { return nullptr; }                 \
+    maplang::IPathable* asPathable() override { return this; }                \
+    maplang::ICohesiveGroup* asGroup() override { return nullptr; }           \
+                                                                              \
+   private:                                                                   \
+    const std::shared_ptr<SHARED_CLASS__> mSharedObject;                      \
   };
 
 #endif  // MAPLANG_INCLUDE_MAPLANG_UTIL_H_
