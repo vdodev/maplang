@@ -206,13 +206,15 @@ class GraphPacketPusher : public IPacketPusher {
       const bool pushDirectly = nextEdge.second.sameThreadQueueToTargetType
                                 == PacketDeliveryType::PushDirectlyToTarget;
 
-      hasDirectTargets |= pushDirectly;
-      hasAsyncTargets |= !pushDirectly;
+      if (channel == fromChannel) {
+        hasDirectTargets |= pushDirectly;
+        hasAsyncTargets |= !pushDirectly;
 
-      if (pushDirectly && channel == fromChannel) {
-        mImpl->sendPacketToNode(
-            nextDataGraphElement,
-            packetWithAccumulatedParameters);
+        if (pushDirectly) {
+          mImpl->sendPacketToNode(
+              nextDataGraphElement,
+              packetWithAccumulatedParameters);
+        }
       }
     }
 

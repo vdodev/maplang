@@ -15,10 +15,12 @@
  */
 
 #include <maplang/LambdaSink.h>
+#include <thread>
 
 #include "gtest/gtest.h"
 #include "maplang/DataGraph.h"
 #include "maplang/UvLoopRunner.h"
+#include "nodes/SendOnce.h"
 
 using namespace std;
 
@@ -37,6 +39,65 @@ TEST(WhenSendPacketIsCalledOnce, ThenOnePacketIsDeliveredToTheSink) {
   graph.sendPacket(packet, lambdaSink);
 
   usleep(1000);
+  uv_stop(uvLoopRunner.getLoop().get());
+  uvLoopRunner.waitForExit();
+
+  ASSERT_EQ(1, receivedPacketCount);
+}
+
+TEST(WhenAPacketIsSentDirectly, ItArrives) {
+  UvLoopRunner uvLoopRunner;
+
+  DataGraph graph(uvLoopRunner.getLoop());
+
+  Packet packet;
+  size_t receivedPacketCount = 0;
+
+  auto sendOnce = make_shared<SendOnce>(nlohmann::json());
+  thread::id packetReceivedOnThreadId;
+
+  auto lambdaSink = make_shared<LambdaSink>(
+      [&receivedPacketCount, &packetReceivedOnThreadId](const Packet& packet) {
+        packetReceivedOnThreadId = this_thread::get_id();
+        receivedPacketCount++;
+      });
+
+  graph.connect(sendOnce, "initialized", lambdaSink);
+
+  uv_stop(uvLoopRunner.getLoop().get());
+  uvLoopRunner.waitForExit();
+
+  ASSERT_EQ(this_thread::get_id(), packetReceivedOnThreadId);
+  ASSERT_EQ(1, receivedPacketCount);
+}
+
+TEST(WhenAPacketIsSentUsingAsyncQueueing, ItArrives) {
+  UvLoopRunner uvLoopRunner;
+
+  DataGraph graph(uvLoopRunner.getLoop());
+
+  Packet packet;
+  size_t receivedPacketCount = 0;
+
+  thread::id packetReceivedOnThreadId;
+  auto sendOnce = make_shared<SendOnce>(nlohmann::json());
+  auto lambdaSink = make_shared<LambdaSink>(
+      [&receivedPacketCount, &packetReceivedOnThreadId](const Packet& packet) {
+        packetReceivedOnThreadId = this_thread::get_id();
+        receivedPacketCount++;
+      });
+
+  graph.connect(
+      sendOnce,
+      "initialized",
+      lambdaSink,
+      "",
+      "",
+      PacketDeliveryType::AlwaysQueue);
+
+  usleep(1000);
+
+  ASSERT_EQ(this_thread::get_id(), packetReceivedOnThreadId);
   uv_stop(uvLoopRunner.getLoop().get());
   uvLoopRunner.waitForExit();
 
