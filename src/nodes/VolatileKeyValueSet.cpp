@@ -35,13 +35,15 @@ static const string kRemoverPartitionName {"Remover"};
 static const string kRemoveAllPartitionName {"Remove All"};
 
 static const string kParameter_KeyWhichIsNotPresent = "keyWhichIsNotPresent";
-static const string kParameter_ValueWhichIsNotPresent = "valueWhichIsNotPresent";
+static const string kParameter_ValueWhichIsNotPresent =
+    "valueWhichIsNotPresent";
 
 static const string kChannel_GotValue = "Got Value";
 static const string kChannel_KeyNotFound = "Key Not Found";
 static const string kChannel_ValueNotFound = "Value Not Found";
 static const string kChannel_RemovedValue = "Removed Value";
-static const string kChannel_RemovedAllValuesForKey = "Removed All Values For Key";
+static const string kChannel_RemovedAllValuesForKey =
+    "Removed All Values For Key";
 
 namespace maplang {
 
@@ -49,7 +51,10 @@ using StorageMap = unordered_map<string, unordered_set<string>>;
 
 class Adder : public INode, public IPathable {
  public:
-  Adder(const shared_ptr<StorageMap>& storage, const string& keyName, const string& valueName)
+  Adder(
+      const shared_ptr<StorageMap>& storage,
+      const string& keyName,
+      const string& valueName)
       : mKeyName(keyName), mValueName(valueName) {}
 
   ~Adder() override = default;
@@ -102,7 +107,10 @@ class Adder : public INode, public IPathable {
 
 class Getter : public INode, public IPathable {
  public:
-  Getter(const shared_ptr<const StorageMap>& storage, const string& keyName, const string& valueName)
+  Getter(
+      const shared_ptr<const StorageMap>& storage,
+      const string& keyName,
+      const string& valueName)
       : mKeyName(keyName), mValueName(valueName) {}
 
   ~Getter() override = default;
@@ -128,7 +136,9 @@ class Getter : public INode, public IPathable {
     if (it == mStorage->end()) {
       Packet notFoundPacket;
       notFoundPacket.parameters[kParameter_KeyWhichIsNotPresent] = key;
-      incomingPathablePacket.packetPusher->pushPacket(move(notFoundPacket), kChannel_ValueNotFound);
+      incomingPathablePacket.packetPusher->pushPacket(
+          move(notFoundPacket),
+          kChannel_ValueNotFound);
       return;
     }
 
@@ -143,7 +153,9 @@ class Getter : public INode, public IPathable {
     packetWithValues.parameters[mKeyName] = key;
     packetWithValues.parameters[mValueName] = move(jsonValues);
 
-    incomingPathablePacket.packetPusher->pushPacket(move(packetWithValues), kChannel_GotValue);
+    incomingPathablePacket.packetPusher->pushPacket(
+        move(packetWithValues),
+        kChannel_GotValue);
   }
 
  private:
@@ -154,7 +166,10 @@ class Getter : public INode, public IPathable {
 
 class Remover : public INode, public IPathable {
  public:
-  Remover(const shared_ptr<StorageMap>& storage, const string& keyName, const string& valueName)
+  Remover(
+      const shared_ptr<StorageMap>& storage,
+      const string& keyName,
+      const string& valueName)
       : mKeyName(keyName), mValueName(valueName) {}
 
   ~Remover() override = default;
@@ -187,7 +202,9 @@ class Remover : public INode, public IPathable {
     if (it == mStorage->end()) {
       Packet notFoundPacket;
       notFoundPacket.parameters[kParameter_KeyWhichIsNotPresent] = key;
-      incomingPathablePacket.packetPusher->pushPacket(move(notFoundPacket), kChannel_KeyNotFound);
+      incomingPathablePacket.packetPusher->pushPacket(
+          move(notFoundPacket),
+          kChannel_KeyNotFound);
       return;
     }
 
@@ -196,7 +213,9 @@ class Remover : public INode, public IPathable {
     if (setIt == values.end()) {
       Packet notFoundPacket;
       notFoundPacket.parameters[kParameter_ValueWhichIsNotPresent] = value;
-      incomingPathablePacket.packetPusher->pushPacket(move(notFoundPacket), kChannel_ValueNotFound);
+      incomingPathablePacket.packetPusher->pushPacket(
+          move(notFoundPacket),
+          kChannel_ValueNotFound);
       return;
     }
 
@@ -210,7 +229,9 @@ class Remover : public INode, public IPathable {
     packetWithValues.parameters[mKeyName] = key;
     packetWithValues.parameters[mValueName] = value;
 
-    incomingPathablePacket.packetPusher->pushPacket(move(packetWithValues), kChannel_RemovedValue);
+    incomingPathablePacket.packetPusher->pushPacket(
+        move(packetWithValues),
+        kChannel_RemovedValue);
   }
 
  private:
@@ -221,7 +242,10 @@ class Remover : public INode, public IPathable {
 
 class RemoveAll : public INode, public IPathable {
  public:
-  RemoveAll(const shared_ptr<StorageMap>& storage, const string& keyName, const string& valueName)
+  RemoveAll(
+      const shared_ptr<StorageMap>& storage,
+      const string& keyName,
+      const string& valueName)
       : mKeyName(keyName), mValueName(valueName) {}
 
   ~RemoveAll() override = default;
@@ -254,7 +278,9 @@ class RemoveAll : public INode, public IPathable {
     if (it == mStorage->end()) {
       Packet notFoundPacket;
       notFoundPacket.parameters[kParameter_KeyWhichIsNotPresent] = key;
-      incomingPathablePacket.packetPusher->pushPacket(move(notFoundPacket), kChannel_KeyNotFound);
+      incomingPathablePacket.packetPusher->pushPacket(
+          move(notFoundPacket),
+          kChannel_KeyNotFound);
       return;
     }
 
@@ -270,7 +296,9 @@ class RemoveAll : public INode, public IPathable {
     if (setIt == values.end()) {
       Packet notFoundPacket;
       notFoundPacket.parameters[kParameter_ValueWhichIsNotPresent] = value;
-      incomingPathablePacket.packetPusher->pushPacket(move(notFoundPacket), kChannel_ValueNotFound);
+      incomingPathablePacket.packetPusher->pushPacket(
+          move(notFoundPacket),
+          kChannel_ValueNotFound);
       return;
     }
 
@@ -278,7 +306,9 @@ class RemoveAll : public INode, public IPathable {
     packetWithValues.parameters[mKeyName] = key;
     packetWithValues.parameters[mValueName] = move(removedValuesJsonArray);
 
-    incomingPathablePacket.packetPusher->pushPacket(move(packetWithValues), kChannel_RemovedValue);
+    incomingPathablePacket.packetPusher->pushPacket(
+        move(packetWithValues),
+        kChannel_RemovedValue);
   }
 
  private:
@@ -303,7 +333,8 @@ VolatileKeyValueSet::VolatileKeyValueSet(const nlohmann::json& initParameters) {
   const auto storage = make_shared<StorageMap>();
 
   mPartitions[kAdderPartitionName].name = kAdderPartitionName;
-  mPartitions[kAdderPartitionName].node = make_shared<Adder>(storage, keyName, valueName);
+  mPartitions[kAdderPartitionName].node =
+      make_shared<Adder>(storage, keyName, valueName);
 
   auto getter = make_shared<Getter>(storage, keyName, valueName);
   mPartitions[kGetterPartitionName].name = kGetterPartitionName;
@@ -335,7 +366,8 @@ string VolatileKeyValueSet::getNodeName(size_t partitionIndex) {
   }
 }
 
-std::shared_ptr<INode> VolatileKeyValueSet::getNode(const string& partitionName) {
+std::shared_ptr<INode> VolatileKeyValueSet::getNode(
+    const string& partitionName) {
   return mPartitions[partitionName].node;
 }
 

@@ -22,12 +22,15 @@
 
 namespace maplang {
 
-template <class ItemClass, class EdgeClass>
+template <class ItemClass, class EdgeClass, class GraphElementInfo>
 struct GraphElement;
 
 template <class ItemClass>
 struct DefaultGraphEdge {
-  std::shared_ptr<GraphElement<ItemClass, DefaultGraphEdge<ItemClass>>> otherGraphElement;
+  using UnusedExtraInfoType = std::shared_ptr<void>;
+  std::shared_ptr<
+      GraphElement<ItemClass, DefaultGraphEdge<ItemClass>, UnusedExtraInfoType>>
+      otherGraphElement;
 };
 
 }  // namespace maplang

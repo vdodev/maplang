@@ -18,6 +18,7 @@
 #define MAPLANG__JSONUTIL_H_
 
 #include <string>
+
 #include "json.hpp"
 
 namespace maplang {

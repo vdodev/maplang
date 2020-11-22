@@ -25,6 +25,8 @@ namespace maplang {
 
 class DataGraphImpl;
 
+enum class PacketDeliveryType { PushDirectlyToTarget, AlwaysQueue };
+
 class DataGraph final {
  public:
   DataGraph(const std::shared_ptr<uv_loop_t>& uvLoop);
@@ -35,7 +37,9 @@ class DataGraph final {
       const std::string& fromChannel,
       const std::shared_ptr<INode>& toNode,
       const std::string& fromPathableId = "",
-      const std::string& toPathableId = "");
+      const std::string& toPathableId = "",
+      const PacketDeliveryType& sameThreadQueueToTargetType =
+          PacketDeliveryType::PushDirectlyToTarget);
 
   void disconnect(
       const std::shared_ptr<INode>& fromNode,
@@ -44,9 +48,15 @@ class DataGraph final {
       const std::string& fromPathableId = "",
       const std::string& toPathableId = "");
 
-  void sendPacket(const Packet& packet, const std::shared_ptr<INode>& toNode, const std::string& toPathableId = "");
+  void sendPacket(
+      const Packet& packet,
+      const std::shared_ptr<INode>& toNode,
+      const std::string& toPathableId = "");
 
-  void sendPacket(Packet&& packet, const std::shared_ptr<INode>& toNode, const std::string& toPathableId = "");
+  void sendPacket(
+      Packet&& packet,
+      const std::shared_ptr<INode>& toNode,
+      const std::string& toPathableId = "");
 
  private:
   const std::shared_ptr<DataGraphImpl> impl;

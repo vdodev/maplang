@@ -49,7 +49,8 @@ inline void sendErrorPacket(
     const std::string& errorName,
     const std::string& errorMessage,
     const nlohmann::json& extraParameters = nullptr) {
-  Packet errorPacket = createErrorPacket(errorName, errorMessage, extraParameters);
+  Packet errorPacket =
+      createErrorPacket(errorName, errorMessage, extraParameters);
   packetPusher->pushPacket(std::move(errorPacket), kChannel_Error);
 }
 
@@ -57,7 +58,8 @@ inline void sendErrorPacket(
     const std::shared_ptr<IPacketPusher>& packetPusher,
     const std::exception& ex,
     const nlohmann::json& extraParameters = nullptr) {
-  Packet errorPacket = createErrorPacket("exception", ex.what(), extraParameters);
+  Packet errorPacket =
+      createErrorPacket("exception", ex.what(), extraParameters);
   packetPusher->pushPacket(std::move(errorPacket), kChannel_Error);
 }
 

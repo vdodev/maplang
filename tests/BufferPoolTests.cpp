@@ -36,7 +36,9 @@ TEST(WhenTheFirstBufferIsRequestedWithAMovableAllocator, ItReturnsABuffer) {
   ASSERT_NE(nullptr, buffer);
 }
 
-TEST(WhenTheFirstBufferIsRequestedWithAConstReferenceAllocator, ItReturnsABuffer) {
+TEST(
+    WhenTheFirstBufferIsRequestedWithAConstReferenceAllocator,
+    ItReturnsABuffer) {
   BufferPool pool;
   const auto allocator = createAllocator();
   pool.setAllocator(allocator);
@@ -57,7 +59,9 @@ TEST(WhenThePoolIsDeallocatedBeforeABuffer, ItDoesntCrash) {
   }
 }
 
-TEST(WhenASecondBufferIsRequestedBeforeTheFirstBufferIsReturned, ItReturnsADifferentBuffer) {
+TEST(
+    WhenASecondBufferIsRequestedBeforeTheFirstBufferIsReturned,
+    ItReturnsADifferentBuffer) {
   BufferPool pool;
   pool.setAllocator(createAllocator());
 
@@ -69,12 +73,14 @@ TEST(WhenASecondBufferIsRequestedBeforeTheFirstBufferIsReturned, ItReturnsADiffe
   ASSERT_NE(buffer1, buffer2);
 }
 
-TEST(WhenASecondBufferIsRequestedAfterTheFirstBufferIsReturned, ItReturnsTheSameBuffer) {
+TEST(
+    WhenASecondBufferIsRequestedAfterTheFirstBufferIsReturned,
+    ItReturnsTheSameBuffer) {
   BufferPool pool;
   pool.setAllocator(createAllocator());
 
   auto buffer1 = pool.get(1);
-  uint8_t *const rawBuffer1 = buffer1.get();
+  uint8_t* const rawBuffer1 = buffer1.get();
   buffer1.reset();
 
   const auto buffer2 = pool.get(1);
@@ -97,7 +103,9 @@ TEST(WhenAnEmptyBufferIsRequested, ItReturnsAnEmptyBuffer) {
   ASSERT_EQ(nullptr, buffer);
 }
 
-TEST(WhenAnEmptyBufferIsRequestedAndTheAllocatorIsNotSet, ItReturnsAnEmptyBuffer) {
+TEST(
+    WhenAnEmptyBufferIsRequestedAndTheAllocatorIsNotSet,
+    ItReturnsAnEmptyBuffer) {
   BufferPool pool;
   const auto buffer = pool.get(0);
   ASSERT_EQ(nullptr, buffer);

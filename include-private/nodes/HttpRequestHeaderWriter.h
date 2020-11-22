@@ -29,7 +29,8 @@ class HttpRequestHeaderWriter : public INode, public ISink, public ISource {
   ~HttpRequestHeaderWriter() override = default;
 
   void handlePacket(const Packet& packet) override;
-  void setPacketPusher(const std::shared_ptr<IPacketPusher>& packetPusher) override;
+  void setPacketPusher(
+      const std::shared_ptr<IPacketPusher>& packetPusher) override;
 
   ISink* asSink() override { return this; }
   ISource* asSource() override { return this; }

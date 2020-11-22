@@ -24,7 +24,7 @@ namespace maplang {
 
 class BufferPool final {
  public:
-  using Allocator = std::function<std::shared_ptr<uint8_t> (size_t length)>;
+  using Allocator = std::function<std::shared_ptr<uint8_t>(size_t length)>;
 
   BufferPool();
 

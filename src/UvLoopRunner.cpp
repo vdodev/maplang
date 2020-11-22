@@ -26,15 +26,17 @@ using namespace std;
 namespace maplang {
 
 static shared_ptr<uv_loop_t> createUvLoop() {
-  auto uvLoop = shared_ptr<uv_loop_t>((uv_loop_t*)calloc(1, sizeof(uv_loop_t)), [](uv_loop_t* loop) {
-    if (!loop) {
-      return;
-    }
+  auto uvLoop = shared_ptr<uv_loop_t>(
+      (uv_loop_t*)calloc(1, sizeof(uv_loop_t)),
+      [](uv_loop_t* loop) {
+        if (!loop) {
+          return;
+        }
 
-    uv_stop(loop);
-    uv_loop_close(loop);
-    free(loop);
-  });
+        uv_stop(loop);
+        uv_loop_close(loop);
+        free(loop);
+      });
 
   if (uvLoop == nullptr) {
     throw bad_alloc();
@@ -48,7 +50,9 @@ static shared_ptr<uv_loop_t> createUvLoop() {
     uv_strerror_r(status, errorMessage, sizeof(errorMessage));
     errorMessage[kErrorMessageBufLen - 1] = 0;
 
-    throw runtime_error("Error " + to_string(status) + " initializing UV loop. " + errorMessage);
+    throw runtime_error(
+        "Error " + to_string(status) + " initializing UV loop. "
+        + errorMessage);
   }
 
   return uvLoop;
@@ -64,7 +68,9 @@ UvLoopRunner::UvLoopRunner() : mUvLoop(createUvLoop()) {
     uv_strerror_r(status, errorMessage, sizeof(errorMessage));
     errorMessage[kErrorMessageBufLen - 1] = 0;
 
-    throw runtime_error("Error " + to_string(status) + " initializing UV async. " + errorMessage);
+    throw runtime_error(
+        "Error " + to_string(status) + " initializing UV async. "
+        + errorMessage);
   }
 
   thread runnerThread([this]() {

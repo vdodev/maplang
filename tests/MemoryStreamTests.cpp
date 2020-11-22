@@ -37,7 +37,8 @@ TEST(WhenNoBuffersAreAdded, VisitBuffersDoesntReturnAnyBuffers) {
 TEST(WhenABufferWithASingleByteIsAdded, TheStreamHasOneByte) {
   MemoryStream stream;
   Buffer buffer;
-  buffer.data = shared_ptr<uint8_t>(new uint8_t[1], default_delete<uint8_t[]>());
+  buffer.data =
+      shared_ptr<uint8_t>(new uint8_t[1], default_delete<uint8_t[]>());
   buffer.length = 1;
   stream.append(buffer);
 
@@ -55,7 +56,9 @@ TEST(WhenSeveralBuffersAreAdded, TheByteCountAndNumberOfBuffersIsCorrect) {
   static constexpr size_t kBufferCount = 4;
   for (size_t i = 0; i < kBufferCount; i++) {
     Buffer buffer;
-    buffer.data = shared_ptr<uint8_t>(new uint8_t[kBufferLength], default_delete<uint8_t[]>());
+    buffer.data = shared_ptr<uint8_t>(
+        new uint8_t[kBufferLength],
+        default_delete<uint8_t[]>());
     buffer.length = kBufferLength;
     stream.append(buffer);
   }
@@ -63,10 +66,11 @@ TEST(WhenSeveralBuffersAreAdded, TheByteCountAndNumberOfBuffersIsCorrect) {
   ASSERT_EQ(kBufferCount * kBufferLength, stream.size());
 
   size_t lastBufferIndex = SIZE_MAX;
-  stream.visitBuffers([&lastBufferIndex](size_t index, Buffer&& buffer) -> bool {
-    lastBufferIndex = index;
-    return true;
-  });
+  stream.visitBuffers(
+      [&lastBufferIndex](size_t index, Buffer&& buffer) -> bool {
+        lastBufferIndex = index;
+        return true;
+      });
 
   ASSERT_EQ(kBufferCount - 1, lastBufferIndex);
 }
@@ -77,7 +81,9 @@ TEST(WhenSeveralBuffersAreAddedAndReadIntoARawBuffer, TheStreamDataIsCorrect) {
   static constexpr size_t kBufferCount = 4;
   for (size_t i = 0; i < kBufferCount; i++) {
     Buffer buffer;
-    buffer.data = shared_ptr<uint8_t>(new uint8_t[kBufferLength], default_delete<uint8_t[]>());
+    buffer.data = shared_ptr<uint8_t>(
+        new uint8_t[kBufferLength],
+        default_delete<uint8_t[]>());
     buffer.data.get()[0] = i;
     buffer.length = kBufferLength;
     stream.append(buffer);
@@ -87,7 +93,8 @@ TEST(WhenSeveralBuffersAreAddedAndReadIntoARawBuffer, TheStreamDataIsCorrect) {
   ASSERT_EQ(kStreamLength, stream.size());
 
   uint8_t copiedFromStream[kStreamLength];
-  size_t readBytes = stream.read(0, kStreamLength, copiedFromStream, kStreamLength);
+  size_t readBytes =
+      stream.read(0, kStreamLength, copiedFromStream, kStreamLength);
 
   ASSERT_EQ(kStreamLength, readBytes);
   for (size_t i = 0; i < kStreamLength; i++) {
@@ -101,7 +108,9 @@ TEST(WhenSeveralBuffersAreAddedAndReadIntoABuffer, TheStreamDataIsCorrect) {
   static constexpr size_t kBufferCount = 4;
   for (size_t i = 0; i < kBufferCount; i++) {
     Buffer buffer;
-    buffer.data = shared_ptr<uint8_t>(new uint8_t[kBufferLength], default_delete<uint8_t[]>());
+    buffer.data = shared_ptr<uint8_t>(
+        new uint8_t[kBufferLength],
+        default_delete<uint8_t[]>());
     buffer.data.get()[0] = i;
     buffer.length = kBufferLength;
     stream.append(buffer);
@@ -111,7 +120,9 @@ TEST(WhenSeveralBuffersAreAddedAndReadIntoABuffer, TheStreamDataIsCorrect) {
   ASSERT_EQ(kStreamLength, stream.size());
 
   Buffer outputBuffer;
-  outputBuffer.data = shared_ptr<uint8_t>(new uint8_t[kStreamLength], default_delete<uint8_t[]>());
+  outputBuffer.data = shared_ptr<uint8_t>(
+      new uint8_t[kStreamLength],
+      default_delete<uint8_t[]>());
   outputBuffer.length = kStreamLength;
   size_t readBytes = stream.read(0, kStreamLength, &outputBuffer);
 
@@ -127,7 +138,9 @@ TEST(WhenSeveralBuffersAreAddedAndReadWithByteAt, ItReturnsTheCorrectValues) {
   static constexpr size_t kBufferCount = 4;
   for (size_t i = 0; i < kBufferCount; i++) {
     Buffer buffer;
-    buffer.data = shared_ptr<uint8_t>(new uint8_t[kBufferLength], default_delete<uint8_t[]>());
+    buffer.data = shared_ptr<uint8_t>(
+        new uint8_t[kBufferLength],
+        default_delete<uint8_t[]>());
     buffer.data.get()[0] = i;
     buffer.length = kBufferLength;
     stream.append(buffer);
@@ -168,7 +181,9 @@ TEST(WhenSeveralBuffersAreAdded, FirstIndexOfReturnsTheCorrectIndex) {
 
   for (size_t i = 0; i < kBufferCount; i++) {
     Buffer buffer;
-    buffer.data = shared_ptr<uint8_t>(new uint8_t[kBufferLength], default_delete<uint8_t[]>());
+    buffer.data = shared_ptr<uint8_t>(
+        new uint8_t[kBufferLength],
+        default_delete<uint8_t[]>());
 
     for (size_t j = 0; j < kBufferLength; j++) {
       buffer.data.get()[j] = bufferData[i * kBufferLength + j];
@@ -211,7 +226,9 @@ TEST(WhenSeveralBuffersAreAdded, FirstIndexOfReturnsTheCorrectIndexOfABuffer) {
 
   for (size_t i = 0; i < kBufferCount; i++) {
     Buffer buffer;
-    buffer.data = shared_ptr<uint8_t>(new uint8_t[kBufferLength], default_delete<uint8_t[]>());
+    buffer.data = shared_ptr<uint8_t>(
+        new uint8_t[kBufferLength],
+        default_delete<uint8_t[]>());
 
     for (size_t j = 0; j < kBufferLength; j++) {
       buffer.data.get()[j] = bufferData[i * kBufferLength + j];
@@ -234,8 +251,12 @@ TEST(WhenSeveralBuffersAreAdded, FirstIndexOfReturnsTheCorrectIndexOfABuffer) {
   findBytes[0] = kBufferLength - 1;
   findBytes[1] = kBufferLength;
 
-  ASSERT_EQ(kBufferLength - 1, stream.firstIndexOf(findBytes, sizeof(findBytes)));
-  ASSERT_EQ(MemoryStream::kNotFound, stream.firstIndexOf(findBytes, sizeof(findBytes), 12));
+  ASSERT_EQ(
+      kBufferLength - 1,
+      stream.firstIndexOf(findBytes, sizeof(findBytes)));
+  ASSERT_EQ(
+      MemoryStream::kNotFound,
+      stream.firstIndexOf(findBytes, sizeof(findBytes), 12));
 }
 
 TEST(WhenSeveralBuffersAreAdded, FirstIndexOfAnyInSetReturnsTheCorrectIndex) {
@@ -265,7 +286,9 @@ TEST(WhenSeveralBuffersAreAdded, FirstIndexOfAnyInSetReturnsTheCorrectIndex) {
 
   for (size_t i = 0; i < kBufferCount; i++) {
     Buffer buffer;
-    buffer.data = shared_ptr<uint8_t>(new uint8_t[kBufferLength], default_delete<uint8_t[]>());
+    buffer.data = shared_ptr<uint8_t>(
+        new uint8_t[kBufferLength],
+        default_delete<uint8_t[]>());
 
     for (size_t j = 0; j < kBufferLength; j++) {
       buffer.data.get()[j] = bufferData[i * kBufferLength + j];
@@ -286,7 +309,9 @@ TEST(WhenSeveralBuffersAreAdded, FirstIndexOfAnyInSetReturnsTheCorrectIndex) {
         static_cast<uint8_t>(12),
     };
 
-    ASSERT_EQ(MemoryStream::kNotFound, stream.firstIndexOfAnyInSet(data, sizeof(data)));
+    ASSERT_EQ(
+        MemoryStream::kNotFound,
+        stream.firstIndexOfAnyInSet(data, sizeof(data)));
   }
 
   {
@@ -300,8 +325,12 @@ TEST(WhenSeveralBuffersAreAdded, FirstIndexOfAnyInSetReturnsTheCorrectIndex) {
 
     ASSERT_EQ(3, stream.firstIndexOfAnyInSet(data, sizeof(data)));
     ASSERT_EQ(11, stream.firstIndexOfAnyInSet(data, sizeof(data), 8));
-    ASSERT_EQ(MemoryStream::kNotFound, stream.firstIndexOfAnyInSet(data, sizeof(data), 0, 3));
-    ASSERT_EQ(MemoryStream::kNotFound, stream.firstIndexOfAnyInSet(data, sizeof(data), 8, 11));
+    ASSERT_EQ(
+        MemoryStream::kNotFound,
+        stream.firstIndexOfAnyInSet(data, sizeof(data), 0, 3));
+    ASSERT_EQ(
+        MemoryStream::kNotFound,
+        stream.firstIndexOfAnyInSet(data, sizeof(data), 8, 11));
   }
 
   {
@@ -314,8 +343,12 @@ TEST(WhenSeveralBuffersAreAdded, FirstIndexOfAnyInSetReturnsTheCorrectIndex) {
     };
     ASSERT_EQ(0, stream.firstIndexOfAnyInSet(data, sizeof(data)));
     ASSERT_EQ(8, stream.firstIndexOfAnyInSet(data, sizeof(data), 5));
-    ASSERT_EQ(MemoryStream::kNotFound, stream.firstIndexOfAnyInSet(data, sizeof(data), 5, 8));
-    ASSERT_EQ(MemoryStream::kNotFound, stream.firstIndexOfAnyInSet(data, sizeof(data), 13, 16));
+    ASSERT_EQ(
+        MemoryStream::kNotFound,
+        stream.firstIndexOfAnyInSet(data, sizeof(data), 5, 8));
+    ASSERT_EQ(
+        MemoryStream::kNotFound,
+        stream.firstIndexOfAnyInSet(data, sizeof(data), 13, 16));
   }
 }
 
@@ -345,7 +378,9 @@ TEST(WhenSeveralBuffersAreAdded, LastIndexOfAnyInSetReturnsTheCorrectIndex) {
 
   for (size_t i = 0; i < kBufferCount; i++) {
     Buffer buffer;
-    buffer.data = shared_ptr<uint8_t>(new uint8_t[kBufferLength], default_delete<uint8_t[]>());
+    buffer.data = shared_ptr<uint8_t>(
+        new uint8_t[kBufferLength],
+        default_delete<uint8_t[]>());
 
     for (size_t j = 0; j < kBufferLength; j++) {
       buffer.data.get()[j] = bufferData[i * kBufferLength + j];
@@ -366,7 +401,9 @@ TEST(WhenSeveralBuffersAreAdded, LastIndexOfAnyInSetReturnsTheCorrectIndex) {
         static_cast<uint8_t>(12),
     };
 
-    ASSERT_EQ(MemoryStream::kNotFound, stream.lastIndexOfAnyInSet(data, sizeof(data)));
+    ASSERT_EQ(
+        MemoryStream::kNotFound,
+        stream.lastIndexOfAnyInSet(data, sizeof(data)));
   }
 
   {
@@ -380,8 +417,12 @@ TEST(WhenSeveralBuffersAreAdded, LastIndexOfAnyInSetReturnsTheCorrectIndex) {
 
     ASSERT_EQ(15, stream.lastIndexOfAnyInSet(data, sizeof(data)));
     ASSERT_EQ(7, stream.lastIndexOfAnyInSet(data, sizeof(data), 1, 8));
-    ASSERT_EQ(MemoryStream::kNotFound, stream.lastIndexOfAnyInSet(data, sizeof(data), 0, 3));
-    ASSERT_EQ(MemoryStream::kNotFound, stream.lastIndexOfAnyInSet(data, sizeof(data), 8, 11));
+    ASSERT_EQ(
+        MemoryStream::kNotFound,
+        stream.lastIndexOfAnyInSet(data, sizeof(data), 0, 3));
+    ASSERT_EQ(
+        MemoryStream::kNotFound,
+        stream.lastIndexOfAnyInSet(data, sizeof(data), 8, 11));
   }
 
   {
@@ -395,12 +436,18 @@ TEST(WhenSeveralBuffersAreAdded, LastIndexOfAnyInSetReturnsTheCorrectIndex) {
 
     ASSERT_EQ(12, stream.lastIndexOfAnyInSet(data, sizeof(data)));
     ASSERT_EQ(4, stream.lastIndexOfAnyInSet(data, sizeof(data), 1, 8));
-    ASSERT_EQ(MemoryStream::kNotFound, stream.lastIndexOfAnyInSet(data, sizeof(data), 5, 8));
-    ASSERT_EQ(MemoryStream::kNotFound, stream.lastIndexOfAnyInSet(data, sizeof(data), 13, 16));
+    ASSERT_EQ(
+        MemoryStream::kNotFound,
+        stream.lastIndexOfAnyInSet(data, sizeof(data), 5, 8));
+    ASSERT_EQ(
+        MemoryStream::kNotFound,
+        stream.lastIndexOfAnyInSet(data, sizeof(data), 13, 16));
   }
 }
 
-TEST(WhenSeveralBuffersAreAdded, FirstIndexNotOfAnyInSetReturnsTheCorrectIndex) {
+TEST(
+    WhenSeveralBuffersAreAdded,
+    FirstIndexNotOfAnyInSetReturnsTheCorrectIndex) {
   MemoryStream stream;
   static constexpr size_t kBufferLength = 4;
   static constexpr size_t kBufferCount = 4;
@@ -426,7 +473,9 @@ TEST(WhenSeveralBuffersAreAdded, FirstIndexNotOfAnyInSetReturnsTheCorrectIndex) 
 
   for (size_t i = 0; i < kBufferCount; i++) {
     Buffer buffer;
-    buffer.data = shared_ptr<uint8_t>(new uint8_t[kBufferLength], default_delete<uint8_t[]>());
+    buffer.data = shared_ptr<uint8_t>(
+        new uint8_t[kBufferLength],
+        default_delete<uint8_t[]>());
 
     for (size_t j = 0; j < kBufferLength; j++) {
       buffer.data.get()[j] = bufferData[i * kBufferLength + j];
@@ -463,7 +512,9 @@ TEST(WhenSeveralBuffersAreAdded, FirstIndexNotOfAnyInSetReturnsTheCorrectIndex) 
         static_cast<uint8_t>(7),
     };
 
-    ASSERT_EQ(MemoryStream::kNotFound, stream.firstIndexNotOfAnyInSet(data, sizeof(data)));
+    ASSERT_EQ(
+        MemoryStream::kNotFound,
+        stream.firstIndexNotOfAnyInSet(data, sizeof(data)));
   }
 
   {
@@ -477,8 +528,12 @@ TEST(WhenSeveralBuffersAreAdded, FirstIndexNotOfAnyInSetReturnsTheCorrectIndex) 
 
     ASSERT_EQ(0, stream.firstIndexNotOfAnyInSet(data, sizeof(data)));
     ASSERT_EQ(8, stream.firstIndexNotOfAnyInSet(data, sizeof(data), 8));
-    ASSERT_EQ(MemoryStream::kNotFound, stream.firstIndexNotOfAnyInSet(data, sizeof(data), 3, 7));
-    ASSERT_EQ(MemoryStream::kNotFound, stream.firstIndexNotOfAnyInSet(data, sizeof(data), 11, 15));
+    ASSERT_EQ(
+        MemoryStream::kNotFound,
+        stream.firstIndexNotOfAnyInSet(data, sizeof(data), 3, 7));
+    ASSERT_EQ(
+        MemoryStream::kNotFound,
+        stream.firstIndexNotOfAnyInSet(data, sizeof(data), 11, 15));
   }
 
   {
@@ -492,8 +547,12 @@ TEST(WhenSeveralBuffersAreAdded, FirstIndexNotOfAnyInSetReturnsTheCorrectIndex) 
 
     ASSERT_EQ(5, stream.firstIndexNotOfAnyInSet(data, sizeof(data)));
     ASSERT_EQ(13, stream.firstIndexNotOfAnyInSet(data, sizeof(data), 8));
-    ASSERT_EQ(MemoryStream::kNotFound, stream.firstIndexNotOfAnyInSet(data, sizeof(data), 0, 4));
-    ASSERT_EQ(MemoryStream::kNotFound, stream.firstIndexNotOfAnyInSet(data, sizeof(data), 8, 12));
+    ASSERT_EQ(
+        MemoryStream::kNotFound,
+        stream.firstIndexNotOfAnyInSet(data, sizeof(data), 0, 4));
+    ASSERT_EQ(
+        MemoryStream::kNotFound,
+        stream.firstIndexNotOfAnyInSet(data, sizeof(data), 8, 12));
   }
 }
 
@@ -523,7 +582,9 @@ TEST(WhenSeveralBuffersAreAdded, LastIndexNotOfAnyInSetReturnsTheCorrectIndex) {
 
   for (size_t i = 0; i < kBufferCount; i++) {
     Buffer buffer;
-    buffer.data = shared_ptr<uint8_t>(new uint8_t[kBufferLength], default_delete<uint8_t[]>());
+    buffer.data = shared_ptr<uint8_t>(
+        new uint8_t[kBufferLength],
+        default_delete<uint8_t[]>());
 
     for (size_t j = 0; j < kBufferLength; j++) {
       buffer.data.get()[j] = bufferData[i * kBufferLength + j];
@@ -560,7 +621,9 @@ TEST(WhenSeveralBuffersAreAdded, LastIndexNotOfAnyInSetReturnsTheCorrectIndex) {
         static_cast<uint8_t>(7),
     };
 
-    ASSERT_EQ(MemoryStream::kNotFound, stream.lastIndexNotOfAnyInSet(data, sizeof(data)));
+    ASSERT_EQ(
+        MemoryStream::kNotFound,
+        stream.lastIndexNotOfAnyInSet(data, sizeof(data)));
   }
 
   {
@@ -574,8 +637,12 @@ TEST(WhenSeveralBuffersAreAdded, LastIndexNotOfAnyInSetReturnsTheCorrectIndex) {
 
     ASSERT_EQ(10, stream.lastIndexNotOfAnyInSet(data, sizeof(data)));
     ASSERT_EQ(2, stream.lastIndexNotOfAnyInSet(data, sizeof(data), 1, 8));
-    ASSERT_EQ(MemoryStream::kNotFound, stream.lastIndexNotOfAnyInSet(data, sizeof(data), 3, 8));
-    ASSERT_EQ(MemoryStream::kNotFound, stream.lastIndexNotOfAnyInSet(data, sizeof(data), 11, 16));
+    ASSERT_EQ(
+        MemoryStream::kNotFound,
+        stream.lastIndexNotOfAnyInSet(data, sizeof(data), 3, 8));
+    ASSERT_EQ(
+        MemoryStream::kNotFound,
+        stream.lastIndexNotOfAnyInSet(data, sizeof(data), 11, 16));
   }
 
   {
@@ -589,8 +656,12 @@ TEST(WhenSeveralBuffersAreAdded, LastIndexNotOfAnyInSetReturnsTheCorrectIndex) {
 
     ASSERT_EQ(15, stream.lastIndexNotOfAnyInSet(data, sizeof(data)));
     ASSERT_EQ(7, stream.lastIndexNotOfAnyInSet(data, sizeof(data), 1, 8));
-    ASSERT_EQ(MemoryStream::kNotFound, stream.lastIndexNotOfAnyInSet(data, sizeof(data), 0, 4));
-    ASSERT_EQ(MemoryStream::kNotFound, stream.lastIndexNotOfAnyInSet(data, sizeof(data), 8, 12));
+    ASSERT_EQ(
+        MemoryStream::kNotFound,
+        stream.lastIndexNotOfAnyInSet(data, sizeof(data), 0, 4));
+    ASSERT_EQ(
+        MemoryStream::kNotFound,
+        stream.lastIndexNotOfAnyInSet(data, sizeof(data), 8, 12));
   }
 }
 
@@ -620,7 +691,9 @@ TEST(WhenSeveralBuffersAreAdded, SubstreamsContainTheCorrectBytes) {
 
   for (size_t i = 0; i < kBufferCount; i++) {
     Buffer buffer;
-    buffer.data = shared_ptr<uint8_t>(new uint8_t[kBufferLength], default_delete<uint8_t[]>());
+    buffer.data = shared_ptr<uint8_t>(
+        new uint8_t[kBufferLength],
+        default_delete<uint8_t[]>());
 
     for (size_t j = 0; j < kBufferLength; j++) {
       buffer.data.get()[j] = bufferData[i * kBufferLength + j];
@@ -634,9 +707,11 @@ TEST(WhenSeveralBuffersAreAdded, SubstreamsContainTheCorrectBytes) {
 
   static constexpr size_t kSubstreamOffset = 5;
   static constexpr size_t kSubstreamEndOffset = 1;
-  static constexpr size_t kSubstreamLength = kStreamLength - kSubstreamOffset - kSubstreamEndOffset;
+  static constexpr size_t kSubstreamLength =
+      kStreamLength - kSubstreamOffset - kSubstreamEndOffset;
 
-  auto substream = stream.subStream(kSubstreamOffset, kStreamLength - kSubstreamEndOffset);
+  auto substream =
+      stream.subStream(kSubstreamOffset, kStreamLength - kSubstreamEndOffset);
   ASSERT_EQ(kSubstreamLength, substream.size());
 
   for (size_t i = 0; i < kSubstreamLength; i++) {
@@ -670,7 +745,9 @@ TEST(WhenSeveralBuffersAreAdded, EqualsWorks) {
 
   for (size_t i = 0; i < kBufferCount; i++) {
     Buffer buffer;
-    buffer.data = shared_ptr<uint8_t>(new uint8_t[kBufferLength], default_delete<uint8_t[]>());
+    buffer.data = shared_ptr<uint8_t>(
+        new uint8_t[kBufferLength],
+        default_delete<uint8_t[]>());
 
     for (size_t j = 0; j < kBufferLength; j++) {
       buffer.data.get()[j] = bufferData[i * kBufferLength + j];
@@ -697,7 +774,9 @@ TEST(WhenSeveralBuffersAreAdded, SplitWorks) {
   Buffer buffer;
   char stringToSplit[] = "Split this by spaces.";
 
-  buffer.data = shared_ptr<uint8_t>(reinterpret_cast<uint8_t*>(stringToSplit), [](uint8_t*) {});
+  buffer.data = shared_ptr<uint8_t>(
+      reinterpret_cast<uint8_t*>(stringToSplit),
+      [](uint8_t*) {});
 
   buffer.length = strlen(stringToSplit);
   stream.append(buffer);
@@ -733,7 +812,9 @@ TEST(WhenStreamHasLeadingAndTrailingSeparators, SplitWorks) {
   Buffer buffer;
   char stringToSplit[] = " Split this by spaces. ";
 
-  buffer.data = shared_ptr<uint8_t>(reinterpret_cast<uint8_t*>(stringToSplit), [](uint8_t*) {});
+  buffer.data = shared_ptr<uint8_t>(
+      reinterpret_cast<uint8_t*>(stringToSplit),
+      [](uint8_t*) {});
 
   buffer.length = strlen(stringToSplit);
   stream.append(buffer);
@@ -777,18 +858,21 @@ TEST(WhenStreamHasLeadingAndTrailingWhitespace, TrimWorks) {
   Buffer buffer;
   char trimMe[] = " trimMe\r\n";
 
-  buffer.data = shared_ptr<uint8_t>(reinterpret_cast<uint8_t*>(trimMe), [](uint8_t*) {});
+  buffer.data =
+      shared_ptr<uint8_t>(reinterpret_cast<uint8_t*>(trimMe), [](uint8_t*) {});
 
   buffer.length = strlen(trimMe);
   stream.append(buffer);
 
-  ASSERT_TRUE(stream.trim().equalsString("trimMe")) << "'" << stream.trim() << "'";
+  ASSERT_TRUE(stream.trim().equalsString("trimMe"))
+      << "'" << stream.trim() << "'";
 }
 
 TEST(WhenCleared, NoDataIsLeft) {
   MemoryStream stream;
   Buffer buffer;
-  buffer.data = shared_ptr<uint8_t>(new uint8_t[1], default_delete<uint8_t[]>());
+  buffer.data =
+      shared_ptr<uint8_t>(new uint8_t[1], default_delete<uint8_t[]>());
   buffer.length = 1;
   stream.append(buffer);
 

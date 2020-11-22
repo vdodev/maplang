@@ -44,14 +44,17 @@ void PacketWriter::handlePacket(const PathablePacket& incomingPathablePacket) {
   parameterStream.seekg(0, ios::beg);
 
   // number of bytes following the first length field
-  size_t totalLength = parametersLength + (1 + incomingPacket.buffers.size()) * sizeof(uint64_t);
+  size_t totalLength =
+      parametersLength + (1 + incomingPacket.buffers.size()) * sizeof(uint64_t);
 
   for (size_t i = 0; i < incomingPacket.buffers.size(); i++) {
     totalLength += incomingPacket.buffers[i].length;
   }
 
   Buffer buffer;
-  buffer.data = shared_ptr<uint8_t>(new uint8_t[totalLength], default_delete<uint8_t[]>());
+  buffer.data = shared_ptr<uint8_t>(
+      new uint8_t[totalLength],
+      default_delete<uint8_t[]>());
   buffer.length = totalLength;
 
   uint8_t* writeTo = buffer.data.get();
@@ -69,7 +72,9 @@ void PacketWriter::handlePacket(const PathablePacket& incomingPathablePacket) {
 
   Packet sendPacket;
   sendPacket.buffers.push_back(buffer);
-  incomingPathablePacket.packetPusher->pushPacket(move(sendPacket), "Message Ready");
+  incomingPathablePacket.packetPusher->pushPacket(
+      move(sendPacket),
+      "Message Ready");
 }
 
 }  // namespace maplang

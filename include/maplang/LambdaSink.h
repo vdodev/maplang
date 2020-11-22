@@ -17,15 +17,16 @@
 #ifndef MAPLANG_SRC_LAMBDASINK_H_
 #define MAPLANG_SRC_LAMBDASINK_H_
 
-#include <functional>
-
 #include <maplang/INode.h>
+
+#include <functional>
 
 namespace maplang {
 
 class LambdaSink : public INode, public ISink {
  public:
-  LambdaSink(std::function<void(const Packet& packet)>&& onPacket) : mOnPacket(move(onPacket)) {}
+  LambdaSink(std::function<void(const Packet& packet)>&& onPacket)
+      : mOnPacket(move(onPacket)) {}
 
   void handlePacket(const Packet& packet) override { mOnPacket(packet); }
 

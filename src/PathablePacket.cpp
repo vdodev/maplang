@@ -18,7 +18,9 @@
 
 namespace maplang {
 
-PathablePacket::PathablePacket(const Packet& packet, const std::shared_ptr<IPacketPusher>& packetPusher)
-  : packet(packet), packetPusher(packetPusher) {}
+PathablePacket::PathablePacket(
+    const Packet& packet,
+    const std::shared_ptr<IPacketPusher>& packetPusher)
+    : packet(packet), packetPusher(packetPusher) {}
 
 }  // namespace maplang

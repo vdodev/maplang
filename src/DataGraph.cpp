@@ -33,11 +33,15 @@ namespace maplang {
 
 struct DataGraphItem {
   std::shared_ptr<INode> node;
-  std::shared_ptr<IPacketPusher> pathablePacketPusher;           // Set for IPathables only.
-  std::shared_ptr<const nlohmann::json> lastReceivedParameters;  // for parameter propagation when the downstream
-                                                                 // node(s) get a packet from this node.
+  std::shared_ptr<IPacketPusher>
+      pathablePacketPusher;  // Set for IPathables only.
+  std::shared_ptr<const nlohmann::json>
+      lastReceivedParameters;  // for parameter propagation when the downstream
+                               // node(s) get a packet from this node.
 
-  bool operator==(const DataGraphItem& other) const { return node == other.node; }
+  bool operator==(const DataGraphItem& other) const {
+    return node == other.node;
+  }
 };
 
 }  // namespace maplang
@@ -54,54 +58,77 @@ struct hash<const maplang::DataGraphItem> {
 
 namespace maplang {
 
-struct DataGraphEdge {
-  shared_ptr<GraphElement<DataGraphItem, DataGraphEdge>> otherGraphElement;
-  string channel;
+struct ExtraGraphElementInfo final {
+  bool packetPusherWasSetup = false;
 };
 
-using DataGraphElement = GraphElement<DataGraphItem, DataGraphEdge>;
+struct DataGraphEdge {
+  shared_ptr<GraphElement<DataGraphItem, DataGraphEdge, ExtraGraphElementInfo>> otherGraphElement;
+  string channel;
+  PacketDeliveryType sameThreadQueueToTargetType =
+      PacketDeliveryType::PushDirectlyToTarget;
+};
+
+using DataGraphElement = GraphElement<DataGraphItem, DataGraphEdge, ExtraGraphElementInfo>;
 
 struct PushedPacketInfo {
   Packet packet;
   shared_ptr<DataGraphElement> fromGraphElement;
-  shared_ptr<DataGraphElement> manualSendToGraphElement;  // when enqueued from DataGraph::sendPacket().
+  shared_ptr<DataGraphElement>
+      manualSendToGraphElement;  // when enqueued from DataGraph::sendPacket().
 
   string channel;
+
+  // Used to only warn if a packet was not direct- or async-dispatched.
+  bool wasDirectDispatchedToAtLeastOneNode = false;
 };
 
 class DataGraphImpl final : public enable_shared_from_this<DataGraphImpl> {
  public:
-  Graph<DataGraphItem, DataGraphEdge> mGraph;
+  Graph<DataGraphItem, DataGraphEdge, ExtraGraphElementInfo> mGraph;
   const shared_ptr<uv_loop_t> mUvLoop;
   shared_ptr<ISubgraphContext> mSubgraphContext;
   uv_async_t mPacketReadyAsync;
   moodycamel::ConcurrentQueue<PushedPacketInfo> mPacketQueue;
 
   // node -> pathable ID -> DataGraphElement
-  unordered_map<const INode*, unordered_map<string, weak_ptr<DataGraphElement>>> mNodeToGraphElementMap;
+  unordered_map<const INode*, unordered_map<string, weak_ptr<DataGraphElement>>>
+      mNodeToGraphElementMap;
 
  public:
   DataGraphImpl(const std::shared_ptr<uv_loop_t>& uvLoop) : mUvLoop(uvLoop) {
     mPacketReadyAsync.data = this;
-    int status = uv_async_init(mUvLoop.get(), &mPacketReadyAsync, DataGraphImpl::packetReadyWrapper);
+    int status = uv_async_init(
+        mUvLoop.get(),
+        &mPacketReadyAsync,
+        DataGraphImpl::packetReadyWrapper);
     if (status != 0) {
-      throw runtime_error("Failed to initialize async event: " + string(strerror(status)));
+      throw runtime_error(
+          "Failed to initialize async event: " + string(strerror(status)));
     }
   }
 
   static void packetReadyWrapper(uv_async_t* handle);
   void packetReady();
-  void sendPacketToNode(const shared_ptr<DataGraphElement>& receivingGraphElement, const Packet& packet);
+  void sendPacketToNode(
+      const shared_ptr<DataGraphElement>& receivingGraphElement,
+      const Packet& packet);
   void validateNodeTypesAreCompatible(const std::shared_ptr<INode>& node) const;
-  bool hasDataGraphElement(const std::shared_ptr<INode>& node, const std::string& pathableId);
+  bool hasDataGraphElement(
+      const std::shared_ptr<INode>& node,
+      const std::string& pathableId);
   std::shared_ptr<DataGraphElement> getOrCreateDataGraphElement(
       const std::shared_ptr<INode>& node,
       const std::string& pathableId);
+  void setupPacketPusher(const shared_ptr<DataGraphElement>& graphElement);
+
+  void logDroppedPacket(const Packet& packet, const string& channel);
 };
 
 class SubgraphContext : public ISubgraphContext {
  public:
-  SubgraphContext(const shared_ptr<DataGraphImpl> impl) : mUvLoop(impl->mUvLoop), mImplWeak(impl) {}
+  SubgraphContext(const shared_ptr<DataGraphImpl> impl)
+      : mUvLoop(impl->mUvLoop), mImplWeak(impl) {}
 
   shared_ptr<uv_loop_t> getUvLoop() const override { return mUvLoop; }
 
@@ -136,7 +163,9 @@ class SubgraphContext : public ISubgraphContext {
 
 class GraphPacketPusher : public IPacketPusher {
  public:
-  GraphPacketPusher(const shared_ptr<DataGraphImpl>& impl, const weak_ptr<DataGraphElement>& graphElement)
+  GraphPacketPusher(
+      const shared_ptr<DataGraphImpl>& impl,
+      const weak_ptr<DataGraphElement>& graphElement)
       : mImpl(impl), mGraphElement(graphElement) {}
 
   ~GraphPacketPusher() override = default;
@@ -146,16 +175,15 @@ class GraphPacketPusher : public IPacketPusher {
     pushPacket(move(copy), channel);
   }
 
-  void pushPacket(Packet&& packet, const string& channel) override {
-    const auto graphElement = mGraphElement.lock();
-    if (graphElement == nullptr) {
+  void pushPacket(Packet&& packet, const string& fromChannel) override {
+    const auto fromGraphElement = mGraphElement.lock();
+    if (fromGraphElement == nullptr) {
       return;
     }
 
-    PushedPacketInfo info;
-
     Packet packetWithAccumulatedParameters = move(packet);
-    const auto lastReceivedParameters = graphElement->item.lastReceivedParameters;
+    const auto lastReceivedParameters =
+        fromGraphElement->item.lastReceivedParameters;
     if (lastReceivedParameters != nullptr) {
       if (packetWithAccumulatedParameters.parameters == nullptr) {
         packetWithAccumulatedParameters.parameters = *lastReceivedParameters;
@@ -167,12 +195,41 @@ class GraphPacketPusher : public IPacketPusher {
       }
     }
 
-    info.packet = move(packetWithAccumulatedParameters);
-    info.fromGraphElement = graphElement;
-    info.channel = channel;
+    bool hasAsyncTargets = false;
+    bool hasDirectTargets = false;
+    for (const auto& nextEdge : fromGraphElement->forwardEdges) {
+      const auto& nextEdgeChannelItemPair = nextEdge.first;
+      const string& channel = nextEdgeChannelItemPair.channel;
+      const shared_ptr<DataGraphElement> nextDataGraphElement =
+          nextEdgeChannelItemPair.toGraphElement;
 
-    mImpl->mPacketQueue.enqueue(move(info));
-    uv_async_send(&mImpl->mPacketReadyAsync);
+      const bool pushDirectly = nextEdge.second.sameThreadQueueToTargetType
+                                == PacketDeliveryType::PushDirectlyToTarget;
+
+      hasDirectTargets |= pushDirectly;
+      hasAsyncTargets |= !pushDirectly;
+
+      if (pushDirectly && channel == fromChannel) {
+        mImpl->sendPacketToNode(
+            nextDataGraphElement,
+            packetWithAccumulatedParameters);
+      }
+    }
+
+    if (hasAsyncTargets) {
+      PushedPacketInfo info;
+      info.packet = move(packetWithAccumulatedParameters);
+      info.fromGraphElement = fromGraphElement;
+      info.channel = fromChannel;
+      info.wasDirectDispatchedToAtLeastOneNode = hasDirectTargets;
+
+      mImpl->mPacketQueue.enqueue(move(info));
+      uv_async_send(&mImpl->mPacketReadyAsync);
+    }
+
+    if (!hasDirectTargets && !hasAsyncTargets) {
+      mImpl->logDroppedPacket(packet, fromChannel);
+    }
   }
 
  private:
@@ -192,7 +249,8 @@ void DataGraphImpl::packetReady() {
   PushedPacketInfo pushedPackets[kMaxDequeueAtOnce];
   size_t processedPacketCount = 0;
   while (processedPacketCount < readyPacketCount) {
-    const size_t dequeuedPacketCount = mPacketQueue.try_dequeue_bulk(pushedPackets, kMaxDequeueAtOnce);
+    const size_t dequeuedPacketCount =
+        mPacketQueue.try_dequeue_bulk(pushedPackets, kMaxDequeueAtOnce);
     processedPacketCount += dequeuedPacketCount;
 
     for (size_t i = 0; i < dequeuedPacketCount; i++) {
@@ -203,34 +261,42 @@ void DataGraphImpl::packetReady() {
         for (const auto& nextEdge : packetInfo.fromGraphElement->forwardEdges) {
           const auto& nextEdgeChannelItemPair = nextEdge.first;
           const string& channel = nextEdgeChannelItemPair.channel;
-          const shared_ptr<DataGraphElement> nextDataGraphElement = nextEdgeChannelItemPair.toGraphElement;
+          const shared_ptr<DataGraphElement> nextDataGraphElement =
+              nextEdgeChannelItemPair.toGraphElement;
 
-          if (channel == packetInfo.channel) {
+          const bool pushDirectly = nextEdge.second.sameThreadQueueToTargetType
+                                    == PacketDeliveryType::PushDirectlyToTarget;
+
+          sentToAny |= packetInfo.wasDirectDispatchedToAtLeastOneNode;
+          if (pushDirectly && channel == packetInfo.channel) {
             sentToAny = true;
             sendPacketToNode(nextDataGraphElement, packetInfo.packet);
           }
         }
 
         if (!sentToAny) {
-          if (packetInfo.channel == "error") {
-            logi("Dropped error packet: %s\n", packetInfo.packet.parameters.dump(2).c_str());
-          } else {
-            logd("Dropped packet from channel %s\n", packetInfo.channel.c_str());
-          }
+          logDroppedPacket(packetInfo.packet, packetInfo.channel);
         }
       } else if (packetInfo.manualSendToGraphElement) {
-        sendPacketToNode(packetInfo.manualSendToGraphElement, packetInfo.packet);
+        sendPacketToNode(
+            packetInfo.manualSendToGraphElement,
+            packetInfo.packet);
       }
     }
   }
 }
 
-void DataGraphImpl::sendPacketToNode(const shared_ptr<DataGraphElement>& receivingGraphElement, const Packet& packet) {
-  receivingGraphElement->item.lastReceivedParameters = make_shared<json>(packet.parameters);
+void DataGraphImpl::sendPacketToNode(
+    const shared_ptr<DataGraphElement>& receivingGraphElement,
+    const Packet& packet) {
+  receivingGraphElement->item.lastReceivedParameters =
+      make_shared<json>(packet.parameters);
 
   const auto pathable = receivingGraphElement->item.node->asPathable();
   if (pathable) {
-    PathablePacket pathablePacket(packet, receivingGraphElement->item.pathablePacketPusher);
+    PathablePacket pathablePacket(
+        packet,
+        receivingGraphElement->item.pathablePacketPusher);
 
     pathable->handlePacket(pathablePacket);
   } else {
@@ -239,7 +305,8 @@ void DataGraphImpl::sendPacketToNode(const shared_ptr<DataGraphElement>& receivi
   }
 }
 
-DataGraph::DataGraph(const std::shared_ptr<uv_loop_t>& uvLoop) : impl(new DataGraphImpl(uvLoop)) {
+DataGraph::DataGraph(const std::shared_ptr<uv_loop_t>& uvLoop)
+    : impl(new DataGraphImpl(uvLoop)) {
   impl->mSubgraphContext = make_shared<SubgraphContext>(impl);
 }
 
@@ -250,15 +317,13 @@ void DataGraph::connect(
     const std::string& fromChannel,
     const std::shared_ptr<INode>& toNode,
     const std::string& fromPathableId,
-    const std::string& toPathableId) {
+    const std::string& toPathableId,
+    const PacketDeliveryType& sameThreadQueueToTargetType) {
   if (fromNode == nullptr) {
     throw runtime_error("fromNode cannot be NULL.");
   } else if (toNode == nullptr) {
     throw runtime_error("toNode cannot be NULL.");
   }
-
-  const bool firstTimeFromNodeWasAdded = !impl->hasDataGraphElement(fromNode, fromPathableId);
-  const bool firstTimeToNodeWasAdded = !impl->hasDataGraphElement(toNode, toPathableId);
 
   const auto fromPathable = fromNode->asPathable();
   const auto source = fromNode->asSource();
@@ -278,18 +343,33 @@ void DataGraph::connect(
   }
 
   if (!fromPathable && !fromPathableId.empty()) {
-    throw runtime_error("fromPathableId is set, but the Node is not a Pathable.");
+    throw runtime_error(
+        "fromPathableId is set, but the Node is not a Pathable.");
   } else if (!toPathable && !toPathableId.empty()) {
     throw runtime_error("toPathableId is set, but the Node is not a Pathable.");
   }
 
-  const auto fromGraphElement = impl->getOrCreateDataGraphElement(fromNode, fromPathableId);
-  const auto toGraphElement = impl->getOrCreateDataGraphElement(toNode, toPathableId);
+  const auto fromGraphElement =
+      impl->getOrCreateDataGraphElement(fromNode, fromPathableId);
+  const auto toGraphElement =
+      impl->getOrCreateDataGraphElement(toNode, toPathableId);
 
-  impl->mGraph.connect(fromGraphElement->item, fromChannel, toGraphElement->item, fromPathableId, toPathableId);
+  auto& edge = impl->mGraph.connect(
+      fromGraphElement->item,
+      fromChannel,
+      toGraphElement->item,
+      fromPathableId,
+      toPathableId);
+
+  // Setup 'to' first in case from sends a packet in setupPacketPusher().
+  impl->setupPacketPusher(toGraphElement);
+  impl->setupPacketPusher(fromGraphElement);
+
+  edge.sameThreadQueueToTargetType = sameThreadQueueToTargetType;
 }
 
-void DataGraphImpl::validateNodeTypesAreCompatible(const shared_ptr<INode>& node) const {
+void DataGraphImpl::validateNodeTypesAreCompatible(
+    const shared_ptr<INode>& node) const {
   const auto pathable = node->asPathable();
   const auto sink = node->asSink();
   const auto source = node->asSource();
@@ -305,7 +385,10 @@ void DataGraphImpl::validateNodeTypesAreCompatible(const shared_ptr<INode>& node
   }
 }
 
-void DataGraph::sendPacket(const Packet& packet, const std::shared_ptr<INode>& toNode, const string& toPathableId) {
+void DataGraph::sendPacket(
+    const Packet& packet,
+    const std::shared_ptr<INode>& toNode,
+    const string& toPathableId) {
   const auto sink = toNode->asSink();
   if (!sink) {
     throw runtime_error("Can only call sendPacket() with an ISink node.");
@@ -313,13 +396,19 @@ void DataGraph::sendPacket(const Packet& packet, const std::shared_ptr<INode>& t
 
   PushedPacketInfo packetInfo;
   packetInfo.packet = packet;
-  packetInfo.manualSendToGraphElement = impl->getOrCreateDataGraphElement(toNode, toPathableId);
+  packetInfo.manualSendToGraphElement =
+      impl->getOrCreateDataGraphElement(toNode, toPathableId);
+
+  impl->setupPacketPusher(packetInfo.manualSendToGraphElement);
 
   impl->mPacketQueue.enqueue(move(packetInfo));
   uv_async_send(&impl->mPacketReadyAsync);
 }
 
-void DataGraph::sendPacket(Packet&& packet, const std::shared_ptr<INode>& toNode, const string& toPathableId) {
+void DataGraph::sendPacket(
+    Packet&& packet,
+    const std::shared_ptr<INode>& toNode,
+    const string& toPathableId) {
   const auto sink = toNode->asSink();
   if (!sink) {
     throw runtime_error("Can only call sendPacket() with an ISink node.");
@@ -327,13 +416,18 @@ void DataGraph::sendPacket(Packet&& packet, const std::shared_ptr<INode>& toNode
 
   PushedPacketInfo packetInfo;
   packetInfo.packet = move(packet);
-  packetInfo.manualSendToGraphElement = impl->getOrCreateDataGraphElement(toNode, toPathableId);
+  packetInfo.manualSendToGraphElement =
+      impl->getOrCreateDataGraphElement(toNode, toPathableId);
+
+  impl->setupPacketPusher(packetInfo.manualSendToGraphElement);
 
   impl->mPacketQueue.enqueue(move(packetInfo));
   uv_async_send(&impl->mPacketReadyAsync);
 }
 
-bool DataGraphImpl::hasDataGraphElement(const std::shared_ptr<INode>& node, const std::string& pathableId) {
+bool DataGraphImpl::hasDataGraphElement(
+    const std::shared_ptr<INode>& node,
+    const std::string& pathableId) {
   DataGraphItem item;
   item.node = node;
 
@@ -347,8 +441,9 @@ std::shared_ptr<DataGraphElement> DataGraphImpl::getOrCreateDataGraphElement(
   shared_ptr<DataGraphElement> graphElement;
 
   if (mapIt == mNodeToGraphElementMap.end()) {
-    auto insertPair =
-        mNodeToGraphElementMap.emplace(make_pair(node.get(), unordered_map<string, weak_ptr<DataGraphElement>>()));
+    auto insertPair = mNodeToGraphElementMap.emplace(make_pair(
+        node.get(),
+        unordered_map<string, weak_ptr<DataGraphElement>>()));
 
     mapIt = insertPair.first;
   }
@@ -360,20 +455,42 @@ std::shared_ptr<DataGraphElement> DataGraphImpl::getOrCreateDataGraphElement(
     item.node = node;
 
     validateNodeTypesAreCompatible(node);
-    node->setSubgraphContext(mSubgraphContext);
 
-    auto pathable = node->asPathable();
-    auto source = node->asSource();
     graphElement = mGraph.getOrCreateGraphElement(item, pathableId);
 
-    if (pathable != nullptr) {
-      graphElement->item.pathablePacketPusher = make_shared<GraphPacketPusher>(shared_from_this(), graphElement);
-    } else if (source != nullptr) {
-      source->setPacketPusher(make_shared<GraphPacketPusher>(shared_from_this(), graphElement));
-    }
+    node->setSubgraphContext(mSubgraphContext);
   }
 
   return graphElement;
+}
+
+void DataGraphImpl::logDroppedPacket(
+    const Packet& packet,
+    const string& channel) {
+  if (channel == "error") {
+    logi("Dropped error packet: %s\n", packet.parameters.dump(2).c_str());
+  } else {
+    logd("Dropped packet from channel %s\n", channel.c_str());
+  }
+}
+
+void DataGraphImpl::setupPacketPusher(
+    const shared_ptr<DataGraphElement>& graphElement) {
+  const auto node = graphElement->item.node;
+  auto pathable = node->asPathable();
+  auto source = node->asSource();
+
+  if (!graphElement->additionalInfo.packetPusherWasSetup) {
+    graphElement->additionalInfo.packetPusherWasSetup = true;
+
+    if (pathable != nullptr) {
+      graphElement->item.pathablePacketPusher =
+          make_shared<GraphPacketPusher>(shared_from_this(), graphElement);
+    } else if (source != nullptr) {
+      source->setPacketPusher(
+          make_shared<GraphPacketPusher>(shared_from_this(), graphElement));
+    }
+  }
 }
 
 }  // namespace maplang

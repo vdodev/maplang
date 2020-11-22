@@ -25,15 +25,19 @@ namespace maplang {
 
 static const char* const kParameter_RemoteAddress = "RemoteAddress";
 
-void HttpResponseWithAddressAsBody::handlePacket(const PathablePacket& incomingPathablePacket) {
+void HttpResponseWithAddressAsBody::handlePacket(
+    const PathablePacket& incomingPathablePacket) {
   const Packet& incomingPacket = incomingPathablePacket.packet;
   string address = "unknown";
 
-  if (incomingPacket.parameters.find(kParameter_RemoteAddress) != incomingPacket.parameters.end()) {
+  if (incomingPacket.parameters.find(kParameter_RemoteAddress)
+      != incomingPacket.parameters.end()) {
     address = incomingPacket.parameters[kParameter_RemoteAddress];
   }
 
-  shared_ptr<uint8_t> body = shared_ptr<uint8_t>(new uint8_t[address.length()], default_delete<uint8_t[]>());
+  shared_ptr<uint8_t> body = shared_ptr<uint8_t>(
+      new uint8_t[address.length()],
+      default_delete<uint8_t[]>());
 
   address.copy(reinterpret_cast<char*>(body.get()), address.length());
   Packet response;
@@ -45,7 +49,9 @@ void HttpResponseWithAddressAsBody::handlePacket(const PathablePacket& incomingP
 
   response.buffers.push_back(Buffer(body, address.length()));
 
-  incomingPathablePacket.packetPusher->pushPacket(move(response), "On Response");
+  incomingPathablePacket.packetPusher->pushPacket(
+      move(response),
+      "On Response");
 }
 
 }  // namespace maplang

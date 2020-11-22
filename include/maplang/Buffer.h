@@ -26,7 +26,8 @@ namespace maplang {
 
 struct Buffer {
   Buffer() {}
-  Buffer(std::shared_ptr<uint8_t> data, size_t length) : data(data), length(length) {}
+  Buffer(std::shared_ptr<uint8_t> data, size_t length)
+      : data(data), length(length) {}
 
   std::shared_ptr<uint8_t> data;
   size_t length = 0;

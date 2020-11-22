@@ -26,10 +26,14 @@
 
 namespace maplang {
 
-template <class ItemClass, class EdgeClass = DefaultGraphEdge<ItemClass>>
+template <
+    class ItemClass,
+    class EdgeClass = DefaultGraphEdge<ItemClass>,
+    class AdditionalNodeInfo =
+        typename DefaultGraphEdge<ItemClass>::UnusedExtraInfoType>
 class Graph final {
  public:
-  using GraphElementType = GraphElement<ItemClass, EdgeClass>;
+  using GraphElementType = GraphElement<ItemClass, EdgeClass, AdditionalNodeInfo>;
 
   EdgeClass& connect(
       const ItemClass& fromItem,
@@ -47,7 +51,8 @@ class Graph final {
 
   void removeItem(const ItemClass& item);
 
-  using GraphElementVisitor = std::function<void(const std::shared_ptr<GraphElementType>& graphElement)>;
+  using GraphElementVisitor = std::function<void(
+      const std::shared_ptr<GraphElementType>& graphElement)>;
 
   /**
    * Visits GraphElements. Order is unspecified.
@@ -59,11 +64,15 @@ class Graph final {
 
   bool hasItem(const ItemClass& item, const std::string& pathableId) const;
   bool hasItemWithAnyPathableId(const ItemClass& item) const;
-  std::shared_ptr<GraphElementType> getOrCreateGraphElement(const ItemClass& item, const std::string& pathableId);
+  std::shared_ptr<GraphElementType> getOrCreateGraphElement(
+      const ItemClass& item,
+      const std::string& pathableId);
 
  private:
   // Item -> Pathable ID -> Graph Element
-  std::unordered_map<const ItemClass, std::unordered_map<std::string, std::shared_ptr<GraphElementType>>>
+  std::unordered_map<
+      const ItemClass,
+      std::unordered_map<std::string, std::shared_ptr<GraphElementType>>>
       mItemToGraphElementMap;
 };
 

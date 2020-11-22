@@ -40,53 +40,77 @@ static once_flag createRegistrationOnce;
 static NodeRegistration* gDefaultRegistration;
 
 static void registerNodes(NodeRegistration* registration) {
-  registration->registerNodeFactory("Add Parameters", [](const nlohmann::json& initParams) {
-    return make_shared<AddParametersNode>(initParams);
-  });
+  registration->registerNodeFactory(
+      "Add Parameters",
+      [](const nlohmann::json& initParams) {
+        return make_shared<AddParametersNode>(initParams);
+      });
 
-  registration->registerNodeFactory("Parameter Extractor", [](const nlohmann::json& initParameters) {
-    return make_shared<ParameterExtractor>(initParameters);
-  });
+  registration->registerNodeFactory(
+      "Parameter Extractor",
+      [](const nlohmann::json& initParameters) {
+        return make_shared<ParameterExtractor>(initParameters);
+      });
 
-  registration->registerNodeFactory("Contextual Node", [](const nlohmann::json& initParameters) {
-    return make_shared<ContextualNode>(initParameters);
-  });
+  registration->registerNodeFactory(
+      "Contextual Node",
+      [](const nlohmann::json& initParameters) {
+        return make_shared<ContextualNode>(initParameters);
+      });
 
-  registration->registerNodeFactory("TCP Connection", [](const nlohmann::json& initParameters) {
-    return make_shared<UvTcpConnectionGroup>();
-  });
+  registration->registerNodeFactory(
+      "TCP Connection",
+      [](const nlohmann::json& initParameters) {
+        return make_shared<UvTcpConnectionGroup>();
+      });
 
-  registration->registerNodeFactory("HTTP Request Header Writer", [](const json& initParameters) {
-    return make_shared<HttpRequestHeaderWriter>(initParameters);
-  });
+  registration->registerNodeFactory(
+      "HTTP Request Header Writer",
+      [](const json& initParameters) {
+        return make_shared<HttpRequestHeaderWriter>(initParameters);
+      });
 
-  registration->registerNodeFactory("HTTP Request Extractor", [](const json& initParameters) {
-    return make_shared<HttpRequestExtractor>(initParameters);
-  });
+  registration->registerNodeFactory(
+      "HTTP Request Extractor",
+      [](const json& initParameters) {
+        return make_shared<HttpRequestExtractor>(initParameters);
+      });
 
-  registration->registerNodeFactory("Send Once", [](const json& initParameters) {
-    return make_shared<SendOnce>(initParameters);
-  });
+  registration->registerNodeFactory(
+      "Send Once",
+      [](const json& initParameters) {
+        return make_shared<SendOnce>(initParameters);
+      });
 
-  registration->registerNodeFactory("HTTP Response Writer", [](const json& initParameters) {
-    return make_shared<HttpResponseWriter>(initParameters);
-  });
+  registration->registerNodeFactory(
+      "HTTP Response Writer",
+      [](const json& initParameters) {
+        return make_shared<HttpResponseWriter>(initParameters);
+      });
 
-  registration->registerNodeFactory("HTTP Response Extractor", [](const json& initParameters) {
-    return make_shared<HttpResponseExtractor>(initParameters);
-  });
+  registration->registerNodeFactory(
+      "HTTP Response Extractor",
+      [](const json& initParameters) {
+        return make_shared<HttpResponseExtractor>(initParameters);
+      });
 
-  registration->registerNodeFactory("Volatile Key Value Store", [](const json& initParameters) {
-    return make_shared<VolatileKeyValueStore>(initParameters);
-  });
+  registration->registerNodeFactory(
+      "Volatile Key Value Store",
+      [](const json& initParameters) {
+        return make_shared<VolatileKeyValueStore>(initParameters);
+      });
 
-  registration->registerNodeFactory("Volatile Key Value Set", [](const json& initParameters) {
-    return make_shared<VolatileKeyValueSet>(initParameters);
-  });
+  registration->registerNodeFactory(
+      "Volatile Key Value Set",
+      [](const json& initParameters) {
+        return make_shared<VolatileKeyValueSet>(initParameters);
+      });
 
-  registration->registerNodeFactory("Ordered Packet Sender", [](const json& initParameters) {
-    return make_shared<OrderedPacketSender>();
-  });
+  registration->registerNodeFactory(
+      "Ordered Packet Sender",
+      [](const json& initParameters) {
+        return make_shared<OrderedPacketSender>();
+      });
 }
 
 NodeRegistration* NodeRegistration::defaultRegistration() {
@@ -98,11 +122,15 @@ NodeRegistration* NodeRegistration::defaultRegistration() {
   return gDefaultRegistration;
 }
 
-void NodeRegistration::registerNodeFactory(const std::string& name, NodeFactory&& factory) {
+void NodeRegistration::registerNodeFactory(
+    const std::string& name,
+    NodeFactory&& factory) {
   mNodeFactoryMap[name] = move(factory);
 }
 
-std::shared_ptr<INode> NodeRegistration::createNode(const std::string& name, const nlohmann::json& initParameters) {
+std::shared_ptr<INode> NodeRegistration::createNode(
+    const std::string& name,
+    const nlohmann::json& initParameters) {
   auto it = mNodeFactoryMap.find(name);
   if (it == mNodeFactoryMap.end()) {
     throw runtime_error("No Node factory exists for node type '" + name + "'.");
@@ -112,7 +140,8 @@ std::shared_ptr<INode> NodeRegistration::createNode(const std::string& name, con
   return factory(initParameters);
 }
 
-void NodeRegistration::visitNodeNames(const NodeRegistration::NodeNameVisitor& visitor) {
+void NodeRegistration::visitNodeNames(
+    const NodeRegistration::NodeNameVisitor& visitor) {
   for (const auto& pair : mNodeFactoryMap) {
     std::string key = pair.first;
     visitor(key);

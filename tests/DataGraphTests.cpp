@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
+#include <maplang/LambdaSink.h>
+
 #include "gtest/gtest.h"
 #include "maplang/DataGraph.h"
 #include "maplang/UvLoopRunner.h"
-#include <maplang/LambdaSink.h>
 
 using namespace std;
 
@@ -30,7 +31,8 @@ TEST(WhenSendPacketIsCalledOnce, ThenOnePacketIsDeliveredToTheSink) {
 
   Packet packet;
   size_t receivedPacketCount = 0;
-  auto lambdaSink = make_shared<LambdaSink>([&receivedPacketCount](const Packet& packet) { receivedPacketCount++; });
+  auto lambdaSink = make_shared<LambdaSink>(
+      [&receivedPacketCount](const Packet& packet) { receivedPacketCount++; });
 
   graph.sendPacket(packet, lambdaSink);
 

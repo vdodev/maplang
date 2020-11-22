@@ -28,15 +28,18 @@ namespace maplang {
 
 static const char* const kChannel_HttpData = "Http Data";
 
-HttpRequestHeaderWriter::HttpRequestHeaderWriter(const nlohmann::json& initParameters) {}
+HttpRequestHeaderWriter::HttpRequestHeaderWriter(
+    const nlohmann::json& initParameters) {}
 
-void HttpRequestHeaderWriter::setPacketPusher(const std::shared_ptr<IPacketPusher>& packetPusher) {
+void HttpRequestHeaderWriter::setPacketPusher(
+    const std::shared_ptr<IPacketPusher>& packetPusher) {
   mPacketPusher = packetPusher;
 }
 
 void HttpRequestHeaderWriter::handlePacket(const Packet& packet) {
   stringstream httpBytes;
-  const auto method = packet.parameters[http::kParameter_HttpMethod].get<string>();
+  const auto method =
+      packet.parameters[http::kParameter_HttpMethod].get<string>();
   const auto path = packet.parameters[http::kParameter_HttpPath].get<string>();
 
   static const char* const CRLF = "\r\n";
@@ -46,7 +49,8 @@ void HttpRequestHeaderWriter::handlePacket(const Packet& packet) {
 
   if (!packet.buffers.empty() && packet.buffers[0].length > 0) {
     const size_t contentLength = packet.buffers[0].length;
-    httpHeaders[http::kHttpHeaderNormalized_ContentLength] = to_string(contentLength);
+    httpHeaders[http::kHttpHeaderNormalized_ContentLength] =
+        to_string(contentLength);
   } else if (httpHeaders.contains(http::kHttpHeaderNormalized_ContentLength)) {
     httpHeaders.erase(http::kHttpHeaderNormalized_ContentLength);
   }
@@ -71,7 +75,9 @@ void HttpRequestHeaderWriter::handlePacket(const Packet& packet) {
     const size_t bufferLength = httpBytes.tellg();
     httpBytes.seekg(0, ios::beg);
 
-    auto bodyData = shared_ptr<uint8_t>(new uint8_t[bufferLength], default_delete<uint8_t[]>());
+    auto bodyData = shared_ptr<uint8_t>(
+        new uint8_t[bufferLength],
+        default_delete<uint8_t[]>());
     httpBytes.read(reinterpret_cast<char*>(bodyData.get()), bufferLength);
     Buffer bodyBuffer(bodyData, bufferLength);
     httpBytesPacket.buffers.push_back(bodyBuffer);

@@ -30,16 +30,19 @@ static const char* const kChannel_HttpData = "Http Data";
 
 HttpResponseWriter::HttpResponseWriter(const nlohmann::json& initParameters) {}
 
-void HttpResponseWriter::setPacketPusher(const std::shared_ptr<IPacketPusher>& packetPusher) {
+void HttpResponseWriter::setPacketPusher(
+    const std::shared_ptr<IPacketPusher>& packetPusher) {
   mPacketPusher = packetPusher;
 }
 
 void HttpResponseWriter::handlePacket(const Packet& packet) {
   stringstream httpBytes;
-  auto statusCode = packet.parameters[http::kParameter_HttpStatusCode].get<uint64_t>();
+  auto statusCode =
+      packet.parameters[http::kParameter_HttpStatusCode].get<uint64_t>();
   string statusReason;
   if (packet.parameters.contains(http::kParameter_HttpStatusReason)) {
-    statusReason = packet.parameters[http::kParameter_HttpStatusReason].get<string>();
+    statusReason =
+        packet.parameters[http::kParameter_HttpStatusReason].get<string>();
   } else {
     statusReason = http::getDefaultReasonForHttpStatus(statusCode);
   }
@@ -51,7 +54,8 @@ void HttpResponseWriter::handlePacket(const Packet& packet) {
 
   if (!packet.buffers.empty() && packet.buffers[0].length > 0) {
     const size_t contentLength = packet.buffers[0].length;
-    httpHeaders[http::kHttpHeaderNormalized_ContentLength] = to_string(contentLength);
+    httpHeaders[http::kHttpHeaderNormalized_ContentLength] =
+        to_string(contentLength);
   } else if (httpHeaders.contains(http::kHttpHeaderNormalized_ContentLength)) {
     httpHeaders.erase(http::kHttpHeaderNormalized_ContentLength);
   }
@@ -76,7 +80,9 @@ void HttpResponseWriter::handlePacket(const Packet& packet) {
     const size_t bufferLength = httpBytes.tellg();
     httpBytes.seekg(0, ios::beg);
 
-    auto bodyData = shared_ptr<uint8_t>(new uint8_t[bufferLength], default_delete<uint8_t[]>());
+    auto bodyData = shared_ptr<uint8_t>(
+        new uint8_t[bufferLength],
+        default_delete<uint8_t[]>());
     httpBytes.read(reinterpret_cast<char*>(bodyData.get()), bufferLength);
     Buffer bodyBuffer(bodyData, bufferLength);
     httpBytesPacket.buffers.push_back(bodyBuffer);

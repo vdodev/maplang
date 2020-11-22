@@ -22,15 +22,17 @@
 
 #include "maplang/Buffer.h"
 #include "maplang/IPacketPusher.h"
-#include "maplang/json.hpp"
 #include "maplang/Packet.h"
+#include "maplang/json.hpp"
 
 namespace maplang {
 
 class IPacketPusher;
 
 struct PathablePacket {
-  PathablePacket(const Packet& packet, const std::shared_ptr<IPacketPusher>& packetPusher);
+  PathablePacket(
+      const Packet& packet,
+      const std::shared_ptr<IPacketPusher>& packetPusher);
 
   const Packet& packet;
   std::shared_ptr<IPacketPusher> packetPusher;

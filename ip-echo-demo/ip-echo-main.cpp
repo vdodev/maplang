@@ -27,16 +27,19 @@ using namespace nlohmann;
 static void registerNodes() {
   auto registration = NodeRegistration::defaultRegistration();
 
-  registration->registerNodeFactory("HTTP response with address as body", [](const json& initParameters) {
-    return make_shared<HttpResponseWithAddressAsBody>();
-  });
+  registration->registerNodeFactory(
+      "HTTP response with address as body",
+      [](const json& initParameters) {
+        return make_shared<HttpResponseWithAddressAsBody>();
+      });
 }
 
 int main(int argc, char** argv) {
   registerNodes();
 
   const auto registration = NodeRegistration::defaultRegistration();
-  const shared_ptr<INode> tcpServer = registration->createNode("TCP Connection", R"(
+  const shared_ptr<INode> tcpServer =
+      registration->createNode("TCP Connection", R"(
       {
             "disableNaglesAlgorithm": true
       })"_json);
@@ -49,22 +52,35 @@ int main(int argc, char** argv) {
           "nodeImplementation": "HTTP Request Extractor",
           "key": "TcpConnectionId"
         })"_json);
-  const auto httpResponseWriter = registration->createNode("HTTP Response Writer", nullptr);
-  const auto httpResponseWithAddressAsBody = registration->createNode("HTTP response with address as body", nullptr);
+  const auto httpResponseWriter =
+      registration->createNode("HTTP Response Writer", nullptr);
+  const auto httpResponseWithAddressAsBody =
+      registration->createNode("HTTP response with address as body", nullptr);
   const auto tcpReceive = tcpServer->asGroup()->getNode("Receiver");
   const auto tcpListen = tcpServer->asGroup()->getNode("Listener");
   const auto tcpDisconnector = tcpServer->asGroup()->getNode("Disconnector");
-  const auto setupListen = registration->createNode("Send Once", R"({ "Port": 8080 })"_json);
+  const auto setupListen =
+      registration->createNode("Send Once", R"({ "Port": 8080 })"_json);
 
   UvLoopRunner uvLoopRunner;
   DataGraph graph(uvLoopRunner.getLoop());
 
   graph.connect(httpResponseWriter, "Http Data", tcpSend);
-  graph.connect(httpResponseWithAddressAsBody, "On Response", httpResponseWriter);
-  const auto httpRequestExtractorContextRouter = httpRequestExtractor->asGroup()->getNode("Context Router");
-  graph.connect(httpRequestExtractorContextRouter, "New Request", httpResponseWithAddressAsBody);
+  graph.connect(
+      httpResponseWithAddressAsBody,
+      "On Response",
+      httpResponseWriter);
+  const auto httpRequestExtractorContextRouter =
+      httpRequestExtractor->asGroup()->getNode("Context Router");
+  graph.connect(
+      httpRequestExtractorContextRouter,
+      "New Request",
+      httpResponseWithAddressAsBody);
   graph.connect(tcpReceive, "Data Received", httpRequestExtractorContextRouter);
-  graph.connect(tcpDisconnector, "Connection Closed", httpRequestExtractor->asGroup()->getNode("Context Remover"));
+  graph.connect(
+      tcpDisconnector,
+      "Connection Closed",
+      httpRequestExtractor->asGroup()->getNode("Context Remover"));
   graph.connect(setupListen, "initialized", tcpListen);
 
   uvLoopRunner.waitForExit();

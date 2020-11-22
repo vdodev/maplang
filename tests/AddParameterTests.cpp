@@ -69,7 +69,6 @@ TEST(WhenAParameterDoesNotExist, ItIsAdded) {
   parameterAdder->handlePacket(pathablePacket);
 }
 
-
 TEST(WhenAParameterExists, ItIsReplaced) {
   auto parameterAdder = make_shared<AddParametersNode>(R"({
     "newParameter": "new value"

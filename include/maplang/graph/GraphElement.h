@@ -19,15 +19,16 @@
 
 #include <list>
 #include <unordered_map>
+#include <memory>
 
 #include "maplang/graph/DefaultGraphEdge.h"
 
 namespace maplang {
 
-template <class ItemClass, class EdgeClass = DefaultGraphEdge<ItemClass>>
+template <class ItemClass, class EdgeClass = DefaultGraphEdge<ItemClass>, class AdditionalInfo = std::shared_ptr<void>>
 struct GraphElement final {
  public:
-  using GraphElementType = GraphElement<ItemClass, EdgeClass>;
+  using GraphElementType = GraphElement<ItemClass, EdgeClass, AdditionalInfo>;
 
   struct EdgeKey {
     std::string channel;
@@ -40,18 +41,21 @@ struct GraphElement final {
 
  private:
   struct EdgeKeyHasher {
-    std::size_t operator()(const GraphElementType::EdgeKey& key) const {
+    std::size_t operator()(const typename GraphElementType::EdgeKey& key) const {
       return std::hash<decltype(key.channel)>()(key.channel)
              ^ std::hash<decltype(key.toGraphElement)>()(key.toGraphElement);
     }
   };
 
  public:
-  GraphElement(const ItemClass& item, const std::string& pathableId) : item(item), pathableId(pathableId) {}
+  GraphElement(const ItemClass& item, const std::string& pathableId)
+      : item(item), pathableId(pathableId) {}
 
   ItemClass item;
+  AdditionalInfo additionalInfo;
   std::list<std::weak_ptr<GraphElementType>> backEdges;
-  std::unordered_map<EdgeKey, EdgeClass, EdgeKeyHasher> forwardEdges;  // All GraphElements this one connects to.
+  std::unordered_map<EdgeKey, EdgeClass, EdgeKeyHasher>
+      forwardEdges;  // All GraphElements this one connects to.
   std::string pathableId;
 };
 

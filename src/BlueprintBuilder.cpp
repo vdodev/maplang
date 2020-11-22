@@ -32,7 +32,9 @@ using namespace nlohmann;
 namespace std {
 template <>
 struct hash<maplang::GraphElement<string>> {
-  std::size_t operator()(const maplang::GraphElement<string>& element) const { return hash<string>()(element.item); }
+  std::size_t operator()(const maplang::GraphElement<string>& element) const {
+    return hash<string>()(element.item);
+  }
 };
 }  // namespace std
 
@@ -43,7 +45,8 @@ static const string kKey_NodeTypes = "nodeTypes";
 static const string kKey_NodeInstances = "nodeInstances";
 static const string kKey_TypeImplementations = "typeImplementations";
 static const string kKey_NodeImplementations = "nodeImplementations";
-static const string kKey_CohesiveGroupImplementations = "cohesiveGroupImplementations";
+static const string kKey_CohesiveGroupImplementations =
+    "cohesiveGroupImplementations";
 static const string kKey_Connections = "connections";
 
 static const string kConnectionKey_FromInstance = "fromInstance";
@@ -55,16 +58,22 @@ static const string kConnectionKey_ToPathable = "toPathable";
 static const string kNodeInstanceKey_Type = "type";
 static const string kNodeInstanceKey_CohesiveGroup = "cohesiveGroup";
 
-static void
-requireKeys(const vector<string>& requiredKeys, const json& inParameters, const std::string niceParameterObjectName) {
+static void requireKeys(
+    const vector<string>& requiredKeys,
+    const json& inParameters,
+    const std::string niceParameterObjectName) {
   for (const auto& requiredKey : requiredKeys) {
     if (!inParameters.contains(requiredKey)) {
-      throw runtime_error("'" + requiredKey + "' element is missing from " + niceParameterObjectName + ".");
+      throw runtime_error(
+          "'" + requiredKey + "' element is missing from "
+          + niceParameterObjectName + ".");
     }
   }
 }
 
-void BlueprintBuilder::build(DataGraph* graph, const nlohmann::json& blueprint) {
+void BlueprintBuilder::build(
+    DataGraph* graph,
+    const nlohmann::json& blueprint) {
   requireKeys(
       {
           kKey_Graphs,
@@ -75,29 +84,37 @@ void BlueprintBuilder::build(DataGraph* graph, const nlohmann::json& blueprint) 
       blueprint,
       "blueprint");
 
-  if (!blueprint.contains(kKey_TypeImplementations) && !blueprint.contains(kKey_NodeImplementations)) {
+  if (!blueprint.contains(kKey_TypeImplementations)
+      && !blueprint.contains(kKey_NodeImplementations)) {
     throw runtime_error(
-        "'" + kKey_TypeImplementations + "' or '" + kKey_NodeImplementations + "' element is required in blueprint.");
+        "'" + kKey_TypeImplementations + "' or '" + kKey_NodeImplementations
+        + "' element is required in blueprint.");
   }
 
   const auto& typeConfig = blueprint[kKey_NodeTypes];
   const auto& instanceConfig = blueprint[kKey_NodeInstances];
   const auto& connectionsConfig = blueprint[kKey_Connections];
 
-  // Build a graph of the connections, find the tails, work backward to find the heads, then add to the graph in
-  // stack-order.
+  // Build a graph of the connections, find the tails, work backward to find the
+  // heads, then add to the graph in stack-order.
   Graph<string> instanceGraph;
-  for (auto it = connectionsConfig.cbegin(); it != connectionsConfig.end(); it++) {
+  for (auto it = connectionsConfig.cbegin(); it != connectionsConfig.end();
+       it++) {
     const json& connection = it.value();
 
     requireKeys(
-        {kConnectionKey_FromInstance, kConnectionKey_FromChannel, kConnectionKey_ToInstance},
+        {kConnectionKey_FromInstance,
+         kConnectionKey_FromChannel,
+         kConnectionKey_ToInstance},
         connection,
         "connections[" + it.key() + "]");
 
-    const string& fromInstance = connection[kConnectionKey_FromInstance].get<string>();
-    const string& fromChannel = connection[kConnectionKey_FromChannel].get<string>();
-    const string& toInstance = connection[kConnectionKey_ToInstance].get<string>();
+    const string& fromInstance =
+        connection[kConnectionKey_FromInstance].get<string>();
+    const string& fromChannel =
+        connection[kConnectionKey_FromChannel].get<string>();
+    const string& toInstance =
+        connection[kConnectionKey_ToInstance].get<string>();
 
     string fromPathableId;
     string toPathableId;
@@ -110,15 +127,21 @@ void BlueprintBuilder::build(DataGraph* graph, const nlohmann::json& blueprint) 
       toPathableId = connection[kConnectionKey_ToPathable].get<string>();
     }
 
-    instanceGraph.connect(fromInstance, fromChannel, toInstance, fromPathableId, toPathableId);
+    instanceGraph.connect(
+        fromInstance,
+        fromChannel,
+        toInstance,
+        fromPathableId,
+        toPathableId);
   }
 
   queue<shared_ptr<GraphElement<string>>> toProcess;
-  instanceGraph.visitGraphElements([&toProcess](const shared_ptr<GraphElement<string>>& graphElement) {
-    if (graphElement->forwardEdges.empty()) {
-      toProcess.push(graphElement);
-    }
-  });
+  instanceGraph.visitGraphElements(
+      [&toProcess](const shared_ptr<GraphElement<string>>& graphElement) {
+        if (graphElement->forwardEdges.empty()) {
+          toProcess.push(graphElement);
+        }
+      });
 
   struct ConnectionInfo {
     string fromInstance;
@@ -133,12 +156,15 @@ void BlueprintBuilder::build(DataGraph* graph, const nlohmann::json& blueprint) 
   bool anyError = false;
   unordered_set<shared_ptr<GraphElement<string>>> alreadyProcessed;
   queue<ConnectionInfo> connectInOrder;
-  unordered_map<string, shared_ptr<INode>> nodes;                    // Instance ID => implementation
-  unordered_map<string, shared_ptr<ICohesiveGroup>> cohesiveGroups;  // Instance ID => implementation
+  unordered_map<string, shared_ptr<INode>>
+      nodes;  // Instance ID => implementation
+  unordered_map<string, shared_ptr<ICohesiveGroup>>
+      cohesiveGroups;  // Instance ID => implementation
 
   // Create CohesiveGroup instances
   instanceGraph.visitGraphElementsHeadsLast(
-      [&cohesiveGroups, &instanceConfig](const shared_ptr<GraphElement<string>>& graphElement) {
+      [&cohesiveGroups,
+       &instanceConfig](const shared_ptr<GraphElement<string>>& graphElement) {
         // Get the instance info from instanceConfig
         // Find its implementation - instance or type impl
         // Instantiate
@@ -146,9 +172,10 @@ void BlueprintBuilder::build(DataGraph* graph, const nlohmann::json& blueprint) 
       });
 
   // Create Node Instances
-  instanceGraph.visitGraphElementsHeadsLast([&nodes](const shared_ptr<GraphElement<string>>& graphElement) {
+  instanceGraph.visitGraphElementsHeadsLast(
+      [&nodes](const shared_ptr<GraphElement<string>>& graphElement) {
 
-  });
+      });
 
   // Connect
 
@@ -160,7 +187,8 @@ void BlueprintBuilder::build(DataGraph* graph, const nlohmann::json& blueprint) 
 
     for (const auto& weakGraphElement : toElement->backEdges) {
       const auto fromElement = weakGraphElement.lock();
-      const bool alreadyProcessedElement = alreadyProcessed.find(fromElement) != alreadyProcessed.end();
+      const bool alreadyProcessedElement =
+          alreadyProcessed.find(fromElement) != alreadyProcessed.end();
       if (alreadyProcessedElement) {
         continue;
       }
@@ -170,7 +198,10 @@ void BlueprintBuilder::build(DataGraph* graph, const nlohmann::json& blueprint) 
 
       if (!instanceConfig.contains(fromInstanceName)) {
         anyError = true;
-        loge("Cannot connect node %s. No such node specified in nodeInstances.\n", fromInstanceName.c_str());
+        loge(
+            "Cannot connect node %s. No such node specified in "
+            "nodeInstances.\n",
+            fromInstanceName.c_str());
         continue;
       }
 
@@ -179,7 +210,8 @@ void BlueprintBuilder::build(DataGraph* graph, const nlohmann::json& blueprint) 
       toProcess.push(fromElement);
       alreadyProcessed.insert(fromElement);
 
-      // Look through the edges and find all that connect the from and to nodes (may have different pathables).
+      // Look through the edges and find all that connect the from and to nodes
+      // (may have different pathables).
       for (const auto& edgePair : fromElement->forwardEdges) {
         const auto& edgeKey = edgePair.first;
         const auto& edgeToElement = edgePair.second;
@@ -191,14 +223,19 @@ void BlueprintBuilder::build(DataGraph* graph, const nlohmann::json& blueprint) 
 
           if (!instanceConfig.contains(toInstanceName)) {
             anyError = true;
-            loge("Cannot connect node %s. No such node specified in nodeInstances.\n", toInstanceName.c_str());
+            loge(
+                "Cannot connect node %s. No such node specified in "
+                "nodeInstances.\n",
+                toInstanceName.c_str());
             continue;
           }
 
           const json& toNodeInstance = instanceConfig[toInstanceName];
           if (!toNodeInstance.contains(kNodeInstanceKey_Type)) {
             anyError = true;
-            loge("Node instance '%s' must contain 'type'.\n", toInstanceName.c_str());
+            loge(
+                "Node instance '%s' must contain 'type'.\n",
+                toInstanceName.c_str());
           }
           // Get impl - check node impls first, then type impls. Error if none.
           // Create implementation

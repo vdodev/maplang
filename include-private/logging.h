@@ -22,7 +22,9 @@
 #include <cstdarg>
 
 namespace maplang {
-__attribute__((__format__(__printf__, 1, 2))) inline void logd(const char* fmt, ...) {
+__attribute__((__format__(__printf__, 1, 2))) inline void logd(
+    const char* fmt,
+    ...) {
   va_list args;
   va_start(args, fmt);
   vprintf(fmt, args);
@@ -30,7 +32,9 @@ __attribute__((__format__(__printf__, 1, 2))) inline void logd(const char* fmt, 
   va_end(args);
 }
 
-__attribute__((__format__(__printf__, 1, 2))) inline void logi(const char* fmt, ...) {
+__attribute__((__format__(__printf__, 1, 2))) inline void logi(
+    const char* fmt,
+    ...) {
   va_list args;
   va_start(args, fmt);
   vprintf(fmt, args);
@@ -38,7 +42,9 @@ __attribute__((__format__(__printf__, 1, 2))) inline void logi(const char* fmt, 
   va_end(args);
 }
 
-__attribute__((__format__(__printf__, 1, 2))) inline void logw(const char* fmt, ...) {
+__attribute__((__format__(__printf__, 1, 2))) inline void logw(
+    const char* fmt,
+    ...) {
   va_list args;
   va_start(args, fmt);
   vfprintf(stderr, fmt, args);
@@ -46,7 +52,9 @@ __attribute__((__format__(__printf__, 1, 2))) inline void logw(const char* fmt, 
   va_end(args);
 }
 
-__attribute__((__format__(__printf__, 1, 2))) inline void loge(const char* fmt, ...) {
+__attribute__((__format__(__printf__, 1, 2))) inline void loge(
+    const char* fmt,
+    ...) {
   va_list args;
   va_start(args, fmt);
   vfprintf(stderr, fmt, args);
