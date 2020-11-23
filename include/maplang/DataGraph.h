@@ -20,6 +20,7 @@
 #include <memory>
 
 #include "maplang/INode.h"
+#include "maplang/IUvLoopRunnerFactory.h"
 
 namespace maplang {
 
@@ -29,7 +30,10 @@ enum class PacketDeliveryType { PushDirectlyToTarget, AlwaysQueue };
 
 class DataGraph final {
  public:
-  DataGraph(const std::shared_ptr<uv_loop_t>& uvLoop);
+  static const std::string kDefaultThreadGroupName;
+
+ public:
+  DataGraph(const std::shared_ptr<IUvLoopRunnerFactory>& loopRunnerFactory);
   ~DataGraph();
 
   void connect(
@@ -57,6 +61,11 @@ class DataGraph final {
       Packet&& packet,
       const std::shared_ptr<INode>& toNode,
       const std::string& toPathableId = "");
+
+  void setThreadGroupForNode(
+      const std::shared_ptr<INode>& toNode,
+      const std::string& threadGroup,
+      const std::string& pathableId = "");
 
  private:
   const std::shared_ptr<DataGraphImpl> impl;

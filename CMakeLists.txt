@@ -77,7 +77,9 @@ add_library(maplang
         include/maplang/JsonUtil.h
         include/maplang/Util.h
         src/nodes/AddParametersNode.cpp
-        include-private/nodes/AddParametersNode.h)
+        include-private/nodes/AddParametersNode.h
+        src/TaskLooper.cpp
+        include/maplang/TaskLooper.h)
 
 target_include_directories(maplang PUBLIC /usr/local/include)
 target_include_directories(maplang PUBLIC ${PROJECT_SOURCE_DIR}/include)
@@ -89,7 +91,7 @@ target_link_libraries(maplang /usr/local/lib/libuv_a.a dl pthread)
 add_executable(http-ip-echo
         ip-echo-demo/ip-echo-main.cpp
         ip-echo-demo/HttpResponseWithAddressAsBody.cpp
-        ip-echo-demo/HttpResponseWithAddressAsBody.h)
+        ip-echo-demo/HttpResponseWithAddressAsBody.h include/maplang/IUvLoopRunnerFactory.h include/maplang/UvLoopRunnerFactory.h)
 
 target_link_libraries(http-ip-echo maplang)
 

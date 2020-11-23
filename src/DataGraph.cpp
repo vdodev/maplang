@@ -19,6 +19,7 @@
 #include <uv.h>
 
 #include <list>
+#include <set>
 #include <unordered_map>
 
 #include "concurrentqueue.h"
@@ -30,6 +31,8 @@ using namespace std;
 using json = nlohmann::json;
 
 namespace maplang {
+
+const string DataGraph::kDefaultThreadGroupName = "";
 
 struct DataGraphItem {
   std::shared_ptr<INode> node;
@@ -58,24 +61,30 @@ struct hash<const maplang::DataGraphItem> {
 
 namespace maplang {
 
+class ThreadGroup;
+
 struct ExtraGraphElementInfo final {
   bool packetPusherWasSetup = false;
+  shared_ptr<ThreadGroup> threadGroup;
 };
 
 struct DataGraphEdge {
-  shared_ptr<GraphElement<DataGraphItem, DataGraphEdge, ExtraGraphElementInfo>> otherGraphElement;
+  shared_ptr<GraphElement<DataGraphItem, DataGraphEdge, ExtraGraphElementInfo>>
+      otherGraphElement;
   string channel;
   PacketDeliveryType sameThreadQueueToTargetType =
       PacketDeliveryType::PushDirectlyToTarget;
 };
 
-using DataGraphElement = GraphElement<DataGraphItem, DataGraphEdge, ExtraGraphElementInfo>;
+using DataGraphElement =
+    GraphElement<DataGraphItem, DataGraphEdge, ExtraGraphElementInfo>;
 
 struct PushedPacketInfo {
   Packet packet;
   shared_ptr<DataGraphElement> fromGraphElement;
   shared_ptr<DataGraphElement>
       manualSendToGraphElement;  // when enqueued from DataGraph::sendPacket().
+  thread::id queuedFromThreadId;
 
   string channel;
 
@@ -83,36 +92,43 @@ struct PushedPacketInfo {
   bool wasDirectDispatchedToAtLeastOneNode = false;
 };
 
-class DataGraphImpl final : public enable_shared_from_this<DataGraphImpl> {
- public:
-  Graph<DataGraphItem, DataGraphEdge, ExtraGraphElementInfo> mGraph;
-  const shared_ptr<uv_loop_t> mUvLoop;
-  shared_ptr<ISubgraphContext> mSubgraphContext;
-  uv_async_t mPacketReadyAsync;
-  moodycamel::ConcurrentQueue<PushedPacketInfo> mPacketQueue;
-
-  // node -> pathable ID -> DataGraphElement
-  unordered_map<const INode*, unordered_map<string, weak_ptr<DataGraphElement>>>
-      mNodeToGraphElementMap;
-
- public:
-  DataGraphImpl(const std::shared_ptr<uv_loop_t>& uvLoop) : mUvLoop(uvLoop) {
-    mPacketReadyAsync.data = this;
-    int status = uv_async_init(
-        mUvLoop.get(),
-        &mPacketReadyAsync,
-        DataGraphImpl::packetReadyWrapper);
-    if (status != 0) {
-      throw runtime_error(
-          "Failed to initialize async event: " + string(strerror(status)));
-    }
-  }
+struct ThreadGroup {
+  ThreadGroup(
+      const shared_ptr<UvLoopRunner>& uvLoopRunner,
+      const shared_ptr<DataGraphImpl>& dataGraphImpl);
 
   static void packetReadyWrapper(uv_async_t* handle);
   void packetReady();
   void sendPacketToNode(
       const shared_ptr<DataGraphElement>& receivingGraphElement,
       const Packet& packet);
+
+ public:
+  const shared_ptr<UvLoopRunner> mUvLoopRunner;
+  const shared_ptr<ISubgraphContext> mSubgraphContext;
+  uv_async_t mPacketReadyAsync;
+  moodycamel::ConcurrentQueue<PushedPacketInfo> mPacketQueue;
+  thread::id mUvLoopThreadId;
+};
+
+class DataGraphImpl final : public enable_shared_from_this<DataGraphImpl> {
+ public:
+  Graph<DataGraphItem, DataGraphEdge, ExtraGraphElementInfo> mGraph;
+  const shared_ptr<IUvLoopRunnerFactory> mUvLoopRunnerFactory;
+  map<string, shared_ptr<ThreadGroup>> mThreadGroups;
+
+  // node -> pathable ID -> DataGraphElement
+  unordered_map<const INode*, unordered_map<string, weak_ptr<DataGraphElement>>>
+      mNodeToGraphElementMap;
+
+ public:
+  DataGraphImpl(
+      const std::shared_ptr<IUvLoopRunnerFactory>& uvLoopRunnerFactory)
+      : mUvLoopRunnerFactory(uvLoopRunnerFactory) {}
+
+  shared_ptr<ThreadGroup> getOrCreateThreadGroup(const string& name);
+
+  static void packetReadyWrapper(uv_async_t* handle);
   void validateNodeTypesAreCompatible(const std::shared_ptr<INode>& node) const;
   bool hasDataGraphElement(
       const std::shared_ptr<INode>& node,
@@ -122,13 +138,15 @@ class DataGraphImpl final : public enable_shared_from_this<DataGraphImpl> {
       const std::string& pathableId);
   void setupPacketPusher(const shared_ptr<DataGraphElement>& graphElement);
 
-  void logDroppedPacket(const Packet& packet, const string& channel);
+  static void logDroppedPacket(const Packet& packet, const string& channel);
 };
 
 class SubgraphContext : public ISubgraphContext {
  public:
-  SubgraphContext(const shared_ptr<DataGraphImpl> impl)
-      : mUvLoop(impl->mUvLoop), mImplWeak(impl) {}
+  SubgraphContext(
+      const shared_ptr<DataGraphImpl> impl,
+      const shared_ptr<uv_loop_t>& uvLoop)
+      : mUvLoop(uvLoop), mImplWeak(impl) {}
 
   shared_ptr<uv_loop_t> getUvLoop() const override { return mUvLoop; }
 
@@ -195,42 +213,61 @@ class GraphPacketPusher : public IPacketPusher {
       }
     }
 
-    bool hasAsyncTargets = false;
+    bool hasAnyTargets = false;
     bool hasDirectTargets = false;
+    set<thread::id> queuedToThreadGroupIds;
+    const thread::id thisThreadId = this_thread::get_id();
+    /*
+     * For each edge:
+     *   If the channel matches:
+     *     If the edge is direct and is in the same thread group, forward the
+     * packet If any channels match which are not direct, queue the packet to
+     * each matching thread group.
+     */
     for (const auto& nextEdge : fromGraphElement->forwardEdges) {
       const auto& nextEdgeChannelItemPair = nextEdge.first;
       const string& channel = nextEdgeChannelItemPair.channel;
       const shared_ptr<DataGraphElement> nextDataGraphElement =
           nextEdgeChannelItemPair.toGraphElement;
 
-      const bool pushDirectly = nextEdge.second.sameThreadQueueToTargetType
-                                == PacketDeliveryType::PushDirectlyToTarget;
+      const auto nextNodesThreadGroup =
+          nextDataGraphElement->additionalInfo.threadGroup;
+      const auto nextNodesThreadId = nextNodesThreadGroup->mUvLoopThreadId;
+
+      const bool nextNodeIsSameThreadGroup = thisThreadId == nextNodesThreadId;
+      const bool pushDirectly =
+          nextNodeIsSameThreadGroup
+          && nextEdge.second.sameThreadQueueToTargetType
+                 == PacketDeliveryType::PushDirectlyToTarget;
 
       if (channel == fromChannel) {
         hasDirectTargets |= pushDirectly;
-        hasAsyncTargets |= !pushDirectly;
+        hasAnyTargets = true;
 
         if (pushDirectly) {
-          mImpl->sendPacketToNode(
+          nextNodesThreadGroup->sendPacketToNode(
               nextDataGraphElement,
               packetWithAccumulatedParameters);
+        } else if (
+            queuedToThreadGroupIds.find(nextNodesThreadId)
+            == queuedToThreadGroupIds.end()) {
+          PushedPacketInfo info;
+          info.packet = move(packetWithAccumulatedParameters);
+          info.fromGraphElement = fromGraphElement;
+          info.channel = fromChannel;
+          info.wasDirectDispatchedToAtLeastOneNode = hasDirectTargets;
+          info.queuedFromThreadId = thisThreadId;
+
+          nextNodesThreadGroup->mPacketQueue.enqueue(move(info));
+          uv_async_send(&nextNodesThreadGroup->mPacketReadyAsync);
+
+          queuedToThreadGroupIds.insert(nextNodesThreadId);
         }
       }
     }
 
-    if (hasAsyncTargets) {
-      PushedPacketInfo info;
-      info.packet = move(packetWithAccumulatedParameters);
-      info.fromGraphElement = fromGraphElement;
-      info.channel = fromChannel;
-      info.wasDirectDispatchedToAtLeastOneNode = hasDirectTargets;
-
-      mImpl->mPacketQueue.enqueue(move(info));
-      uv_async_send(&mImpl->mPacketReadyAsync);
-    }
-
-    if (!hasDirectTargets && !hasAsyncTargets) {
-      mImpl->logDroppedPacket(packet, fromChannel);
+    if (!hasAnyTargets) {
+      DataGraphImpl::logDroppedPacket(packet, fromChannel);
     }
   }
 
@@ -239,17 +276,58 @@ class GraphPacketPusher : public IPacketPusher {
   const weak_ptr<DataGraphElement> mGraphElement;
 };
 
-void DataGraphImpl::packetReadyWrapper(uv_async_t* handle) {
-  auto impl = (DataGraphImpl*)handle->data;
+shared_ptr<ThreadGroup> DataGraphImpl::getOrCreateThreadGroup(
+    const string& threadGroupName) {
+  auto existingIt = mThreadGroups.find(threadGroupName);
+  if (existingIt != mThreadGroups.end()) {
+    return existingIt->second;
+  }
+
+  const auto loopRunner = mUvLoopRunnerFactory->createUvLoopRunner();
+
+  const auto threadGroup =
+      make_shared<ThreadGroup>(loopRunner, shared_from_this());
+  mThreadGroups.insert(make_pair(threadGroupName, threadGroup));
+
+  return threadGroup;
+}
+
+ThreadGroup::ThreadGroup(
+    const shared_ptr<UvLoopRunner>& uvLoopRunner,
+    const shared_ptr<DataGraphImpl>& dataGraphImpl)
+    : mUvLoopRunner(uvLoopRunner),
+      mSubgraphContext(make_shared<SubgraphContext>(
+          dataGraphImpl,
+          uvLoopRunner->getLoop())) {
+  memset(&mPacketReadyAsync, 0, sizeof(mPacketReadyAsync));
+  int status = uv_async_init(
+      mUvLoopRunner->getLoop().get(),
+      &mPacketReadyAsync,
+      ThreadGroup::packetReadyWrapper);
+
+  mPacketReadyAsync.data = this;
+
+  if (status != 0) {
+    throw runtime_error(
+        "Failed to initialize async event: " + string(strerror(status)));
+  }
+
+  mUvLoopThreadId = mUvLoopRunner->getUvLoopThreadId();
+}
+
+void ThreadGroup::packetReadyWrapper(uv_async_t* handle) {
+  auto impl = (ThreadGroup*)handle->data;
   impl->packetReady();
 }
 
-void DataGraphImpl::packetReady() {
+void ThreadGroup::packetReady() {
   size_t readyPacketCount = mPacketQueue.size_approx();
 
   static constexpr size_t kMaxDequeueAtOnce = 100;
   PushedPacketInfo pushedPackets[kMaxDequeueAtOnce];
   size_t processedPacketCount = 0;
+  const thread::id thisThreadId = this_thread::get_id();
+
   while (processedPacketCount < readyPacketCount) {
     const size_t dequeuedPacketCount =
         mPacketQueue.try_dequeue_bulk(pushedPackets, kMaxDequeueAtOnce);
@@ -261,14 +339,25 @@ void DataGraphImpl::packetReady() {
       if (packetInfo.fromGraphElement) {
         bool sentToAny = false;
         for (const auto& nextEdge : packetInfo.fromGraphElement->forwardEdges) {
+          const bool edgeUsesThisThread =
+              thisThreadId == nextEdge.second.otherGraphElement->additionalInfo.threadGroup
+                  ->mUvLoopThreadId;
+
+          if (!edgeUsesThisThread) {
+            continue;
+          }
+
           const auto& nextEdgeChannelItemPair = nextEdge.first;
           const string& channel = nextEdgeChannelItemPair.channel;
           const shared_ptr<DataGraphElement> nextDataGraphElement =
               nextEdgeChannelItemPair.toGraphElement;
 
-          const bool thisEdgeUsesQueuedPackets
-              = nextEdge.second.sameThreadQueueToTargetType
-                  == PacketDeliveryType::AlwaysQueue;
+          const bool queuedFromThisThread =
+              thisThreadId == packetInfo.queuedFromThreadId;
+          const bool thisEdgeUsesQueuedPackets =
+              !queuedFromThisThread
+              || nextEdge.second.sameThreadQueueToTargetType
+                     == PacketDeliveryType::AlwaysQueue;
 
           sentToAny |= packetInfo.wasDirectDispatchedToAtLeastOneNode;
           if (thisEdgeUsesQueuedPackets && channel == packetInfo.channel) {
@@ -278,7 +367,9 @@ void DataGraphImpl::packetReady() {
         }
 
         if (!sentToAny) {
-          logDroppedPacket(packetInfo.packet, packetInfo.channel);
+          DataGraphImpl::logDroppedPacket(
+              packetInfo.packet,
+              packetInfo.channel);
         }
       } else if (packetInfo.manualSendToGraphElement) {
         sendPacketToNode(
@@ -289,7 +380,7 @@ void DataGraphImpl::packetReady() {
   }
 }
 
-void DataGraphImpl::sendPacketToNode(
+void ThreadGroup::sendPacketToNode(
     const shared_ptr<DataGraphElement>& receivingGraphElement,
     const Packet& packet) {
   receivingGraphElement->item.lastReceivedParameters =
@@ -308,10 +399,9 @@ void DataGraphImpl::sendPacketToNode(
   }
 }
 
-DataGraph::DataGraph(const std::shared_ptr<uv_loop_t>& uvLoop)
-    : impl(new DataGraphImpl(uvLoop)) {
-  impl->mSubgraphContext = make_shared<SubgraphContext>(impl);
-}
+DataGraph::DataGraph(
+    const std::shared_ptr<IUvLoopRunnerFactory>& loopRunnerFactory)
+    : impl(new DataGraphImpl(loopRunnerFactory)) {}
 
 DataGraph::~DataGraph() = default;
 
@@ -401,11 +491,15 @@ void DataGraph::sendPacket(
   packetInfo.packet = packet;
   packetInfo.manualSendToGraphElement =
       impl->getOrCreateDataGraphElement(toNode, toPathableId);
+  packetInfo.queuedFromThreadId = this_thread::get_id();
 
   impl->setupPacketPusher(packetInfo.manualSendToGraphElement);
 
-  impl->mPacketQueue.enqueue(move(packetInfo));
-  uv_async_send(&impl->mPacketReadyAsync);
+  const auto sendToThreadGroup =
+      packetInfo.manualSendToGraphElement->additionalInfo.threadGroup;
+
+  sendToThreadGroup->mPacketQueue.enqueue(move(packetInfo));
+  uv_async_send(&sendToThreadGroup->mPacketReadyAsync);
 }
 
 void DataGraph::sendPacket(
@@ -421,11 +515,15 @@ void DataGraph::sendPacket(
   packetInfo.packet = move(packet);
   packetInfo.manualSendToGraphElement =
       impl->getOrCreateDataGraphElement(toNode, toPathableId);
+  packetInfo.queuedFromThreadId = this_thread::get_id();
 
   impl->setupPacketPusher(packetInfo.manualSendToGraphElement);
 
-  impl->mPacketQueue.enqueue(move(packetInfo));
-  uv_async_send(&impl->mPacketReadyAsync);
+  const auto sendToThreadGroup =
+      packetInfo.manualSendToGraphElement->additionalInfo.threadGroup;
+
+  sendToThreadGroup->mPacketQueue.enqueue(move(packetInfo));
+  uv_async_send(&sendToThreadGroup->mPacketReadyAsync);
 }
 
 bool DataGraphImpl::hasDataGraphElement(
@@ -453,7 +551,11 @@ std::shared_ptr<DataGraphElement> DataGraphImpl::getOrCreateDataGraphElement(
 
   auto& pathableIdToElementMap = mapIt->second;
   const auto elementIt = pathableIdToElementMap.find(pathableId);
-  if (elementIt == pathableIdToElementMap.end()) {
+  if (elementIt != pathableIdToElementMap.end()) {
+    graphElement = elementIt->second.lock();
+  }
+
+  if (graphElement == nullptr) {
     DataGraphItem item;
     item.node = node;
 
@@ -461,7 +563,12 @@ std::shared_ptr<DataGraphElement> DataGraphImpl::getOrCreateDataGraphElement(
 
     graphElement = mGraph.getOrCreateGraphElement(item, pathableId);
 
-    node->setSubgraphContext(mSubgraphContext);
+    const auto threadGroup =
+        getOrCreateThreadGroup(DataGraph::kDefaultThreadGroupName);
+    graphElement->additionalInfo.threadGroup = threadGroup;
+
+    node->setSubgraphContext(threadGroup->mSubgraphContext);
+    pathableIdToElementMap.insert(make_pair(pathableId, graphElement));
   }
 
   return graphElement;
@@ -494,6 +601,17 @@ void DataGraphImpl::setupPacketPusher(
           make_shared<GraphPacketPusher>(shared_from_this(), graphElement));
     }
   }
+}
+
+void DataGraph::setThreadGroupForNode(
+    const std::shared_ptr<INode>& toNode,
+    const std::string& threadGroupName,
+    const std::string& pathableId) {
+  const auto graphElement =
+      impl->getOrCreateDataGraphElement(toNode, pathableId);
+
+  const auto threadGroup = impl->getOrCreateThreadGroup(threadGroupName);
+  graphElement->additionalInfo.threadGroup = threadGroup;
 }
 
 }  // namespace maplang

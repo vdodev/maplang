@@ -26,7 +26,7 @@ using namespace std;
 namespace maplang {
 
 static shared_ptr<uv_loop_t> createUvLoop() {
-  auto uvLoop = shared_ptr<uv_loop_t>(
+  const auto uvLoop = shared_ptr<uv_loop_t>(
       (uv_loop_t*)calloc(1, sizeof(uv_loop_t)),
       [](uv_loop_t* loop) {
         if (!loop) {
@@ -60,27 +60,50 @@ static shared_ptr<uv_loop_t> createUvLoop() {
 
 static void onAsync(uv_async_t* async) {}
 
-UvLoopRunner::UvLoopRunner() : mUvLoop(createUvLoop()) {
-  int status = uv_async_init(mUvLoop.get(), &mUvAsync, onAsync);
-  if (status != 0) {
-    static constexpr size_t kErrorMessageBufLen = 128;
-    char errorMessage[kErrorMessageBufLen];
-    uv_strerror_r(status, errorMessage, sizeof(errorMessage));
-    errorMessage[kErrorMessageBufLen - 1] = 0;
+UvLoopRunner::UvLoopRunner() {
+  bool started = false;
+  condition_variable startedCv;
+  mutex lock;
 
-    throw runtime_error(
-        "Error " + to_string(status) + " initializing UV async. "
-        + errorMessage);
-  }
+  unique_lock<mutex> ul(lock);
 
-  thread runnerThread([this]() {
+  thread runnerThread([this, &started, &startedCv, &lock]() {
+    {
+      unique_lock<mutex> ul(lock);
+      mUvLoop = createUvLoop();
+
+      int status = uv_async_init(mUvLoop.get(), &mUvAsync, onAsync);
+      if (status != 0) {
+        static constexpr size_t kErrorMessageBufLen = 128;
+        char errorMessage[kErrorMessageBufLen];
+        uv_strerror_r(status, errorMessage, sizeof(errorMessage));
+        errorMessage[kErrorMessageBufLen - 1] = 0;
+
+        throw runtime_error(
+            "Error " + to_string(status) + " initializing UV async. "
+            + errorMessage);
+      }
+
+      mUvLoopThreadId = this_thread::get_id();
+
+      started = true;
+    }
+    startedCv.notify_one();
+
     uv_run(mUvLoop.get(), UV_RUN_DEFAULT);
-    mStopped = true;
+
+    {
+      unique_lock<mutex> ul(mMutex);
+      mStopped = true;
+    }
+
     mThreadStopped.notify_all();
   });
 
   runnerThread.detach();
   mThread.swap(runnerThread);
+
+  startedCv.wait(ul, [&started]{ return started; });
 }
 
 shared_ptr<uv_loop_t> UvLoopRunner::getLoop() const { return mUvLoop; }

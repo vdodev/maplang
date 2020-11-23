@@ -14,38 +14,35 @@
  * limitations under the License.
  */
 
-#ifndef __MAPLANG_UVLOOPRUNNER_H_
-#define __MAPLANG_UVLOOPRUNNER_H_
+#ifndef __MAPLANG_TASKLOOPER_H_
+#define __MAPLANG_TASKLOOPER_H_
 
-#include <uv.h>
+#include <maplang/UvLoopRunner.h>
 
-#include <condition_variable>
-#include <memory>
-#include <mutex>
+#include <atomic>
+#include <functional>
 #include <thread>
 
-namespace maplang {
-
-class UvLoopRunner final {
+class TaskLooper final {
  public:
-  UvLoopRunner();
+  TaskLooper(
+      const std::shared_ptr<uv_loop_t>& uvLoop,
+      std::function<void()>&& task);
 
-  std::shared_ptr<uv_loop_t> getLoop() const;
+  ~TaskLooper();
 
-  void waitForExit();
-
-  std::thread::id getUvLoopThreadId() const { return mUvLoopThreadId; }
+  void start();
+  void requestStop();
 
  private:
-  std::shared_ptr<uv_loop_t> mUvLoop;
-  std::thread mThread;
-  std::mutex mMutex;
-  std::condition_variable mThreadStopped;
-  bool mStopped = false;
-  uv_async_s mUvAsync;
-  std::thread::id mUvLoopThreadId;
+  const std::function<void()> mTask;
+  const std::shared_ptr<uv_loop_t> mUvLoop;
+  uv_idle_t mUvIdle;
+  bool mStarted;
+
+ private:
+  static void loopWrapper(uv_idle_t* handle);
+  void loop();
 };
 
-}  // namespace maplang
-
-#endif  //__MAPLANG_UVLOOPRUNNER_H_
+#endif  // __MAPLANG_TASKLOOPER_H_
