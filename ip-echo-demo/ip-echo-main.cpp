@@ -17,7 +17,7 @@
 #include "HttpResponseWithAddressAsBody.h"
 #include "maplang/DataGraph.h"
 #include "maplang/NodeRegistration.h"
-#include "maplang/UvLoopRunner.h"
+#include "maplang/UvLoopRunnerFactory.h"
 #include "maplang/json.hpp"
 
 using namespace std;
@@ -62,8 +62,7 @@ int main(int argc, char** argv) {
   const auto setupListen =
       registration->createNode("Send Once", R"({ "Port": 8080 })"_json);
 
-  UvLoopRunner uvLoopRunner;
-  DataGraph graph(uvLoopRunner.getLoop());
+  DataGraph graph(make_shared<UvLoopRunnerFactory>());
 
   graph.connect(httpResponseWriter, "Http Data", tcpSend);
   graph.connect(
@@ -83,7 +82,9 @@ int main(int argc, char** argv) {
       httpRequestExtractor->asGroup()->getNode("Context Remover"));
   graph.connect(setupListen, "initialized", tcpListen);
 
-  uvLoopRunner.waitForExit();
+  while (true) {
+    this_thread::sleep_for(std::chrono::seconds(1));
+  }
 
   return 0;
 }
