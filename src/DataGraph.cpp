@@ -266,11 +266,12 @@ void DataGraphImpl::packetReady() {
           const shared_ptr<DataGraphElement> nextDataGraphElement =
               nextEdgeChannelItemPair.toGraphElement;
 
-          const bool pushDirectly = nextEdge.second.sameThreadQueueToTargetType
-                                    == PacketDeliveryType::PushDirectlyToTarget;
+          const bool thisEdgeUsesQueuedPackets
+              = nextEdge.second.sameThreadQueueToTargetType
+                  == PacketDeliveryType::AlwaysQueue;
 
           sentToAny |= packetInfo.wasDirectDispatchedToAtLeastOneNode;
-          if (pushDirectly && channel == packetInfo.channel) {
+          if (thisEdgeUsesQueuedPackets && channel == packetInfo.channel) {
             sentToAny = true;
             sendPacketToNode(nextDataGraphElement, packetInfo.packet);
           }

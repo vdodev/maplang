@@ -15,16 +15,35 @@
  */
 
 #include <maplang/LambdaSink.h>
+
 #include <thread>
 
 #include "gtest/gtest.h"
 #include "maplang/DataGraph.h"
 #include "maplang/UvLoopRunner.h"
-#include "nodes/SendOnce.h"
 
 using namespace std;
 
 namespace maplang {
+
+class SimpleSource : public INode, public ISource {
+ public:
+  void setPacketPusher(const std::shared_ptr<IPacketPusher>& pusher) override {
+    mPusher = pusher;
+  }
+
+  IPathable* asPathable() override { return nullptr; }
+  ISink* asSink() override { return nullptr; }
+  ISource* asSource() override { return this; }
+  ICohesiveGroup* asGroup() override { return nullptr; }
+
+  void sendPacket(const Packet& packet, const std::string& fromChannel) {
+    mPusher->pushPacket(packet, fromChannel);
+  }
+
+ private:
+  std::shared_ptr<IPacketPusher> mPusher;
+};
 
 TEST(WhenSendPacketIsCalledOnce, ThenOnePacketIsDeliveredToTheSink) {
   UvLoopRunner uvLoopRunner;
@@ -47,13 +66,14 @@ TEST(WhenSendPacketIsCalledOnce, ThenOnePacketIsDeliveredToTheSink) {
 
 TEST(WhenAPacketIsSentDirectly, ItArrives) {
   UvLoopRunner uvLoopRunner;
+  const string testChannel = "test channel";
 
   DataGraph graph(uvLoopRunner.getLoop());
 
   Packet packet;
   size_t receivedPacketCount = 0;
 
-  auto sendOnce = make_shared<SendOnce>(nlohmann::json());
+  auto source = make_shared<SimpleSource>();
   thread::id packetReceivedOnThreadId;
 
   auto lambdaSink = make_shared<LambdaSink>(
@@ -62,7 +82,8 @@ TEST(WhenAPacketIsSentDirectly, ItArrives) {
         receivedPacketCount++;
       });
 
-  graph.connect(sendOnce, "initialized", lambdaSink);
+  graph.connect(source, testChannel, lambdaSink);
+  source->sendPacket(Packet(), testChannel);
 
   uv_stop(uvLoopRunner.getLoop().get());
   uvLoopRunner.waitForExit();
@@ -73,6 +94,7 @@ TEST(WhenAPacketIsSentDirectly, ItArrives) {
 
 TEST(WhenAPacketIsSentUsingAsyncQueueing, ItArrives) {
   UvLoopRunner uvLoopRunner;
+  const string testChannel = "test channel";
 
   DataGraph graph(uvLoopRunner.getLoop());
 
@@ -80,7 +102,7 @@ TEST(WhenAPacketIsSentUsingAsyncQueueing, ItArrives) {
   size_t receivedPacketCount = 0;
 
   thread::id packetReceivedOnThreadId;
-  auto sendOnce = make_shared<SendOnce>(nlohmann::json());
+  auto source = make_shared<SimpleSource>();
   auto lambdaSink = make_shared<LambdaSink>(
       [&receivedPacketCount, &packetReceivedOnThreadId](const Packet& packet) {
         packetReceivedOnThreadId = this_thread::get_id();
@@ -88,20 +110,74 @@ TEST(WhenAPacketIsSentUsingAsyncQueueing, ItArrives) {
       });
 
   graph.connect(
-      sendOnce,
-      "initialized",
+      source,
+      testChannel,
       lambdaSink,
       "",
       "",
       PacketDeliveryType::AlwaysQueue);
 
+  source->sendPacket(Packet(), testChannel);
   usleep(1000);
 
-  ASSERT_EQ(this_thread::get_id(), packetReceivedOnThreadId);
+  // Pushed onto the graph's libuv thread.
+  ASSERT_NE(this_thread::get_id(), packetReceivedOnThreadId);
   uv_stop(uvLoopRunner.getLoop().get());
   uvLoopRunner.waitForExit();
 
   ASSERT_EQ(1, receivedPacketCount);
+}
+
+TEST(WhenAPacketIsSentUsingDirectAndAsyncQueueing, ItArrives) {
+  UvLoopRunner uvLoopRunner;
+  const string testChannel = "test channel";
+
+  DataGraph graph(uvLoopRunner.getLoop());
+
+  Packet packet;
+  size_t receivedPacketCount = 0;
+
+  thread::id directThreadId;
+  thread::id asyncThreadId;
+  auto source = make_shared<SimpleSource>();
+  auto lambdaSinkDirect = make_shared<LambdaSink>(
+      [&receivedPacketCount, &directThreadId](const Packet& packet) {
+        directThreadId = this_thread::get_id();
+        receivedPacketCount++;
+      });
+
+  auto lambdaSinkAsync = make_shared<LambdaSink>(
+      [&receivedPacketCount, &asyncThreadId](const Packet& packet) {
+        asyncThreadId = this_thread::get_id();
+        receivedPacketCount++;
+      });
+
+  graph.connect(
+      source,
+      testChannel,
+      lambdaSinkDirect,
+      "",
+      "",
+      PacketDeliveryType::PushDirectlyToTarget);
+
+  graph.connect(
+      source,
+      testChannel,
+      lambdaSinkAsync,
+      "",
+      "",
+      PacketDeliveryType::AlwaysQueue);
+
+  source->sendPacket(Packet(), testChannel);
+  usleep(1000);
+
+  uv_stop(uvLoopRunner.getLoop().get());
+  uvLoopRunner.waitForExit();
+
+  ASSERT_EQ(2, receivedPacketCount);
+
+  ASSERT_EQ(this_thread::get_id(), directThreadId);
+  ASSERT_NE(this_thread::get_id(), asyncThreadId);
 }
 
 }  // namespace maplang
