@@ -103,7 +103,7 @@ UvLoopRunner::UvLoopRunner() {
   runnerThread.detach();
   mThread.swap(runnerThread);
 
-  startedCv.wait(ul, [&started]{ return started; });
+  startedCv.wait(ul, [&started] { return started; });
 }
 
 shared_ptr<uv_loop_t> UvLoopRunner::getLoop() const { return mUvLoop; }

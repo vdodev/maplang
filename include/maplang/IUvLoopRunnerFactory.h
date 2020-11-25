@@ -17,9 +17,9 @@
 #ifndef MAPLANG_INCLUDE_MAPLANG_IUVLOOPRUNNERFACTORY_H_
 #define MAPLANG_INCLUDE_MAPLANG_IUVLOOPRUNNERFACTORY_H_
 
-#include <memory>
-
 #include <maplang/UvLoopRunner.h>
+
+#include <memory>
 
 namespace maplang {
 

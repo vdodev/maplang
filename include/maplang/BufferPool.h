@@ -20,18 +20,20 @@
 #include <functional>
 #include <memory>
 
+#include "maplang/Buffer.h"
+
 namespace maplang {
 
 class BufferPool final {
  public:
-  using Allocator = std::function<std::shared_ptr<uint8_t>(size_t length)>;
+  using Allocator = std::function<Buffer(size_t length)>;
 
   BufferPool();
 
   void setAllocator(Allocator&& allocator);
   void setAllocator(const Allocator& allocator);
 
-  std::shared_ptr<uint8_t> get(size_t minimumSize);
+  Buffer get(size_t minimumSize);
 
  private:
   struct Impl;

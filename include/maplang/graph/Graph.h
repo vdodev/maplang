@@ -33,7 +33,8 @@ template <
         typename DefaultGraphEdge<ItemClass>::UnusedExtraInfoType>
 class Graph final {
  public:
-  using GraphElementType = GraphElement<ItemClass, EdgeClass, AdditionalNodeInfo>;
+  using GraphElementType =
+      GraphElement<ItemClass, EdgeClass, AdditionalNodeInfo>;
 
   EdgeClass& connect(
       const ItemClass& fromItem,

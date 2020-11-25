@@ -340,8 +340,9 @@ void ThreadGroup::packetReady() {
         bool sentToAny = false;
         for (const auto& nextEdge : packetInfo.fromGraphElement->forwardEdges) {
           const bool edgeUsesThisThread =
-              thisThreadId == nextEdge.second.otherGraphElement->additionalInfo.threadGroup
-                  ->mUvLoopThreadId;
+              thisThreadId
+              == nextEdge.second.otherGraphElement->additionalInfo.threadGroup
+                     ->mUvLoopThreadId;
 
           if (!edgeUsesThisThread) {
             continue;

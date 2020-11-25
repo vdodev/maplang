@@ -18,14 +18,17 @@
 #define MAPLANG_GRAPHELEMENT_H_
 
 #include <list>
-#include <unordered_map>
 #include <memory>
+#include <unordered_map>
 
 #include "maplang/graph/DefaultGraphEdge.h"
 
 namespace maplang {
 
-template <class ItemClass, class EdgeClass = DefaultGraphEdge<ItemClass>, class AdditionalInfo = std::shared_ptr<void>>
+template <
+    class ItemClass,
+    class EdgeClass = DefaultGraphEdge<ItemClass>,
+    class AdditionalInfo = std::shared_ptr<void>>
 struct GraphElement final {
  public:
   using GraphElementType = GraphElement<ItemClass, EdgeClass, AdditionalInfo>;
@@ -41,7 +44,8 @@ struct GraphElement final {
 
  private:
   struct EdgeKeyHasher {
-    std::size_t operator()(const typename GraphElementType::EdgeKey& key) const {
+    std::size_t operator()(
+        const typename GraphElementType::EdgeKey& key) const {
       return std::hash<decltype(key.channel)>()(key.channel)
              ^ std::hash<decltype(key.toGraphElement)>()(key.toGraphElement);
     }

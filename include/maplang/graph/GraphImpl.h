@@ -43,7 +43,8 @@ namespace maplang {
 template <class ItemClass, class EdgeClass, class AdditionalInfo>
 void Graph<ItemClass, EdgeClass, AdditionalInfo>::visitGraphElements(
     const GraphElementVisitor& visitor) const {
-  std::list<std::shared_ptr<GraphElement<ItemClass, EdgeClass, AdditionalInfo>>> elementList;
+  std::list<std::shared_ptr<GraphElement<ItemClass, EdgeClass, AdditionalInfo>>>
+      elementList;
   for (const auto& itemMapPair : mItemToGraphElementMap) {
     const auto& pathableIdToElementMap = itemMapPair.second;
 
@@ -124,7 +125,8 @@ EdgeClass& Graph<ItemClass, EdgeClass, AdditionalInfo>::connect(
 }
 
 template <class ItemClass, class EdgeClass, class AdditionalInfo>
-void Graph<ItemClass, EdgeClass, AdditionalInfo>::removeItem(const ItemClass& removeItem) {
+void Graph<ItemClass, EdgeClass, AdditionalInfo>::removeItem(
+    const ItemClass& removeItem) {
   auto mapIt = mItemToGraphElementMap.find(removeItem);
   if (mapIt == mItemToGraphElementMap.end()) {
     return;
@@ -259,7 +261,9 @@ Graph<ItemClass, EdgeClass, AdditionalInfo>::getOrCreateGraphElement(
   }
 
   auto graphElement =
-      std::make_shared<GraphElement<ItemClass, EdgeClass, AdditionalInfo>>(item, pathableId);
+      std::make_shared<GraphElement<ItemClass, EdgeClass, AdditionalInfo>>(
+          item,
+          pathableId);
 
   pathableIdToElementMap[pathableId] = graphElement;
 

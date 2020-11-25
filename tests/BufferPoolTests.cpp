@@ -23,7 +23,13 @@ namespace maplang {
 
 static BufferPool::Allocator createAllocator() {
   return [](size_t size) {
-    return shared_ptr<uint8_t>(new uint8_t[size], default_delete<uint8_t[]>());
+    Buffer buffer;
+
+    buffer.data =
+        shared_ptr<uint8_t>(new uint8_t[size], default_delete<uint8_t[]>());
+    buffer.length = size;
+
+    return buffer;
   };
 }
 
@@ -33,7 +39,7 @@ TEST(WhenTheFirstBufferIsRequestedWithAMovableAllocator, ItReturnsABuffer) {
 
   const auto buffer = pool.get(1);
 
-  ASSERT_NE(nullptr, buffer);
+  ASSERT_NE(nullptr, buffer.data);
 }
 
 TEST(
@@ -45,11 +51,11 @@ TEST(
 
   const auto buffer = pool.get(1);
 
-  ASSERT_NE(nullptr, buffer);
+  ASSERT_NE(nullptr, buffer.data);
 }
 
 TEST(WhenThePoolIsDeallocatedBeforeABuffer, ItDoesntCrash) {
-  shared_ptr<uint8_t> buffer;
+  Buffer buffer;
 
   {
     BufferPool pool;
@@ -68,9 +74,9 @@ TEST(
   const auto buffer1 = pool.get(1);
   const auto buffer2 = pool.get(1);
 
-  ASSERT_NE(nullptr, buffer1);
-  ASSERT_NE(nullptr, buffer2);
-  ASSERT_NE(buffer1, buffer2);
+  ASSERT_NE(nullptr, buffer1.data);
+  ASSERT_NE(nullptr, buffer2.data);
+  ASSERT_NE(buffer1.data, buffer2.data);
 }
 
 TEST(
@@ -80,14 +86,14 @@ TEST(
   pool.setAllocator(createAllocator());
 
   auto buffer1 = pool.get(1);
-  uint8_t* const rawBuffer1 = buffer1.get();
-  buffer1.reset();
+  uint8_t* const rawBuffer1 = buffer1.data.get();
+  buffer1.data.reset();
 
   const auto buffer2 = pool.get(1);
 
   ASSERT_NE(nullptr, rawBuffer1);
-  ASSERT_NE(nullptr, buffer2);
-  ASSERT_EQ(rawBuffer1, buffer2.get());
+  ASSERT_NE(nullptr, buffer2.data);
+  ASSERT_EQ(rawBuffer1, buffer2.data.get());
 }
 
 TEST(WhenABufferIsRequestedAndTheAllocatorIsNotSet, ItThrowsAnException) {
@@ -100,7 +106,8 @@ TEST(WhenAnEmptyBufferIsRequested, ItReturnsAnEmptyBuffer) {
   pool.setAllocator(createAllocator());
 
   const auto buffer = pool.get(0);
-  ASSERT_EQ(nullptr, buffer);
+  ASSERT_EQ(nullptr, buffer.data);
+  ASSERT_EQ(0, buffer.length);
 }
 
 TEST(
@@ -108,7 +115,8 @@ TEST(
     ItReturnsAnEmptyBuffer) {
   BufferPool pool;
   const auto buffer = pool.get(0);
-  ASSERT_EQ(nullptr, buffer);
+  ASSERT_EQ(nullptr, buffer.data);
+  ASSERT_EQ(0, buffer.length);
 }
 
 }  // namespace maplang

@@ -25,7 +25,7 @@ using namespace std;
 namespace maplang {
 
 struct BufferPool::Impl final {
-  using QueueType = moodycamel::ConcurrentQueue<shared_ptr<uint8_t>>;
+  using QueueType = moodycamel::ConcurrentQueue<Buffer>;
 
   Impl() : bufferSize(0) {}
 
@@ -48,9 +48,9 @@ void BufferPool::setAllocator(const Allocator& allocator) {
   mImpl->allocator = allocator;
 }
 
-shared_ptr<uint8_t> BufferPool::get(size_t bufferSize) {
+Buffer BufferPool::get(size_t bufferSize) {
   if (bufferSize == 0) {
-    return shared_ptr<uint8_t>(nullptr);
+    return Buffer();
   }
 
   if (bufferSize > mImpl->bufferSize) {
@@ -59,7 +59,7 @@ shared_ptr<uint8_t> BufferPool::get(size_t bufferSize) {
     mImpl->bufferSize = bufferSize;
   }
 
-  shared_ptr<uint8_t> sourceBuffer;
+  Buffer sourceBuffer;
   if (!mImpl->bufferQueue->try_dequeue(sourceBuffer)) {
     if (mImpl->allocator == nullptr) {
       throw runtime_error(
@@ -69,18 +69,22 @@ shared_ptr<uint8_t> BufferPool::get(size_t bufferSize) {
     sourceBuffer = mImpl->allocator(bufferSize);
   }
 
+  Buffer poolBuffer;
   const weak_ptr<Impl::QueueType> weakBufferQueue = mImpl->bufferQueue;
-  return shared_ptr<uint8_t>(
-      sourceBuffer.get(),
-      [weakBufferQueue, sourceBuffer](uint8_t* rawBuffer) {
+  poolBuffer.length = sourceBuffer.length;
+  poolBuffer.data = shared_ptr<uint8_t>(
+      sourceBuffer.data.get(),
+      [weakBufferQueue, origBuffer {sourceBuffer}](uint8_t* data) {
         const auto bufferQueue = weakBufferQueue.lock();
 
         if (bufferQueue == nullptr) {
           return;
         }
 
-        bufferQueue->enqueue(sourceBuffer);
+        bufferQueue->enqueue(origBuffer);
       });
+
+  return poolBuffer;
 }
 
 }  // namespace maplang
