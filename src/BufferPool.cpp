@@ -66,7 +66,7 @@ Buffer BufferPool::get(size_t bufferSize) {
           "BufferPool Allocator was not set before requesting frames.");
     }
 
-    sourceBuffer = mImpl->allocator(bufferSize);
+    sourceBuffer = mImpl->allocator(mImpl->bufferSize);
   }
 
   Buffer poolBuffer;
