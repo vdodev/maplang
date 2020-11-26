@@ -119,4 +119,34 @@ TEST(
   ASSERT_EQ(0, buffer.length);
 }
 
+TEST(
+    WhenALargerBufferIsRequested,
+    ALargerBufferIsReturned) {
+  BufferPool pool;
+  pool.setAllocator(createAllocator());
+
+  auto buffer1 = pool.get(1);
+  auto buffer2 = pool.get(1);
+  buffer1.data.reset();
+
+  auto buffer3 = pool.get(2);
+  ASSERT_NE(nullptr, buffer3.data);
+  ASSERT_EQ(2, buffer3.length);
+}
+
+TEST(
+    WhenALargerBufferThanRequestedIsReturned,
+    ItIsRecycledUsingItsOriginalSize) {
+  BufferPool pool;
+  pool.setAllocator(createAllocator());
+
+  auto buffer1 = pool.get(2);
+  auto buffer2 = pool.get(1);
+  buffer2.data.reset();
+
+  auto buffer3 = pool.get(2);
+  ASSERT_NE(nullptr, buffer3.data);
+  ASSERT_EQ(2, buffer3.length);
+}
+
 }  // namespace maplang

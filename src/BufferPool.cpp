@@ -69,9 +69,14 @@ Buffer BufferPool::get(size_t bufferSize) {
     sourceBuffer = mImpl->allocator(mImpl->bufferSize);
   }
 
+  if (bufferSize > sourceBuffer.length) {
+    throw runtime_error(
+        "Buffer Pool internal error. Recycled buffer is too small.");
+  }
+
   Buffer poolBuffer;
   const weak_ptr<Impl::QueueType> weakBufferQueue = mImpl->bufferQueue;
-  poolBuffer.length = sourceBuffer.length;
+  poolBuffer.length = bufferSize;
   poolBuffer.data = shared_ptr<uint8_t>(
       sourceBuffer.data.get(),
       [weakBufferQueue, origBuffer {sourceBuffer}](uint8_t* data) {
