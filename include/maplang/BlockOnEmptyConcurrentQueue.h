@@ -27,6 +27,7 @@ namespace maplang {
 template <class T>
 class BlockOnEmptyConcurrentQueue final {
  public:
+  BlockOnEmptyConcurrentQueue();
   ~BlockOnEmptyConcurrentQueue();
 
   void push(const T& t);
@@ -44,6 +45,11 @@ class BlockOnEmptyConcurrentQueue final {
   std::shared_ptr<moodycamel::ConcurrentQueue<T>> mQueue;
   std::shared_ptr<Sync> mSync;
 };
+
+template <class T>
+BlockOnEmptyConcurrentQueue<T>::BlockOnEmptyConcurrentQueue()
+    : mQueue(std::make_shared<moodycamel::ConcurrentQueue<T>>()),
+      mSync(std::make_shared<Sync>()) {}
 
 template <class T>
 BlockOnEmptyConcurrentQueue<T>::~BlockOnEmptyConcurrentQueue() {
@@ -65,29 +71,31 @@ void BlockOnEmptyConcurrentQueue<T>::push(T&& t) {
 
 template <class T>
 bool BlockOnEmptyConcurrentQueue<T>::pop(T& item) {
-  if (!mQueue->try_dequeue(item)) {
-    std::unique_lock<std::mutex> ul(mSync->lock);
-    std::shared_ptr<Sync> sync = mSync;
-    std::weak_ptr<moodycamel::ConcurrentQueue<T>> weakQueue = mQueue;
-
-    bool dequeuedItem = false;
-    mSync->itemAddedCv.wait_for(ul, [weakQueue, sync, &dequeuedItem, &item]() {
-      const auto strongQueue = weakQueue.lock();
-      if (strongQueue == nullptr) {
-        dequeuedItem = false;
-
-        const bool unblock = true;
-        return unblock;
-      }
-
-      dequeuedItem = strongQueue->try_dequeue(item);
-
-      const bool unblock = dequeuedItem;
-      return unblock;
-    });
-
-    return dequeuedItem;
+  if (mQueue->try_dequeue(item)) {
+    return true;
   }
+
+  std::unique_lock<std::mutex> ul(mSync->lock);
+  std::shared_ptr<Sync> sync = mSync;
+  std::weak_ptr<moodycamel::ConcurrentQueue<T>> weakQueue = mQueue;
+
+  bool dequeuedItem = false;
+  mSync->itemAddedCv.wait(ul, [weakQueue, sync, &dequeuedItem, &item]() {
+    const auto strongQueue = weakQueue.lock();
+    if (strongQueue == nullptr) {
+      dequeuedItem = false;
+
+      const bool unblock = true;
+      return unblock;
+    }
+
+    dequeuedItem = strongQueue->try_dequeue(item);
+
+    const bool unblock = dequeuedItem;
+    return unblock;
+  });
+
+  return dequeuedItem;
 }
 
 }  // namespace maplang
