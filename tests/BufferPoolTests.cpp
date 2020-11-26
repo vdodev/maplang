@@ -119,9 +119,7 @@ TEST(
   ASSERT_EQ(0, buffer.length);
 }
 
-TEST(
-    WhenALargerBufferIsRequested,
-    ALargerBufferIsReturned) {
+TEST(WhenALargerBufferIsRequested, ALargerBufferIsReturned) {
   BufferPool pool;
   pool.setAllocator(createAllocator());
 

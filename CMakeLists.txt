@@ -79,7 +79,10 @@ add_library(maplang
         src/nodes/AddParametersNode.cpp
         include-private/nodes/AddParametersNode.h
         src/TaskLooper.cpp
-        include/maplang/TaskLooper.h)
+        include/maplang/TaskLooper.h
+        include/maplang/BlockOnEmptyConcurrentQueue.h
+        include/maplang/BlockingBufferPool.h
+        src/BlockingBufferPool.cpp)
 
 target_include_directories(maplang PUBLIC /usr/local/include)
 target_include_directories(maplang PUBLIC ${PROJECT_SOURCE_DIR}/include)
