@@ -76,6 +76,7 @@ Buffer BlockingBufferPool::get(size_t bufferSize) {
     }
 
     sourceBuffer = mImpl->allocator(mImpl->bufferSize);
+    mImpl->totalAllocatedBuffers++;
   } else {
     mImpl->bufferQueue->pop(sourceBuffer);
   }
