@@ -45,15 +45,37 @@ class SimpleSource : public INode, public ISource {
   std::shared_ptr<IPacketPusher> mPusher;
 };
 
+class PassThroughSourceSink : public INode, public ISource, public ISink {
+ public:
+  PassThroughSourceSink(const string& sendOnChannel)
+      : mSendOnChannel(sendOnChannel) {}
+
+  void setPacketPusher(const std::shared_ptr<IPacketPusher>& pusher) override {
+    mPusher = pusher;
+  }
+
+  void handlePacket(const Packet& packet) override {
+    mPusher->pushPacket(packet, mSendOnChannel);
+  }
+
+  IPathable* asPathable() override { return nullptr; }
+  ISink* asSink() override { return this; }
+  ISource* asSource() override { return this; }
+  ICohesiveGroup* asGroup() override { return nullptr; }
+
+ private:
+  shared_ptr<IPacketPusher> mPusher;
+  const string mSendOnChannel;
+};
+
 TEST(WhenSendPacketIsCalledOnce, ThenOnePacketIsDeliveredToTheSink) {
   DataGraph graph(make_shared<UvLoopRunnerFactory>());
 
-  Packet packet;
   size_t receivedPacketCount = 0;
   auto lambdaSink = make_shared<LambdaSink>(
       [&receivedPacketCount](const Packet& packet) { receivedPacketCount++; });
 
-  graph.sendPacket(packet, lambdaSink);
+  graph.sendPacket(Packet(), lambdaSink);
 
   usleep(100000);
 
@@ -65,7 +87,6 @@ TEST(WhenAPacketIsSentDirectlyFromADifferentThread, ItArrives) {
 
   DataGraph graph(make_shared<UvLoopRunnerFactory>());
 
-  Packet packet;
   size_t receivedPacketCount = 0;
 
   auto source = make_shared<SimpleSource>();
@@ -91,7 +112,6 @@ TEST(WhenAPacketIsSentUsingAsyncQueueing, ItArrives) {
 
   DataGraph graph(make_shared<UvLoopRunnerFactory>());
 
-  Packet packet;
   size_t receivedPacketCount = 0;
 
   thread::id packetReceivedOnThreadId;
@@ -123,7 +143,6 @@ TEST(WhenAPacketIsSentUsingDirectAndAsyncQueueing, ItArrives) {
 
   DataGraph graph(make_shared<UvLoopRunnerFactory>());
 
-  Packet packet;
   size_t receivedPacketCount = 0;
 
   thread::id directThreadId;
@@ -175,7 +194,6 @@ TEST(WhenTwoPacketsAreSentToDifferentThreadGroups, TheyHaveDifferentThreadIds) {
 
   DataGraph graph(make_shared<UvLoopRunnerFactory>());
 
-  Packet packet;
   size_t receivedPacketCount = 0;
 
   thread::id threadId1;
@@ -229,7 +247,6 @@ TEST(
 
   DataGraph graph(make_shared<UvLoopRunnerFactory>());
 
-  Packet packet;
   size_t receivedPacketCount = 0;
 
   thread::id threadId1;
@@ -275,6 +292,72 @@ TEST(
   ASSERT_NE(threadId1, threadId2);
 
   ASSERT_EQ(2, receivedPacketCount);
+}
+
+TEST(WhenOneSourceSendsAPacketAndTwoSinksReceive, ThePacketIsTheSame) {
+  const string testChannel = "test channel";
+
+  DataGraph graph(make_shared<UvLoopRunnerFactory>());
+
+  Packet packet;
+  packet.parameters["key1"] = "value1";
+
+  size_t receivedPacketCount = 0;
+
+  thread::id directThreadId;
+  thread::id asyncThreadId;
+  auto source = make_shared<SimpleSource>();
+  auto lambdaSinkDirect = make_shared<LambdaSink>(
+      [&receivedPacketCount, &directThreadId](const Packet& packet) {
+        directThreadId = this_thread::get_id();
+        receivedPacketCount++;
+
+        ASSERT_TRUE(packet.parameters.contains("key1"))
+            << packet.parameters.dump(2);
+        ASSERT_EQ("value1", packet.parameters["key1"].get<string>());
+      });
+
+  auto lambdaSinkAsync = make_shared<LambdaSink>(
+      [&receivedPacketCount, &asyncThreadId](const Packet& packet) {
+        asyncThreadId = this_thread::get_id();
+        receivedPacketCount++;
+
+        ASSERT_TRUE(packet.parameters.contains("key1"))
+            << packet.parameters.dump(2);
+        ASSERT_EQ("value1", packet.parameters["key1"].get<string>());
+      });
+
+  const auto passThrough = make_shared<PassThroughSourceSink>(testChannel);
+
+  graph.connect(source, testChannel, passThrough);
+
+  graph.connect(
+      passThrough,
+      testChannel,
+      lambdaSinkDirect,
+      "",
+      "",
+      PacketDeliveryType::PushDirectlyToTarget);
+
+  graph.connect(
+      passThrough,
+      testChannel,
+      lambdaSinkAsync,
+      "",
+      "",
+      PacketDeliveryType::AlwaysQueue);
+
+  source->sendPacket(packet, testChannel);
+  usleep(100000);
+
+  ASSERT_EQ(2, receivedPacketCount);
+
+  // Can't go direct because it's sent from this thread, not the uv thread
+  ASSERT_NE(this_thread::get_id(), directThreadId);
+  ASSERT_NE(this_thread::get_id(), asyncThreadId);
+
+  // Both dispatched on the default thread group
+  ASSERT_EQ(asyncThreadId, directThreadId);
 }
 
 }  // namespace maplang

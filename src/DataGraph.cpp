@@ -252,7 +252,7 @@ class GraphPacketPusher : public IPacketPusher {
             queuedToThreadGroupIds.find(nextNodesThreadId)
             == queuedToThreadGroupIds.end()) {
           PushedPacketInfo info;
-          info.packet = move(packetWithAccumulatedParameters);
+          info.packet = packetWithAccumulatedParameters;
           info.fromGraphElement = fromGraphElement;
           info.channel = fromChannel;
           info.wasDirectDispatchedToAtLeastOneNode = hasDirectTargets;
