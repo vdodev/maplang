@@ -6,8 +6,6 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-
-
 add_library(maplang
         include-private/logging.h
         include/maplang/ISource.h
@@ -104,7 +102,7 @@ target_link_libraries(http-ip-echo maplang)
 #        http-get-demo/PrintBufferAsString.h)
 #target_link_libraries(http-get maplang)
 
-option(USE_TESTS "Enable unit testing" ON)
+option(USE_TESTS "Enable unit testing" OFF)
 if(USE_TESTS)
     enable_testing()
     add_subdirectory(tests)
