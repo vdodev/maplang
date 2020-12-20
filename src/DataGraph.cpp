@@ -19,12 +19,15 @@
 #include <uv.h>
 
 #include <list>
+#include <optional>
 #include <set>
 #include <unordered_map>
 
 #include "concurrentqueue.h"
 #include "logging.h"
 #include "maplang/ISubgraphContext.h"
+#include "maplang/Util.h"
+#include "maplang/UvLoopRunnerFactory.h"
 #include "maplang/graph/Graph.h"
 
 using namespace std;
@@ -35,10 +38,9 @@ namespace maplang {
 const string DataGraph::kDefaultThreadGroupName = "";
 
 struct DataGraphItem {
-  std::shared_ptr<INode> node;
-  std::shared_ptr<IPacketPusher>
-      pathablePacketPusher;  // Set for IPathables only.
-  std::shared_ptr<const nlohmann::json>
+  shared_ptr<INode> node;
+  shared_ptr<IPacketPusher> pathablePacketPusher;  // Set for IPathables only.
+  shared_ptr<const nlohmann::json>
       lastReceivedParameters;  // for parameter propagation when the downstream
                                // node(s) get a packet from this node.
 
@@ -52,7 +54,7 @@ struct DataGraphItem {
 namespace std {
 template <>
 struct hash<const maplang::DataGraphItem> {
-  std::size_t operator()(const maplang::DataGraphItem& item) const {
+  size_t operator()(const maplang::DataGraphItem& item) const {
     return hash<shared_ptr<maplang::INode>>()(item.node);
   }
 };
@@ -122,20 +124,32 @@ class DataGraphImpl final : public enable_shared_from_this<DataGraphImpl> {
       mNodeToGraphElementMap;
 
  public:
-  DataGraphImpl(
-      const std::shared_ptr<IUvLoopRunnerFactory>& uvLoopRunnerFactory)
+  DataGraphImpl(const shared_ptr<IUvLoopRunnerFactory>& uvLoopRunnerFactory)
       : mUvLoopRunnerFactory(uvLoopRunnerFactory) {}
 
   shared_ptr<ThreadGroup> getOrCreateThreadGroup(const string& name);
 
   static void packetReadyWrapper(uv_async_t* handle);
-  void validateNodeTypesAreCompatible(const std::shared_ptr<INode>& node) const;
+
+  void validateNodeTypesAreCompatible(const shared_ptr<INode>& node) const;
+
   bool hasDataGraphElement(
-      const std::shared_ptr<INode>& node,
-      const std::string& pathableId);
-  std::shared_ptr<DataGraphElement> getOrCreateDataGraphElement(
-      const std::shared_ptr<INode>& node,
-      const std::string& pathableId);
+      const shared_ptr<INode>& node,
+      const string& pathableId);
+
+  shared_ptr<DataGraphElement> getOrCreateDataGraphElement(
+      const shared_ptr<INode>& node,
+      const string& pathableId);
+
+  optional<shared_ptr<DataGraphElement>> getDataGraphElement(
+      const shared_ptr<INode>& node,
+      const string& pathableId) const;
+
+  void removeDeletedBackEdges(
+      const shared_ptr<
+          GraphElement<DataGraphItem, DataGraphEdge, ExtraGraphElementInfo>>&
+          graphElement);
+
   void setupPacketPusher(const shared_ptr<DataGraphElement>& graphElement);
 
   static void logDroppedPacket(const Packet& packet, const string& channel);
@@ -400,18 +414,17 @@ void ThreadGroup::sendPacketToNode(
   }
 }
 
-DataGraph::DataGraph(
-    const std::shared_ptr<IUvLoopRunnerFactory>& loopRunnerFactory)
-    : impl(new DataGraphImpl(loopRunnerFactory)) {}
+DataGraph::DataGraph()
+    : impl(new DataGraphImpl(make_shared<UvLoopRunnerFactory>())) {}
 
 DataGraph::~DataGraph() = default;
 
 void DataGraph::connect(
-    const std::shared_ptr<INode>& fromNode,
-    const std::string& fromChannel,
-    const std::shared_ptr<INode>& toNode,
-    const std::string& fromPathableId,
-    const std::string& toPathableId,
+    const shared_ptr<INode>& fromNode,
+    const string& fromChannel,
+    const shared_ptr<INode>& toNode,
+    const string& fromPathableId,
+    const string& toPathableId,
     const PacketDeliveryType& sameThreadQueueToTargetType) {
   if (fromNode == nullptr) {
     throw runtime_error("fromNode cannot be NULL.");
@@ -462,6 +475,51 @@ void DataGraph::connect(
   edge.sameThreadQueueToTargetType = sameThreadQueueToTargetType;
 }
 
+void DataGraph::disconnect(
+    const shared_ptr<INode>& fromNode,
+    const string& fromChannel,
+    const shared_ptr<INode>& toNode,
+    const string& fromPathableId,
+    const string& toPathableId) {
+  if (fromNode == nullptr) {
+    throw runtime_error("fromNode cannot be NULL.");
+  } else if (toNode == nullptr) {
+    throw runtime_error("toNode cannot be NULL.");
+  }
+
+  const auto fromGraphElement =
+      impl->getDataGraphElement(fromNode, fromPathableId);
+
+  const auto toGraphElement = impl->getDataGraphElement(toNode, toPathableId);
+
+  if (!fromGraphElement || !toGraphElement) {
+    return;
+  }
+
+  impl->mGraph.disconnect(
+      (*fromGraphElement)->item,
+      fromChannel,
+      (*toGraphElement)->item,
+      fromPathableId,
+      toPathableId);
+}
+
+void DataGraphImpl::removeDeletedBackEdges(
+    const shared_ptr<
+        GraphElement<DataGraphItem, DataGraphEdge, ExtraGraphElementInfo>>&
+        graphElement) {
+  auto& backEdges = graphElement->backEdges;
+  for (auto backEdgeIt = backEdges.begin(); backEdgeIt != backEdges.end();) {
+    const auto previousNode = backEdgeIt->lock();
+
+    const auto currentBackEdgeIt = backEdgeIt;
+    backEdgeIt++;
+    if (previousNode == nullptr) {
+      backEdges.erase(currentBackEdgeIt);
+    }
+  }
+}
+
 void DataGraphImpl::validateNodeTypesAreCompatible(
     const shared_ptr<INode>& node) const {
   const auto pathable = node->asPathable();
@@ -481,11 +539,12 @@ void DataGraphImpl::validateNodeTypesAreCompatible(
 
 void DataGraph::sendPacket(
     const Packet& packet,
-    const std::shared_ptr<INode>& toNode,
+    const shared_ptr<INode>& toNode,
     const string& toPathableId) {
   const auto sink = toNode->asSink();
-  if (!sink) {
-    throw runtime_error("Can only call sendPacket() with an ISink node.");
+  const auto pathable = toNode->asPathable();
+  if (!sink && !pathable) {
+    throw runtime_error("Can only call sendPacket() with an ISink or IPathable node.");
   }
 
   PushedPacketInfo packetInfo;
@@ -505,7 +564,7 @@ void DataGraph::sendPacket(
 
 void DataGraph::sendPacket(
     Packet&& packet,
-    const std::shared_ptr<INode>& toNode,
+    const shared_ptr<INode>& toNode,
     const string& toPathableId) {
   const auto sink = toNode->asSink();
   if (!sink) {
@@ -528,26 +587,55 @@ void DataGraph::sendPacket(
 }
 
 bool DataGraphImpl::hasDataGraphElement(
-    const std::shared_ptr<INode>& node,
-    const std::string& pathableId) {
+    const shared_ptr<INode>& node,
+    const string& pathableId) {
   DataGraphItem item;
   item.node = node;
 
   return mGraph.hasItem(item, pathableId);
 }
 
-std::shared_ptr<DataGraphElement> DataGraphImpl::getOrCreateDataGraphElement(
-    const std::shared_ptr<INode>& node,
-    const std::string& pathableId) {
+shared_ptr<DataGraphElement> DataGraphImpl::getOrCreateDataGraphElement(
+    const shared_ptr<INode>& node,
+    const string& pathableId) {
+  auto existingGraphElement = getDataGraphElement(node, pathableId);
+  if (existingGraphElement) {
+    return *existingGraphElement;
+  }
+
+  const auto mapInsertInfo = mNodeToGraphElementMap.insert(
+      {node.get(), unordered_map<string, weak_ptr<DataGraphElement>>()});
+  const auto& mapIt = mapInsertInfo.first;
+
+  shared_ptr<DataGraphElement> graphElement;
+
+  auto& pathableIdToElementMap = mapIt->second;
+
+  DataGraphItem item;
+  item.node = node;
+
+  validateNodeTypesAreCompatible(node);
+
+  graphElement = mGraph.getOrCreateGraphElement(item, pathableId);
+
+  const auto threadGroup =
+      getOrCreateThreadGroup(DataGraph::kDefaultThreadGroupName);
+  graphElement->additionalInfo.threadGroup = threadGroup;
+
+  node->setSubgraphContext(threadGroup->mSubgraphContext);
+  pathableIdToElementMap.insert(make_pair(pathableId, graphElement));
+
+  return graphElement;
+}
+
+optional<shared_ptr<DataGraphElement>> DataGraphImpl::getDataGraphElement(
+    const shared_ptr<INode>& node,
+    const string& pathableId) const {
   auto mapIt = mNodeToGraphElementMap.find(node.get());
   shared_ptr<DataGraphElement> graphElement;
 
   if (mapIt == mNodeToGraphElementMap.end()) {
-    auto insertPair = mNodeToGraphElementMap.emplace(make_pair(
-        node.get(),
-        unordered_map<string, weak_ptr<DataGraphElement>>()));
-
-    mapIt = insertPair.first;
+    return {};
   }
 
   auto& pathableIdToElementMap = mapIt->second;
@@ -557,19 +645,7 @@ std::shared_ptr<DataGraphElement> DataGraphImpl::getOrCreateDataGraphElement(
   }
 
   if (graphElement == nullptr) {
-    DataGraphItem item;
-    item.node = node;
-
-    validateNodeTypesAreCompatible(node);
-
-    graphElement = mGraph.getOrCreateGraphElement(item, pathableId);
-
-    const auto threadGroup =
-        getOrCreateThreadGroup(DataGraph::kDefaultThreadGroupName);
-    graphElement->additionalInfo.threadGroup = threadGroup;
-
-    node->setSubgraphContext(threadGroup->mSubgraphContext);
-    pathableIdToElementMap.insert(make_pair(pathableId, graphElement));
+    return {};
   }
 
   return graphElement;
@@ -605,14 +681,43 @@ void DataGraphImpl::setupPacketPusher(
 }
 
 void DataGraph::setThreadGroupForNode(
-    const std::shared_ptr<INode>& toNode,
-    const std::string& threadGroupName,
-    const std::string& pathableId) {
+    const shared_ptr<INode>& toNode,
+    const string& threadGroupName,
+    const string& pathableId) {
   const auto graphElement =
       impl->getOrCreateDataGraphElement(toNode, pathableId);
 
   const auto threadGroup = impl->getOrCreateThreadGroup(threadGroupName);
   graphElement->additionalInfo.threadGroup = threadGroup;
+}
+
+void to_json(nlohmann::json& j, const PacketDeliveryType& packetDelivery) {
+  switch (packetDelivery) {
+    case PacketDeliveryType::PushDirectlyToTarget:
+      j = "Push Directly To Target";
+      break;
+
+    case PacketDeliveryType::AlwaysQueue:
+      j = "Always Queue";
+      break;
+
+    default:
+      throw invalid_argument(
+          "Unknown packet delivery type: "
+          + to_string(static_cast<uint32_t>(packetDelivery)));
+  }
+}
+
+void from_json(const nlohmann::json& j, PacketDeliveryType& packetDelivery) {
+  const string str = j.get<string>();
+
+  if (str == "Push Directly To Target") {
+    packetDelivery = PacketDeliveryType::PushDirectlyToTarget;
+  } else if (str == "Always Queue") {
+    packetDelivery = PacketDeliveryType::AlwaysQueue;
+  } else {
+    throw invalid_argument("Unknown PacketDeliveryType '" + str + "'.");
+  }
 }
 
 }  // namespace maplang

@@ -20,6 +20,7 @@
 #include "maplang/json.hpp"
 #include "nodes/AddParametersNode.h"
 #include "nodes/ContextualNode.h"
+#include "nodes/DataGraphNode.h"
 #include "nodes/HttpRequestExtractor.h"
 #include "nodes/HttpRequestHeaderWriter.h"
 #include "nodes/HttpResponseExtractor.h"
@@ -40,6 +41,12 @@ static once_flag createRegistrationOnce;
 static NodeRegistration* gDefaultRegistration;
 
 static void registerNodes(NodeRegistration* registration) {
+  registration->registerNodeFactory(
+      "Data Graph",
+      [](const nlohmann::json& initParams) {
+        return make_shared<DataGraphNode>();
+      });
+
   registration->registerNodeFactory(
       "Add Parameters",
       [](const nlohmann::json& initParams) {

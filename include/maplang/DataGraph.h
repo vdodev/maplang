@@ -20,6 +20,7 @@
 #include <memory>
 
 #include "maplang/INode.h"
+#include "maplang/ICohesiveGroup.h"
 #include "maplang/IUvLoopRunnerFactory.h"
 
 namespace maplang {
@@ -28,14 +29,21 @@ class DataGraphImpl;
 
 enum class PacketDeliveryType { PushDirectlyToTarget, AlwaysQueue };
 
-class DataGraph final {
+void to_json(nlohmann::json& j, const PacketDeliveryType& packetDelivery);
+void from_json(const nlohmann::json& j, PacketDeliveryType& packetDelivery);
+
+class DataGraph final{
  public:
   static const std::string kDefaultThreadGroupName;
 
  public:
-  DataGraph(const std::shared_ptr<IUvLoopRunnerFactory>& loopRunnerFactory);
+  DataGraph();
   ~DataGraph();
 
+  /*
+   * Need unique Node IDs so Packets can connect nodes.
+   * connect(), disconnect(), possibly other methods should be subnodes.
+   */
   void connect(
       const std::shared_ptr<INode>& fromNode,
       const std::string& fromChannel,

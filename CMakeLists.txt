@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 
 project(maplang)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -44,6 +44,8 @@ add_library(maplang
         include/maplang/graph/GraphImpl.h
         include/maplang/UvLoopRunner.h
         src/UvLoopRunner.cpp
+        include/maplang/IUvLoopRunnerFactory.h
+        include/maplang/UvLoopRunnerFactory.h
         include-private/nodes/PacketWriter.h
         src/nodes/PacketWriter.cpp
         include-private/nodes/PacketReader.h
@@ -80,7 +82,9 @@ add_library(maplang
         include/maplang/TaskLooper.h
         include/maplang/BlockOnEmptyConcurrentQueue.h
         include/maplang/BlockingBufferPool.h
-        src/BlockingBufferPool.cpp)
+        src/BlockingBufferPool.cpp
+        src/nodes/DataGraphNode.cpp
+        include-private/nodes/DataGraphNode.h)
 
 target_include_directories(maplang PUBLIC /usr/local/include)
 target_include_directories(maplang PUBLIC ${PROJECT_SOURCE_DIR}/include)
@@ -92,7 +96,7 @@ target_link_libraries(maplang /usr/local/lib/libuv_a.a dl pthread)
 add_executable(http-ip-echo
         ip-echo-demo/ip-echo-main.cpp
         ip-echo-demo/HttpResponseWithAddressAsBody.cpp
-        ip-echo-demo/HttpResponseWithAddressAsBody.h include/maplang/IUvLoopRunnerFactory.h include/maplang/UvLoopRunnerFactory.h)
+        ip-echo-demo/HttpResponseWithAddressAsBody.h)
 
 target_link_libraries(http-ip-echo maplang)
 
@@ -104,6 +108,7 @@ target_link_libraries(http-ip-echo maplang)
 
 option(USE_TESTS "Enable unit testing" OFF)
 if(USE_TESTS)
+    message("Maplang tests enabled.")
     enable_testing()
     add_subdirectory(tests)
 endif()

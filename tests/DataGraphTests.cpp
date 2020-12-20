@@ -20,7 +20,6 @@
 
 #include "gtest/gtest.h"
 #include "maplang/DataGraph.h"
-#include "maplang/UvLoopRunnerFactory.h"
 
 using namespace std;
 
@@ -69,7 +68,7 @@ class PassThroughSourceSink : public INode, public ISource, public ISink {
 };
 
 TEST(WhenSendPacketIsCalledOnce, ThenOnePacketIsDeliveredToTheSink) {
-  DataGraph graph(make_shared<UvLoopRunnerFactory>());
+  DataGraph graph;
 
   size_t receivedPacketCount = 0;
   auto lambdaSink = make_shared<LambdaSink>(
@@ -85,7 +84,7 @@ TEST(WhenSendPacketIsCalledOnce, ThenOnePacketIsDeliveredToTheSink) {
 TEST(WhenAPacketIsSentDirectlyFromADifferentThread, ItArrives) {
   const string testChannel = "test channel";
 
-  DataGraph graph(make_shared<UvLoopRunnerFactory>());
+  DataGraph graph;
 
   size_t receivedPacketCount = 0;
 
@@ -110,7 +109,7 @@ TEST(WhenAPacketIsSentDirectlyFromADifferentThread, ItArrives) {
 TEST(WhenAPacketIsSentUsingAsyncQueueing, ItArrives) {
   const string testChannel = "test channel";
 
-  DataGraph graph(make_shared<UvLoopRunnerFactory>());
+  DataGraph graph;
 
   size_t receivedPacketCount = 0;
 
@@ -141,7 +140,7 @@ TEST(WhenAPacketIsSentUsingAsyncQueueing, ItArrives) {
 TEST(WhenAPacketIsSentUsingDirectAndAsyncQueueing, ItArrives) {
   const string testChannel = "test channel";
 
-  DataGraph graph(make_shared<UvLoopRunnerFactory>());
+  DataGraph graph;
 
   size_t receivedPacketCount = 0;
 
@@ -192,7 +191,7 @@ TEST(WhenAPacketIsSentUsingDirectAndAsyncQueueing, ItArrives) {
 TEST(WhenTwoPacketsAreSentToDifferentThreadGroups, TheyHaveDifferentThreadIds) {
   const string testChannel = "test channel";
 
-  DataGraph graph(make_shared<UvLoopRunnerFactory>());
+  DataGraph graph;
 
   size_t receivedPacketCount = 0;
 
@@ -245,7 +244,7 @@ TEST(
     TheyHaveDifferentThreadIds) {
   const string testChannel = "test channel";
 
-  DataGraph graph(make_shared<UvLoopRunnerFactory>());
+  DataGraph graph;
 
   size_t receivedPacketCount = 0;
 
@@ -297,7 +296,7 @@ TEST(
 TEST(WhenOneSourceSendsAPacketAndTwoSinksReceive, ThePacketIsTheSame) {
   const string testChannel = "test channel";
 
-  DataGraph graph(make_shared<UvLoopRunnerFactory>());
+  DataGraph graph;
 
   Packet packet;
   packet.parameters["key1"] = "value1";

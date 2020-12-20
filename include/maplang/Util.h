@@ -17,6 +17,20 @@
 #ifndef MAPLANG_INCLUDE_MAPLANG_UTIL_H_
 #define MAPLANG_INCLUDE_MAPLANG_UTIL_H_
 
+#include "maplang/Packet.h"
+
+namespace maplang {
+
+inline Packet packetWithParameters(nlohmann::json&& parameters) {
+  return Packet{move(parameters), {}};
+}
+
+inline Packet packetWithParameters(const nlohmann::json& parameters) {
+  return Packet{parameters, {}};
+}
+
+}  // namespace maplang
+
 #define ML_CREATE_GROUP_SOURCE_SINK(                                          \
     CLASS_NAME__,                                                             \
     SHARED_CLASS__,                                                           \
