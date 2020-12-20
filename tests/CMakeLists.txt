@@ -23,7 +23,8 @@ add_executable(
         BufferPoolTests.cpp
         ParameterExtractorTests.cpp
         AddParameterTests.cpp
-        DataGraphNodeTests.cpp)
+        DataGraphNodeTests.cpp
+        PassThroughNodeTests.cpp)
 
 target_link_libraries(
         maplang_tests

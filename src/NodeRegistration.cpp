@@ -27,6 +27,7 @@
 #include "nodes/HttpResponseWriter.h"
 #include "nodes/OrderedPacketSender.h"
 #include "nodes/ParameterExtractor.h"
+#include "nodes/PassThroughNode.h"
 #include "nodes/SendOnce.h"
 #include "nodes/UvTcpConnectionGroup.h"
 #include "nodes/VolatileKeyValueSet.h"
@@ -41,6 +42,10 @@ static once_flag createRegistrationOnce;
 static NodeRegistration* gDefaultRegistration;
 
 static void registerNodes(NodeRegistration* registration) {
+  registration->registerNodeFactory("Pass-through", [](const json& initParams) {
+    return make_shared<PassThroughNode>(initParams);
+  });
+
   registration->registerNodeFactory(
       "Data Graph",
       [](const nlohmann::json& initParams) {

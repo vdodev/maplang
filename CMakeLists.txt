@@ -84,7 +84,9 @@ add_library(maplang
         include/maplang/BlockingBufferPool.h
         src/BlockingBufferPool.cpp
         src/nodes/DataGraphNode.cpp
-        include-private/nodes/DataGraphNode.h)
+        include-private/nodes/DataGraphNode.h
+        src/nodes/PassThroughNode.cpp
+        include-private/nodes/PassThroughNode.h)
 
 target_include_directories(maplang PUBLIC /usr/local/include)
 target_include_directories(maplang PUBLIC ${PROJECT_SOURCE_DIR}/include)
