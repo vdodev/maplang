@@ -259,6 +259,87 @@ TEST(WhenSeveralBuffersAreAdded, FirstIndexOfReturnsTheCorrectIndexOfABuffer) {
       stream.firstIndexOf(findBytes, sizeof(findBytes), 12));
 }
 
+static Buffer stringToBuffer(const string& str) {
+  const auto rawBuffer = shared_ptr<uint8_t>(new uint8_t[str.length()], default_delete<uint8_t[]>());
+  Buffer buffer(rawBuffer, str.length());
+
+  str.copy(reinterpret_cast<char*>(rawBuffer.get()), str.length());
+
+  return buffer;
+}
+
+TEST(WhenSeveralBuffersAreAdded, FirstIndexOfReturnsTheCorrectIndexOfACString) {
+  MemoryStream stream;
+
+  Buffer buffer1("abcdefg");
+  Buffer buffer2("hijklmnop");
+  Buffer buffer3("qrstuvwxyz");
+
+  stream.append(buffer1);
+  stream.append(buffer2);
+  stream.append(buffer3);
+
+  ASSERT_EQ(26, stream.size());
+
+  ASSERT_EQ(0, stream.firstIndexOf("a"));
+  ASSERT_EQ(0, stream.firstIndexOf("abc"));
+  ASSERT_EQ(0, stream.firstIndexOf("abcdefgh"));
+  ASSERT_EQ(0, stream.firstIndexOf("abcdefghijklmnopq"));
+  ASSERT_EQ(0, stream.firstIndexOf("abcdefghijklmnopqrstuvwxyz"));
+
+  ASSERT_EQ(5, stream.firstIndexOf("fg"));
+
+  ASSERT_EQ(6, stream.firstIndexOf("g"));
+  ASSERT_EQ(6, stream.firstIndexOf("gh"));
+  ASSERT_EQ(6, stream.firstIndexOf("ghijklmnopq"));
+  ASSERT_EQ(6, stream.firstIndexOf("ghijklmnopqrstuvwxyz"));
+
+  ASSERT_EQ(14, stream.firstIndexOf("op"));
+
+  ASSERT_EQ(15, stream.firstIndexOf("p"));
+  ASSERT_EQ(15, stream.firstIndexOf("pq"));
+  ASSERT_EQ(15, stream.firstIndexOf("pqrstuvwxyz"));
+
+  ASSERT_EQ(24, stream.firstIndexOf("yz"));
+  ASSERT_EQ(25, stream.firstIndexOf("z"));
+}
+
+TEST(WhenSeveralBuffersAreAdded, FirstIndexOfReturnsTheCorrectIndexOfAStdString) {
+  MemoryStream stream;
+
+  Buffer buffer1("abcdefg");
+  Buffer buffer2("hijklmnop");
+  Buffer buffer3("qrstuvwxyz");
+
+  stream.append(buffer1);
+  stream.append(buffer2);
+  stream.append(buffer3);
+
+  ASSERT_EQ(26, stream.size());
+
+  ASSERT_EQ(0, stream.firstIndexOf(string("a")));
+  ASSERT_EQ(0, stream.firstIndexOf(string("abc")));
+  ASSERT_EQ(0, stream.firstIndexOf(string("abcdefgh")));
+  ASSERT_EQ(0, stream.firstIndexOf(string("abcdefghijklmnopq")));
+  ASSERT_EQ(0, stream.firstIndexOf(string("abcdefghijklmnopqrstuvwxyz")));
+
+  ASSERT_EQ(5, stream.firstIndexOf(string("fg")));
+
+  ASSERT_EQ(6, stream.firstIndexOf(string("g")));
+  ASSERT_EQ(6, stream.firstIndexOf(string("gh")));
+  ASSERT_EQ(6, stream.firstIndexOf(string("ghijklmnopq")));
+  ASSERT_EQ(6, stream.firstIndexOf(string("ghijklmnopqrstuvwxyz")));
+
+  ASSERT_EQ(14, stream.firstIndexOf(string("op")));
+
+  ASSERT_EQ(15, stream.firstIndexOf(string("p")));
+  ASSERT_EQ(15, stream.firstIndexOf(string("pq")));
+  ASSERT_EQ(15, stream.firstIndexOf(string("pqrstuvwxyz")));
+
+  ASSERT_EQ(24, stream.firstIndexOf(string("yz")));
+  ASSERT_EQ(25, stream.firstIndexOf(string("z")));
+}
+
 TEST(WhenSeveralBuffersAreAdded, FirstIndexOfAnyInSetReturnsTheCorrectIndex) {
   MemoryStream stream;
   static constexpr size_t kBufferLength = 4;

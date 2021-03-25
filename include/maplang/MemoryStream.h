@@ -18,6 +18,7 @@
 #define __MAPLANG_MEMORYSTREAM_H__
 
 #include <climits>
+#include <cstring>
 #include <functional>
 #include <istream>
 #include <ostream>
@@ -53,6 +54,28 @@ class MemoryStream final {
       size_t findThisLength,
       size_t startOffset = 0,
       size_t endOffset = SIZE_MAX) const;
+
+  size_t firstIndexOf(
+      const char* findThisString,
+      size_t startOffset = 0,
+      size_t endOffset = SIZE_MAX) {
+    return firstIndexOf(
+        findThisString,
+        strlen(findThisString),
+        startOffset,
+        endOffset);
+  }
+
+  size_t firstIndexOf(
+      const std::string& findThisString,
+      size_t startOffset = 0,
+      size_t endOffset = SIZE_MAX) {
+    return firstIndexOf(
+        findThisString.c_str(),
+        findThisString.length(),
+        startOffset,
+        endOffset);
+  }
 
   size_t firstIndexOfAnyInSet(
       const void* findAnyOfTheseBytes,
@@ -139,11 +162,6 @@ class MemoryStream final {
 
   void findIndex(size_t byteIndex, size_t* bufferIndex, size_t* offsetInBuffer)
       const;
-};
-
-class MemoryIStream final : public std::basic_istream<uint8_t> {
- public:
-  MemoryIStream(const maplang::MemoryStream& stream);
 };
 
 }  // namespace maplang
