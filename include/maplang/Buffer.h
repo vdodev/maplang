@@ -28,6 +28,12 @@ struct Buffer {
   Buffer() {}
   Buffer(std::shared_ptr<uint8_t> data, size_t length)
       : data(data), length(length) {}
+  Buffer(const std::string& str) {
+    data = std::shared_ptr<uint8_t>(new uint8_t[str.length()], std::default_delete<uint8_t[]>());
+    length = str.length();
+
+    str.copy(reinterpret_cast<char*>(data.get()), str.length());
+  }
 
   std::shared_ptr<uint8_t> data;
   size_t length = 0;
