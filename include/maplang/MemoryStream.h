@@ -114,6 +114,8 @@ class MemoryStream final {
   bool equals(const Buffer& buffer, size_t streamOffset = 0) const;
   bool equalsString(const std::string& str, size_t streamOffset = 0) const;
 
+  std::string toString(size_t startIndex = 0, size_t endIndex = SIZE_MAX) const;
+
   using OnFragment =
       std::function<bool(size_t fragmentIndex, MemoryStream&& fragmentStream)>;
   void split(

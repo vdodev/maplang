@@ -102,6 +102,31 @@ TEST(WhenSeveralBuffersAreAddedAndReadIntoARawBuffer, TheStreamDataIsCorrect) {
   }
 }
 
+TEST(WhenSeveralBuffersAreConvertedToAStdString, TheStreamDataIsCorrect) {
+  MemoryStream stream;
+  stream.append(Buffer("a"));
+  stream.append(Buffer("bc"));
+  stream.append(Buffer("defg"));
+
+  string streamString1 = stream.toString();
+  ASSERT_STREQ("abcdefg", streamString1.c_str());
+
+  string streamString2 = stream.toString(1);
+  ASSERT_STREQ("bcdefg", streamString2.c_str());
+
+  string streamString3 = stream.toString(1, 2);
+  ASSERT_STREQ("b", streamString3.c_str());
+
+  string streamString4 = stream.toString(1, 4);
+  ASSERT_STREQ("bcd", streamString4.c_str());
+
+  string streamString5 = stream.toString(2, 4);
+  ASSERT_STREQ("cd", streamString5.c_str());
+
+  string streamString6 = stream.toString(4);
+  ASSERT_STREQ("efg", streamString6.c_str());
+}
+
 TEST(WhenSeveralBuffersAreAddedAndReadIntoABuffer, TheStreamDataIsCorrect) {
   MemoryStream stream;
   static constexpr size_t kBufferLength = 1;

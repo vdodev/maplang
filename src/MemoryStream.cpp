@@ -245,6 +245,23 @@ bool MemoryStream::equalsString(const string& str, size_t streamOffset) const {
   return equals(str.c_str(), str.length(), streamOffset);
 }
 
+std::string MemoryStream::toString(size_t startIndex, size_t endIndex) const {
+  ostringstream stream;
+  size_t readByteCount = 0;
+
+  visitBuffers(
+      startIndex,
+      endIndex,
+      [&readByteCount, &stream](size_t index, Buffer&& buffer) {
+        stream.write(reinterpret_cast<char*>(buffer.data.get()), buffer.length);
+        readByteCount += buffer.length;
+
+        return true;
+      });
+
+  return stream.str();
+}
+
 bool MemoryStream::equals(
     const void* data,
     size_t compareLength,
