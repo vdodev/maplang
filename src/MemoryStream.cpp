@@ -517,9 +517,25 @@ size_t MemoryStream::read(
   size_t readByteCount = 0;
   uint8_t* copyToBufferU8 = reinterpret_cast<uint8_t*>(copyToBuffer);
 
+  size_t actualNumberOfBytesToRead = streamOffset + numberOfBytesToRead > mSize
+                                         ? mSize - streamOffset
+                                         : numberOfBytesToRead;
+
+  if (actualNumberOfBytesToRead > bufferLength) {
+    actualNumberOfBytesToRead = bufferLength;
+  }
+
+  if (mSize - streamOffset > bufferLength) {
+    throw invalid_argument(
+        "Cannot read " + to_string(actualNumberOfBytesToRead) + " at offset "
+        + to_string(streamOffset)
+        + ", which would exceed supplied buffer length "
+        + to_string(bufferLength));
+  }
+
   visitBuffers(
       streamOffset,
-      streamOffset + numberOfBytesToRead,
+      streamOffset + actualNumberOfBytesToRead,
       [&readByteCount, copyToBufferU8](size_t index, Buffer&& buffer) {
         memcpy(
             copyToBufferU8 + readByteCount,
