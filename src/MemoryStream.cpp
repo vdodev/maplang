@@ -311,7 +311,7 @@ void MemoryStream::split(
           separator,
           separatorLength,
           startOffset,
-          mSize - startOffset);
+          mSize);
       if (endOffset == kNotFound) {
         endOffset = mSize;
       }

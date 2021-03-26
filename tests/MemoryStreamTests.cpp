@@ -903,6 +903,7 @@ TEST(WhenSeveralBuffersAreAdded, SplitWorks) {
 
       case 3:
         EXPECT_TRUE(stream.equalsString("spaces."));
+        break;
 
       default:
         ADD_FAILURE() << "Unexpected index " << index;
@@ -956,6 +957,52 @@ TEST(WhenStreamHasLeadingAndTrailingSeparators, SplitWorks) {
 
     return true;
   });
+}
+
+
+TEST(WhenStreamHasLeadingAndTrailingSeparators, SplitIntoStringsWorks) {
+  MemoryStream stream;
+
+  Buffer buffer;
+  char stringToSplit[] = " Split this by spaces. ";
+
+  buffer.data = shared_ptr<uint8_t>(
+      reinterpret_cast<uint8_t*>(stringToSplit),
+      [](uint8_t*) {});
+
+  buffer.length = strlen(stringToSplit);
+  stream.append(buffer);
+
+  const vector<string> strings = stream.splitIntoStrings(' ');
+
+  ASSERT_EQ(6, strings.size());
+  ASSERT_STREQ("", strings[0].c_str());
+  ASSERT_STREQ("Split", strings[1].c_str());
+  ASSERT_STREQ("this", strings[2].c_str());
+  ASSERT_STREQ("by", strings[3].c_str());
+  ASSERT_STREQ("spaces.", strings[4].c_str());
+  ASSERT_STREQ("", strings[5].c_str());
+}
+
+TEST(WhenStreamHasLeadingAndTrailingSeparators, SplitIntoStringsWithMaxTokenCountWorks) {
+  MemoryStream stream;
+
+  Buffer buffer;
+  char stringToSplit[] = " Split this by spaces. ";
+
+  buffer.data = shared_ptr<uint8_t>(
+      reinterpret_cast<uint8_t*>(stringToSplit),
+      [](uint8_t*) {});
+
+  buffer.length = strlen(stringToSplit);
+  stream.append(buffer);
+
+  const vector<string> strings = stream.splitIntoStrings(' ', 3);
+
+  ASSERT_EQ(3, strings.size());
+  ASSERT_STREQ("", strings[0].c_str());
+  ASSERT_STREQ("Split", strings[1].c_str());
+  ASSERT_STREQ("this by spaces. ", strings[2].c_str());
 }
 
 TEST(WhenStreamHasLeadingAndTrailingWhitespace, TrimWorks) {
