@@ -37,8 +37,7 @@ TEST(WhenNoBuffersAreAdded, VisitBuffersDoesntReturnAnyBuffers) {
 TEST(WhenABufferWithASingleByteIsAdded, TheStreamHasOneByte) {
   MemoryStream stream;
   Buffer buffer;
-  buffer.data =
-      shared_ptr<uint8_t>(new uint8_t[1], default_delete<uint8_t[]>());
+  buffer.data = shared_ptr<uint8_t[]>(new uint8_t[1]);
   buffer.length = 1;
   stream.append(buffer);
 
@@ -56,9 +55,7 @@ TEST(WhenSeveralBuffersAreAdded, TheByteCountAndNumberOfBuffersIsCorrect) {
   static constexpr size_t kBufferCount = 4;
   for (size_t i = 0; i < kBufferCount; i++) {
     Buffer buffer;
-    buffer.data = shared_ptr<uint8_t>(
-        new uint8_t[kBufferLength],
-        default_delete<uint8_t[]>());
+    buffer.data = shared_ptr<uint8_t[]>(new uint8_t[kBufferLength]);
     buffer.length = kBufferLength;
     stream.append(buffer);
   }
@@ -81,9 +78,7 @@ TEST(WhenSeveralBuffersAreAddedAndReadIntoARawBuffer, TheStreamDataIsCorrect) {
   static constexpr size_t kBufferCount = 4;
   for (size_t i = 0; i < kBufferCount; i++) {
     Buffer buffer;
-    buffer.data = shared_ptr<uint8_t>(
-        new uint8_t[kBufferLength],
-        default_delete<uint8_t[]>());
+    buffer.data = shared_ptr<uint8_t[]>(new uint8_t[kBufferLength]);
     buffer.data.get()[0] = i;
     buffer.length = kBufferLength;
     stream.append(buffer);
@@ -133,9 +128,7 @@ TEST(WhenSeveralBuffersAreAddedAndReadIntoABuffer, TheStreamDataIsCorrect) {
   static constexpr size_t kBufferCount = 4;
   for (size_t i = 0; i < kBufferCount; i++) {
     Buffer buffer;
-    buffer.data = shared_ptr<uint8_t>(
-        new uint8_t[kBufferLength],
-        default_delete<uint8_t[]>());
+    buffer.data = shared_ptr<uint8_t[]>(new uint8_t[kBufferLength]);
     buffer.data.get()[0] = i;
     buffer.length = kBufferLength;
     stream.append(buffer);
@@ -145,9 +138,7 @@ TEST(WhenSeveralBuffersAreAddedAndReadIntoABuffer, TheStreamDataIsCorrect) {
   ASSERT_EQ(kStreamLength, stream.size());
 
   Buffer outputBuffer;
-  outputBuffer.data = shared_ptr<uint8_t>(
-      new uint8_t[kStreamLength],
-      default_delete<uint8_t[]>());
+  outputBuffer.data = shared_ptr<uint8_t[]>(new uint8_t[kStreamLength]);
   outputBuffer.length = kStreamLength;
   size_t readBytes = stream.read(0, kStreamLength, &outputBuffer);
 
@@ -163,9 +154,7 @@ TEST(WhenSeveralBuffersAreAddedAndReadWithByteAt, ItReturnsTheCorrectValues) {
   static constexpr size_t kBufferCount = 4;
   for (size_t i = 0; i < kBufferCount; i++) {
     Buffer buffer;
-    buffer.data = shared_ptr<uint8_t>(
-        new uint8_t[kBufferLength],
-        default_delete<uint8_t[]>());
+    buffer.data = shared_ptr<uint8_t[]>(new uint8_t[kBufferLength]);
     buffer.data.get()[0] = i;
     buffer.length = kBufferLength;
     stream.append(buffer);
@@ -206,9 +195,7 @@ TEST(WhenSeveralBuffersAreAdded, FirstIndexOfReturnsTheCorrectIndex) {
 
   for (size_t i = 0; i < kBufferCount; i++) {
     Buffer buffer;
-    buffer.data = shared_ptr<uint8_t>(
-        new uint8_t[kBufferLength],
-        default_delete<uint8_t[]>());
+    buffer.data = shared_ptr<uint8_t[]>(new uint8_t[kBufferLength]);
 
     for (size_t j = 0; j < kBufferLength; j++) {
       buffer.data.get()[j] = bufferData[i * kBufferLength + j];
@@ -251,9 +238,7 @@ TEST(WhenSeveralBuffersAreAdded, FirstIndexOfReturnsTheCorrectIndexOfABuffer) {
 
   for (size_t i = 0; i < kBufferCount; i++) {
     Buffer buffer;
-    buffer.data = shared_ptr<uint8_t>(
-        new uint8_t[kBufferLength],
-        default_delete<uint8_t[]>());
+    buffer.data = shared_ptr<uint8_t[]>(new uint8_t[kBufferLength]);
 
     for (size_t j = 0; j < kBufferLength; j++) {
       buffer.data.get()[j] = bufferData[i * kBufferLength + j];
@@ -285,7 +270,7 @@ TEST(WhenSeveralBuffersAreAdded, FirstIndexOfReturnsTheCorrectIndexOfABuffer) {
 }
 
 static Buffer stringToBuffer(const string& str) {
-  const auto rawBuffer = shared_ptr<uint8_t>(new uint8_t[str.length()], default_delete<uint8_t[]>());
+  const auto rawBuffer = shared_ptr<uint8_t[]>(new uint8_t[str.length()]);
   Buffer buffer(rawBuffer, str.length());
 
   str.copy(reinterpret_cast<char*>(rawBuffer.get()), str.length());
@@ -329,7 +314,9 @@ TEST(WhenSeveralBuffersAreAdded, FirstIndexOfReturnsTheCorrectIndexOfACString) {
   ASSERT_EQ(25, stream.firstIndexOf("z"));
 }
 
-TEST(WhenSeveralBuffersAreAdded, FirstIndexOfReturnsTheCorrectIndexOfAStdString) {
+TEST(
+    WhenSeveralBuffersAreAdded,
+    FirstIndexOfReturnsTheCorrectIndexOfAStdString) {
   MemoryStream stream;
 
   Buffer buffer1("abcdefg");
@@ -392,9 +379,7 @@ TEST(WhenSeveralBuffersAreAdded, FirstIndexOfAnyInSetReturnsTheCorrectIndex) {
 
   for (size_t i = 0; i < kBufferCount; i++) {
     Buffer buffer;
-    buffer.data = shared_ptr<uint8_t>(
-        new uint8_t[kBufferLength],
-        default_delete<uint8_t[]>());
+    buffer.data = shared_ptr<uint8_t[]>(new uint8_t[kBufferLength]);
 
     for (size_t j = 0; j < kBufferLength; j++) {
       buffer.data.get()[j] = bufferData[i * kBufferLength + j];
@@ -484,9 +469,7 @@ TEST(WhenSeveralBuffersAreAdded, LastIndexOfAnyInSetReturnsTheCorrectIndex) {
 
   for (size_t i = 0; i < kBufferCount; i++) {
     Buffer buffer;
-    buffer.data = shared_ptr<uint8_t>(
-        new uint8_t[kBufferLength],
-        default_delete<uint8_t[]>());
+    buffer.data = shared_ptr<uint8_t[]>(new uint8_t[kBufferLength]);
 
     for (size_t j = 0; j < kBufferLength; j++) {
       buffer.data.get()[j] = bufferData[i * kBufferLength + j];
@@ -579,9 +562,7 @@ TEST(
 
   for (size_t i = 0; i < kBufferCount; i++) {
     Buffer buffer;
-    buffer.data = shared_ptr<uint8_t>(
-        new uint8_t[kBufferLength],
-        default_delete<uint8_t[]>());
+    buffer.data = shared_ptr<uint8_t[]>(new uint8_t[kBufferLength]);
 
     for (size_t j = 0; j < kBufferLength; j++) {
       buffer.data.get()[j] = bufferData[i * kBufferLength + j];
@@ -688,9 +669,7 @@ TEST(WhenSeveralBuffersAreAdded, LastIndexNotOfAnyInSetReturnsTheCorrectIndex) {
 
   for (size_t i = 0; i < kBufferCount; i++) {
     Buffer buffer;
-    buffer.data = shared_ptr<uint8_t>(
-        new uint8_t[kBufferLength],
-        default_delete<uint8_t[]>());
+    buffer.data = shared_ptr<uint8_t[]>(new uint8_t[kBufferLength]);
 
     for (size_t j = 0; j < kBufferLength; j++) {
       buffer.data.get()[j] = bufferData[i * kBufferLength + j];
@@ -797,9 +776,7 @@ TEST(WhenSeveralBuffersAreAdded, SubstreamsContainTheCorrectBytes) {
 
   for (size_t i = 0; i < kBufferCount; i++) {
     Buffer buffer;
-    buffer.data = shared_ptr<uint8_t>(
-        new uint8_t[kBufferLength],
-        default_delete<uint8_t[]>());
+    buffer.data = shared_ptr<uint8_t[]>(new uint8_t[kBufferLength]);
 
     for (size_t j = 0; j < kBufferLength; j++) {
       buffer.data.get()[j] = bufferData[i * kBufferLength + j];
@@ -851,9 +828,7 @@ TEST(WhenSeveralBuffersAreAdded, EqualsWorks) {
 
   for (size_t i = 0; i < kBufferCount; i++) {
     Buffer buffer;
-    buffer.data = shared_ptr<uint8_t>(
-        new uint8_t[kBufferLength],
-        default_delete<uint8_t[]>());
+    buffer.data = shared_ptr<uint8_t[]>(new uint8_t[kBufferLength]);
 
     for (size_t j = 0; j < kBufferLength; j++) {
       buffer.data.get()[j] = bufferData[i * kBufferLength + j];
@@ -880,7 +855,7 @@ TEST(WhenSeveralBuffersAreAdded, SplitWorks) {
   Buffer buffer;
   char stringToSplit[] = "Split this by spaces.";
 
-  buffer.data = shared_ptr<uint8_t>(
+  buffer.data = shared_ptr<uint8_t[]>(
       reinterpret_cast<uint8_t*>(stringToSplit),
       [](uint8_t*) {});
 
@@ -919,7 +894,7 @@ TEST(WhenStreamHasLeadingAndTrailingSeparators, SplitWorks) {
   Buffer buffer;
   char stringToSplit[] = " Split this by spaces. ";
 
-  buffer.data = shared_ptr<uint8_t>(
+  buffer.data = shared_ptr<uint8_t[]>(
       reinterpret_cast<uint8_t*>(stringToSplit),
       [](uint8_t*) {});
 
@@ -959,14 +934,13 @@ TEST(WhenStreamHasLeadingAndTrailingSeparators, SplitWorks) {
   });
 }
 
-
 TEST(WhenStreamHasLeadingAndTrailingSeparators, SplitIntoStringsWorks) {
   MemoryStream stream;
 
   Buffer buffer;
   char stringToSplit[] = " Split this by spaces. ";
 
-  buffer.data = shared_ptr<uint8_t>(
+  buffer.data = shared_ptr<uint8_t[]>(
       reinterpret_cast<uint8_t*>(stringToSplit),
       [](uint8_t*) {});
 
@@ -984,13 +958,15 @@ TEST(WhenStreamHasLeadingAndTrailingSeparators, SplitIntoStringsWorks) {
   ASSERT_STREQ("", strings[5].c_str());
 }
 
-TEST(WhenStreamHasLeadingAndTrailingSeparators, SplitIntoStringsWithMaxTokenCountWorks) {
+TEST(
+    WhenStreamHasLeadingAndTrailingSeparators,
+    SplitIntoStringsWithMaxTokenCountWorks) {
   MemoryStream stream;
 
   Buffer buffer;
   char stringToSplit[] = " Split this by spaces. ";
 
-  buffer.data = shared_ptr<uint8_t>(
+  buffer.data = shared_ptr<uint8_t[]>(
       reinterpret_cast<uint8_t*>(stringToSplit),
       [](uint8_t*) {});
 
@@ -1011,8 +987,9 @@ TEST(WhenStreamHasLeadingAndTrailingWhitespace, TrimWorks) {
   Buffer buffer;
   char trimMe[] = " trimMe\r\n";
 
-  buffer.data =
-      shared_ptr<uint8_t>(reinterpret_cast<uint8_t*>(trimMe), [](uint8_t*) {});
+  buffer.data = shared_ptr<uint8_t[]>(
+      reinterpret_cast<uint8_t*>(trimMe),
+      [](uint8_t*) {});
 
   buffer.length = strlen(trimMe);
   stream.append(buffer);
@@ -1024,8 +1001,7 @@ TEST(WhenStreamHasLeadingAndTrailingWhitespace, TrimWorks) {
 TEST(WhenCleared, NoDataIsLeft) {
   MemoryStream stream;
   Buffer buffer;
-  buffer.data =
-      shared_ptr<uint8_t>(new uint8_t[1], default_delete<uint8_t[]>());
+  buffer.data = shared_ptr<uint8_t[]>(new uint8_t[1]);
   buffer.length = 1;
   stream.append(buffer);
 

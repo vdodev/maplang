@@ -113,7 +113,7 @@ void HttpRequestExtractor::handlePacket(const Packet& incomingPacket) {
 
       Buffer bodyBuffer;
       bodyBuffer.data =
-          shared_ptr<uint8_t>(incomingPacket.buffers[0].data, body);
+          shared_ptr<uint8_t[]>(incomingPacket.buffers[0].data, body);
 
       const size_t bodyLength = availableBodyLength < contentLength
                                     ? availableBodyLength

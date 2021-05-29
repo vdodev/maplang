@@ -96,9 +96,8 @@ Packet PacketReader::readPacket(const MemoryStream& stream) {
   auto parameterStream = stream.subStream(sizeof(parametersLengthBigEndian));
   Buffer parameterBuffer;
   parameterBuffer.length = parametersLength;
-  parameterBuffer.data = shared_ptr<uint8_t>(
-      new uint8_t[parametersLength + 1],
-      default_delete<uint8_t[]>());
+  parameterBuffer.data =
+      shared_ptr<uint8_t[]>(new uint8_t[parametersLength + 1]);
   parameterStream.read(
       2 * sizeof(uint64_t),
       parametersLength,
@@ -121,9 +120,7 @@ Packet PacketReader::readPacket(const MemoryStream& stream) {
 
     Buffer buffer;
     buffer.length = bufferSize;
-    buffer.data = shared_ptr<uint8_t>(
-        new uint8_t[bufferSize],
-        default_delete<uint8_t[]>());
+    buffer.data = shared_ptr<uint8_t[]>(new uint8_t[bufferSize]);
     size_t bytesRead =
         stream.read(offset, bufferSize, buffer.data.get(), bufferSize);
     if (bytesRead != bufferSize) {

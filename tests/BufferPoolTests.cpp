@@ -25,8 +25,7 @@ static BufferPool::Allocator createAllocator() {
   return [](size_t size) {
     Buffer buffer;
 
-    buffer.data =
-        shared_ptr<uint8_t>(new uint8_t[size], default_delete<uint8_t[]>());
+    buffer.data = shared_ptr<uint8_t[]>(new uint8_t[size]);
     buffer.length = size;
 
     return buffer;

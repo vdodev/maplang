@@ -35,9 +35,7 @@ void HttpResponseWithAddressAsBody::handlePacket(
     address = incomingPacket.parameters[kParameter_RemoteAddress];
   }
 
-  shared_ptr<uint8_t> body = shared_ptr<uint8_t>(
-      new uint8_t[address.length()],
-      default_delete<uint8_t[]>());
+  auto body = shared_ptr<uint8_t[]>(new uint8_t[address.length()]);
 
   address.copy(reinterpret_cast<char*>(body.get()), address.length());
   Packet response;

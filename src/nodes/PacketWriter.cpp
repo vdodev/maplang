@@ -52,9 +52,7 @@ void PacketWriter::handlePacket(const PathablePacket& incomingPathablePacket) {
   }
 
   Buffer buffer;
-  buffer.data = shared_ptr<uint8_t>(
-      new uint8_t[totalLength],
-      default_delete<uint8_t[]>());
+  buffer.data = shared_ptr<uint8_t[]>(new uint8_t[totalLength]);
   buffer.length = totalLength;
 
   uint8_t* writeTo = buffer.data.get();

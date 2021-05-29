@@ -307,11 +307,7 @@ void MemoryStream::split(
     if (fragmentIndex == maxTokens - 1) {
       endOffset = mSize;
     } else {
-      endOffset = firstIndexOf(
-          separator,
-          separatorLength,
-          startOffset,
-          mSize);
+      endOffset = firstIndexOf(separator, separatorLength, startOffset, mSize);
       if (endOffset == kNotFound) {
         endOffset = mSize;
       }
@@ -446,8 +442,9 @@ void MemoryStream::visitBuffers(
     }
 
     Buffer sendBuffer;
-    sendBuffer.data =
-        shared_ptr<uint8_t>(buffer.data, buffer.data.get() + bufferStartOffset);
+    sendBuffer.data = shared_ptr<uint8_t[]>(
+        buffer.data,
+        buffer.data.get() + bufferStartOffset);
     sendBuffer.length = bufferEndOffset - bufferStartOffset;
 
     if (!onBuffer(bufferIndex, move(sendBuffer))) {

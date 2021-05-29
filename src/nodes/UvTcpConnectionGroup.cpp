@@ -650,7 +650,7 @@ class UvTcpImpl final {
 
     Buffer buffer;
     if (buf->base) {
-      buffer.data = shared_ptr<uint8_t>(
+      buffer.data = shared_ptr<uint8_t[]>(
           reinterpret_cast<uint8_t*>(buf->base),
           [this](uint8_t* rawBuffer) { mBufferPool.returnToPool(rawBuffer); });
     }

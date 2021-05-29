@@ -51,7 +51,7 @@ TEST(WhenAnHttpRequestIsProcessed, HeaderFieldsAndBodyAreCorrect) {
   Buffer buffer;
   char bufferContents[] = "GET / HTTP/1.1\r\nheaderKey: headerValue\r\n\r\nHi";
 
-  buffer.data = shared_ptr<uint8_t>(
+  buffer.data = shared_ptr<uint8_t[]>(
       reinterpret_cast<uint8_t*>(bufferContents),
       [](uint8_t*) {});
   buffer.length = strlen(bufferContents);
@@ -61,7 +61,7 @@ TEST(WhenAnHttpRequestIsProcessed, HeaderFieldsAndBodyAreCorrect) {
 
   Buffer bodyOnlyBuffer;
   char bodyOnlyBufferContents[] = ", hello.";
-  bodyOnlyBuffer.data = shared_ptr<uint8_t>(
+  bodyOnlyBuffer.data = shared_ptr<uint8_t[]>(
       reinterpret_cast<uint8_t*>(bodyOnlyBufferContents),
       [](uint8_t*) {});
   bodyOnlyBuffer.length = strlen(bufferContents);
