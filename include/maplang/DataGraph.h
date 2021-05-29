@@ -19,8 +19,8 @@
 
 #include <memory>
 
-#include "maplang/INode.h"
 #include "maplang/ICohesiveGroup.h"
+#include "maplang/INode.h"
 #include "maplang/IUvLoopRunnerFactory.h"
 
 namespace maplang {
@@ -32,7 +32,7 @@ enum class PacketDeliveryType { PushDirectlyToTarget, AlwaysQueue };
 void to_json(nlohmann::json& j, const PacketDeliveryType& packetDelivery);
 void from_json(const nlohmann::json& j, PacketDeliveryType& packetDelivery);
 
-class DataGraph final{
+class DataGraph final {
  public:
   static const std::string kDefaultThreadGroupName;
 

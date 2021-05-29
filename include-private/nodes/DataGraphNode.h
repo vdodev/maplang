@@ -17,8 +17,8 @@
 #ifndef MAPLANG_INCLUDE_MAPLANG_DATAGRAPHNODE_H_
 #define MAPLANG_INCLUDE_MAPLANG_DATAGRAPHNODE_H_
 
-#include "maplang/INode.h"
 #include "maplang/ICohesiveGroup.h"
+#include "maplang/INode.h"
 
 namespace maplang {
 

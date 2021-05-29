@@ -35,7 +35,8 @@ class UvLoopRunner final {
   std::shared_ptr<uv_loop_t> getLoop() const;
 
   void drain();
-  bool waitForExit(const std::optional<std::chrono::milliseconds>& maxWait = {});
+  bool waitForExit(
+      const std::optional<std::chrono::milliseconds>& maxWait = {});
 
   std::thread::id getUvLoopThreadId() const { return mUvLoopThreadId; }
 

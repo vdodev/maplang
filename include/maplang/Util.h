@@ -22,11 +22,11 @@
 namespace maplang {
 
 inline Packet packetWithParameters(nlohmann::json&& parameters) {
-  return Packet{move(parameters), {}};
+  return Packet {move(parameters), {}};
 }
 
 inline Packet packetWithParameters(const nlohmann::json& parameters) {
-  return Packet{parameters, {}};
+  return Packet {parameters, {}};
 }
 
 }  // namespace maplang

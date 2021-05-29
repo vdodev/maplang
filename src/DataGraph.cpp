@@ -544,7 +544,8 @@ void DataGraph::sendPacket(
   const auto sink = toNode->asSink();
   const auto pathable = toNode->asPathable();
   if (!sink && !pathable) {
-    throw runtime_error("Can only call sendPacket() with an ISink or IPathable node.");
+    throw runtime_error(
+        "Can only call sendPacket() with an ISink or IPathable node.");
   }
 
   PushedPacketInfo packetInfo;

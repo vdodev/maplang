@@ -20,10 +20,10 @@
 
 #include "gtest/gtest.h"
 #include "maplang/DataGraph.h"
+#include "maplang/LambdaSink.h"
 #include "maplang/NodeRegistration.h"
 #include "maplang/Util.h"
 #include "nodes/DataGraphNode.h"
-#include "maplang/LambdaSink.h"
 
 using namespace std;
 
