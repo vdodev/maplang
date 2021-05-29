@@ -22,6 +22,7 @@
 #include <condition_variable>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <thread>
 
 namespace maplang {
@@ -29,10 +30,12 @@ namespace maplang {
 class UvLoopRunner final {
  public:
   UvLoopRunner();
+  ~UvLoopRunner();
 
   std::shared_ptr<uv_loop_t> getLoop() const;
 
-  void waitForExit();
+  void drain();
+  bool waitForExit(const std::optional<std::chrono::milliseconds>& maxWait = {});
 
   std::thread::id getUvLoopThreadId() const { return mUvLoopThreadId; }
 

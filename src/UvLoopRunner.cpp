@@ -19,6 +19,8 @@
 #include <stdlib.h>
 #include <uv.h>
 
+#include <atomic>
+#include <iostream>
 #include <string>
 
 using namespace std;
@@ -106,12 +108,33 @@ UvLoopRunner::UvLoopRunner() {
   startedCv.wait(ul, [&started] { return started; });
 }
 
+UvLoopRunner::~UvLoopRunner() {
+  drain();
+  uv_close(reinterpret_cast<uv_handle_t*>(&mUvAsync), nullptr);
+}
+
 shared_ptr<uv_loop_t> UvLoopRunner::getLoop() const { return mUvLoop; }
 
-void UvLoopRunner::waitForExit() {
+void UvLoopRunner::drain() {
+  uv_unref(reinterpret_cast<uv_handle_t*>(&mUvAsync));
+}
+
+bool UvLoopRunner::waitForExit(
+    const std::optional<std::chrono::milliseconds>& maxWait) {
   unique_lock<mutex> l(mMutex);
-  uv_async_send(&mUvAsync);
-  mThreadStopped.wait(l, [this]() { return mStopped; });
+  uv_async_send(
+      &mUvAsync);  // ignore failure (e.g. mUvAsync already destroyed).
+
+  if (mStopped) {
+    return true;
+  }
+
+  if (!maxWait) {
+    mThreadStopped.wait(l, [this]() { return mStopped; });
+    return true;
+  } else {
+    return mThreadStopped.wait_for(l, *maxWait, [this]() { return mStopped; });
+  }
 }
 
 }  // namespace maplang
