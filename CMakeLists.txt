@@ -71,7 +71,9 @@ add_library(maplang
         src/PathablePacket.cpp
         src/BufferPool.cpp
         include/maplang/BufferPool.h
-        include-private/concurrentqueue.h
+        include/maplang/concurrentqueue.h
+        include/maplang/blockingconcurrentqueue.h
+        include/maplang/lightweightsemaphore.h
         src/nodes/ParameterExtractor.cpp
         include-private/nodes/ParameterExtractor.h
         include/maplang/JsonUtil.h
