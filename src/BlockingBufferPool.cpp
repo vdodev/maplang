@@ -18,14 +18,14 @@
 
 #include <stack>
 
-#include "maplang/BlockOnEmptyConcurrentQueue.h"
+#include "blockingconcurrentqueue.h"
 
 using namespace std;
 
 namespace maplang {
 
 struct BlockingBufferPool::Impl final {
-  using QueueType = BlockOnEmptyConcurrentQueue<Buffer>;
+  using QueueType = moodycamel::BlockingConcurrentQueue<Buffer>;
 
   Impl(size_t maxAllocatedBuffers)
       : maxAllocatedBuffers(maxAllocatedBuffers), bufferSize(0),
@@ -78,7 +78,7 @@ Buffer BlockingBufferPool::get(size_t bufferSize) {
     sourceBuffer = mImpl->allocator(mImpl->bufferSize);
     mImpl->totalAllocatedBuffers++;
   } else {
-    mImpl->bufferQueue->pop(sourceBuffer);
+    mImpl->bufferQueue->wait_dequeue(sourceBuffer);
   }
 
   if (bufferSize > sourceBuffer.length) {
@@ -98,7 +98,7 @@ Buffer BlockingBufferPool::get(size_t bufferSize) {
           return;
         }
 
-        bufferQueue->push(origBuffer);
+        bufferQueue->enqueue(origBuffer);
       });
 
   return poolBuffer;
