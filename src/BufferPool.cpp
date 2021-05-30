@@ -18,7 +18,7 @@
 
 #include <stack>
 
-#include "concurrentqueue.h"
+#include "maplang/concurrentqueue.h"
 
 using namespace std;
 

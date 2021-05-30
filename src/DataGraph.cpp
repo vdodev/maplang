@@ -23,11 +23,11 @@
 #include <set>
 #include <unordered_map>
 
-#include "concurrentqueue.h"
 #include "logging.h"
 #include "maplang/ISubgraphContext.h"
 #include "maplang/Util.h"
 #include "maplang/UvLoopRunnerFactory.h"
+#include "maplang/concurrentqueue.h"
 #include "maplang/graph/Graph.h"
 
 using namespace std;

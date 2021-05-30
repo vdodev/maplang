@@ -18,7 +18,7 @@
 
 #include <stack>
 
-#include "blockingconcurrentqueue.h"
+#include "maplang/blockingconcurrentqueue.h"
 
 using namespace std;
 
