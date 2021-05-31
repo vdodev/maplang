@@ -20,6 +20,7 @@ add_executable(
         MemoryStreamTests.cpp
         HttpRequestExtractorTests.cpp
         DataGraphTests.cpp
+        BlockingObjectPoolTests.cpp
         BufferPoolTests.cpp
         ParameterExtractorTests.cpp
         AddParameterTests.cpp
