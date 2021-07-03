@@ -20,7 +20,7 @@
 
 #include "gtest/gtest.h"
 #include "maplang/DataGraph.h"
-#include "maplang/NodeRegistration.h"
+#include "maplang/NodeFactory.h"
 
 using namespace std;
 
@@ -54,20 +54,23 @@ TEST(
 
   size_t receivedPacketCount = 0;
 
-  auto reg = NodeRegistration::defaultRegistration();
+  auto passThroughInitParams = R"({
+        "outputChannel": "Pass-through output channel"
+      })"_json;
 
-  auto source = make_shared<SimpleSource>();
-  auto passThrough = reg->createNode("Pass-through", R"({
-    "outputChannel": "Pass-through output channel"
-  })"_json);
+  graph.setNodeInstance("pass-through", "pass-through instance");
+  graph.setInstanceInitParameters("pass-through instance", passThroughInitParams);
+  graph.setInstanceType("pass-through instance", "Pass-through");
 
   auto lambdaSink = make_shared<LambdaSink>(
       [&receivedPacketCount](const Packet& packet) { receivedPacketCount++; });
 
-  graph.connect(source, testChannel, passThrough);
-  graph.connect(passThrough, "Pass-through output channel", lambdaSink);
+  graph.setNodeInstance("test lambda sink", "test lambda sink instance");
+  graph.setInstanceImplementation("test lambda sink instance", lambdaSink);
 
-  source->sendPacket(Packet(), testChannel);
+  graph.connect("pass-through", "Pass-through output channel", "test lambda sink");
+
+  graph.sendPacket(Packet(), "pass-through");
 
   usleep(100000);
 

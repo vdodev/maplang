@@ -28,8 +28,8 @@ add_library(maplang
         src/nodes/HttpResponseWriter.cpp
         include-private/nodes/UvTcpConnectionGroup.h
         src/nodes/UvTcpConnectionGroup.cpp
-        include/maplang/NodeRegistration.h
-        src/NodeRegistration.cpp
+        include/maplang/NodeFactory.h
+        src/NodeFactory.cpp
         include/maplang/IPathable.h
         include/maplang/IPacketPusher.h
         include-private/nodes/HttpRequestExtractor.h
@@ -38,10 +38,8 @@ add_library(maplang
         include/maplang/MemoryStream.h
         src/nodes/ContextualNode.cpp
         src/MemoryStream.cpp
-        include/maplang/graph/DefaultGraphEdge.h
-        include/maplang/graph/GraphElement.h
-        include/maplang/graph/Graph.h
-        include/maplang/graph/GraphImpl.h
+        include/maplang/Graph.h
+        src/Graph.cpp
         include/maplang/UvLoopRunner.h
         src/UvLoopRunner.cpp
         include/maplang/IUvLoopRunnerFactory.h
@@ -52,8 +50,6 @@ add_library(maplang
         src/nodes/PacketReader.cpp
         src/nodes/VolatileKeyValueSet.cpp
         include-private/nodes/VolatileKeyValueSet.h
-        src/BlueprintBuilder.cpp
-        include/maplang/BlueprintBuilder.h
         include/maplang/Errors.h
         src/Errors.cpp
         src/LibuvUtilities.cpp
@@ -85,10 +81,12 @@ add_library(maplang
         include/maplang/BlockOnEmptyConcurrentQueue.h
         include/maplang/BlockingBufferPool.h
         src/BlockingBufferPool.cpp
-        src/nodes/DataGraphNode.cpp
-        include-private/nodes/DataGraphNode.h
         src/nodes/PassThroughNode.cpp
-        include-private/nodes/PassThroughNode.h)
+        include-private/nodes/PassThroughNode.h
+        src/DotExporter.cpp
+        include/maplang/DotExporter.h
+        src/Instance.cpp
+        include/maplang/Instance.h)
 
 target_include_directories(maplang PUBLIC /usr/local/include)
 target_include_directories(maplang PUBLIC ${PROJECT_SOURCE_DIR}/include)

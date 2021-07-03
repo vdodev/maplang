@@ -16,7 +16,7 @@
 
 #include "PrintBufferAsString.h"
 #include "maplang/DataGraph.h"
-#include "maplang/NodeRegistration.h"
+#include "maplang/NodeFactory.h"
 #include "maplang/UvLoopRunner.h"
 #include "maplang/json.hpp"
 

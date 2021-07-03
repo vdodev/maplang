@@ -16,7 +16,7 @@
 
 #include "HttpResponseWithAddressAsBody.h"
 #include "maplang/DataGraph.h"
-#include "maplang/NodeRegistration.h"
+#include "maplang/NodeFactory.h"
 #include "maplang/json.hpp"
 
 using namespace std;
@@ -24,7 +24,7 @@ using namespace maplang;
 using namespace nlohmann;
 
 static void registerNodes() {
-  auto registration = NodeRegistration::defaultRegistration();
+  auto registration = NodeFactory::defaultRegistration();
 
   registration->registerNodeFactory(
       "HTTP response with address as body",
@@ -36,7 +36,7 @@ static void registerNodes() {
 int main(int argc, char** argv) {
   registerNodes();
 
-  const auto registration = NodeRegistration::defaultRegistration();
+  const auto registration = NodeFactory::defaultRegistration();
   const shared_ptr<INode> tcpServer =
       registration->createNode("TCP Connection", R"(
       {

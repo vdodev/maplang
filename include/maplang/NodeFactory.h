@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __MAPLANG_NODEREGISTRATION_H__
-#define __MAPLANG_NODEREGISTRATION_H__
+#ifndef __MAPLANG_NODEFACTORY_H__
+#define __MAPLANG_NODEFACTORY_H__
 
 #include <memory>
 #include <set>
@@ -26,27 +26,27 @@
 
 namespace maplang {
 
-class NodeRegistration {
+class NodeFactory final {
  public:
-  using NodeFactory = std::function<std::shared_ptr<INode>(
+  using NodeFactoryFunction = std::function<std::shared_ptr<INode>(
       const nlohmann::json& initParameters)>;
 
   using NodeNameVisitor = std::function<void(const std::string& nodeName)>;
 
-  static NodeRegistration* defaultRegistration();
+  static std::shared_ptr<NodeFactory> defaultFactory();
 
-  void registerNodeFactory(const std::string& name, NodeFactory&& factory);
+  void registerNodeFactory(const std::string& name, NodeFactoryFunction&& factory);
 
   std::shared_ptr<INode> createNode(
       const std::string& name,
-      const nlohmann::json& initParameters);
+      const nlohmann::json& initParameters) const;
 
   void visitNodeNames(const NodeNameVisitor& visitor);
 
  private:
-  std::unordered_map<std::string, NodeFactory> mNodeFactoryMap;
+  std::unordered_map<std::string, NodeFactoryFunction> mNodeFactoryFunctionMap;
 };
 
 }  // namespace maplang
 
-#endif  // __MAPLANG_NODEREGISTRATION_H__
+#endif  // __MAPLANG_NODEFACTORY_H__

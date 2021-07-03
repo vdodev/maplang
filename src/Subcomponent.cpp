@@ -14,19 +14,25 @@
  *  limitations under the License.
  */
 
-#ifndef __MAPLANG_BLUEPRINT_BUILDER_H__
-#define __MAPLANG_BLUEPRINT_BUILDER_H__
+#include "nodes/Subcomponent.h"
 
-#include "maplang/DataGraph.h"
-#include "maplang/json.hpp"
+using namespace nlohmann;
+using namespace std;
 
 namespace maplang {
 
-class BlueprintBuilder final {
- public:
-  void build(DataGraph* graph, const nlohmann::json& blueprint);
-};
+const string Subcomponent::kInputParam_Definition = "definition";
+const string Subcomponent::kInputParam_Implementation = "implementation";
+
+Subcomponent::Subcomponent(const json& initParameters) {
+  const json& definition = initParameters[kInputParam_Definition];
+  const json& implementation = initParameters[kInputParam_Implementation];
+
+  const json& inputs = definition["inputs"];
+  const json& outputChannels = definition["outputChannels"];
+
+  for (auto inputIt = inputs.begin(); inputIt != inputs.end(); inputIt++) {
+  }
+}
 
 }  // namespace maplang
-
-#endif  //__MAPLANG_BLUEPRINT_BUILDER_H__

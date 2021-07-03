@@ -19,7 +19,7 @@
 #include <sstream>
 
 #include "logging.h"
-#include "maplang/NodeRegistration.h"
+#include "maplang/NodeFactory.h"
 
 using namespace std;
 using namespace nlohmann;
@@ -226,17 +226,6 @@ class SingleNodeRouter : public INode,
 
   shared_ptr<uv_loop_t> getUvLoop() const override {
     return mOriginalSubgraphContext->getUvLoop();
-  }
-
-  void removeFromGraph(INode* node) override {
-    auto it = mReverseNodeLookup.find(node);
-    if (it == mReverseNodeLookup.end()) {
-      return;
-    }
-
-    const string& key = it->second;
-    mNodes.erase(key);
-    mReverseNodeLookup.erase(it);
   }
 
   IPathable* asPathable() override { return mThisAsPathable; }
@@ -474,7 +463,7 @@ ContextualNode::Impl::Impl(const json& initParameters)
 ContextualNode::Impl::~Impl() {}
 
 void ContextualNode::Impl::initialize() {
-  const auto templateNode = NodeRegistration::defaultRegistration()->createNode(
+  const auto templateNode = NodeFactory::defaultFactory()->createNode(
       mNodeImplementation,
       mInitParameters);
   mContextRouter = createContextRouter(shared_from_this(), templateNode, mKey);
@@ -486,7 +475,7 @@ void ContextualNode::Impl::initialize() {
 
 void ContextualNode::Impl::createNewInstance(
     const string& forNewContextLookup) {
-  const auto newInstance = NodeRegistration::defaultRegistration()->createNode(
+  const auto newInstance = NodeFactory::defaultFactory()->createNode(
       mNodeImplementation,
       mInitParameters);
   mContextRouter->addNode(forNewContextLookup, newInstance);
