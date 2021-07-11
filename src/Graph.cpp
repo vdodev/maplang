@@ -175,7 +175,7 @@ void GraphElement::cleanUpEmptyEdges() {
     auto currIt = it;
     it++;
 
-    auto& channelEdges = it->second;
+    auto& channelEdges = currIt->second;
     if (channelEdges.empty()) {
       forwardEdges.erase(currIt);
     }

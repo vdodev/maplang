@@ -197,8 +197,11 @@ class GraphPacketPusher : public IPacketPusher {
           nextNodesThreadGroup->sendPacketToNode(
               nextElement,
               packetWithAccumulatedParameters);
-        } else if(queuedToThreadGroupIds.find(nextNodesThreadId) == queuedToThreadGroupIds.end()) {
-          // Only dispatch once per thread group because the ThreadGroup will send across all connections that should be run on it.
+        } else if (
+            queuedToThreadGroupIds.find(nextNodesThreadId)
+            == queuedToThreadGroupIds.end()) {
+          // Only dispatch once per thread group because the ThreadGroup will
+          // send across all connections that should be run on it.
           asyncThreadGroupPacketPairs.emplace_back(
               nextNodesThreadGroup,
               packetWithAccumulatedParameters);
@@ -553,7 +556,7 @@ void DataGraph::setInstanceType(
     ostringstream errorStream;
     errorStream << "Error instantiating Instance '" << instanceName
                 << "' type '" << typeName << "' initParameters " << setw(2)
-                << instance->getInitParameters();
+                << instance->getInitParameters() << ": " << e.what();
 
     const string errorString = errorStream.str();
     loge("%s\n", errorString.c_str());
@@ -569,6 +572,42 @@ void DataGraph::setInstanceImplementation(
     const std::shared_ptr<INode>& implementation) {
   const shared_ptr<Instance> instance = impl->getOrCreateInstance(instanceName);
   instance->setImplementation(implementation);
+}
+
+void DataGraph::setInstanceImplementationToGroupInterface(
+    const std::string& instanceName,
+    const std::string& groupInstanceName,
+    const std::string& groupInterfaceName) {
+  const auto groupInstanceIt = impl->mInstances.find(groupInstanceName);
+
+  if (groupInstanceIt == impl->mInstances.end()) {
+    throw runtime_error(
+        "Group Instance Name '" + groupInstanceName
+        + "' does not exist. Error while attempting to set Instance '"
+        + instanceName + "' implementation to the group's '"
+        + groupInterfaceName + "' interface.");
+  }
+
+  shared_ptr<Instance> groupInstance = groupInstanceIt->second;
+  ICohesiveGroup* group = groupInstance->getImplementation()->asGroup();
+  if (group == nullptr) {
+    throw runtime_error(
+        "Implementation of '" + groupInstanceName
+        + "' is not a group. Error while attempting to set Instance '"
+        + instanceName + "' implementation to the group's '"
+        + groupInterfaceName + "' interface.");
+  }
+
+  shared_ptr<INode> groupInterfaceNode = group->getNode(groupInterfaceName);
+  if (groupInterfaceNode == nullptr) {
+    throw runtime_error(
+        "Group implementation for '" + groupInstanceName
+        + "' does not contain interface '" + groupInterfaceName
+        + "'. Error while attempting to set Instance '" + instanceName + ".");
+  }
+
+  const shared_ptr<Instance> instance = impl->getOrCreateInstance(instanceName);
+  instance->setImplementation(groupInterfaceNode);
 }
 
 shared_ptr<Instance> DataGraphImpl::getOrCreateInstance(
@@ -626,7 +665,8 @@ void DataGraphImpl::validateConnections(
       && implementation->asSource() == nullptr
       && implementation->asPathable() == nullptr) {
     !graphElement->forwardEdges.begin()->second.empty();
-    vector<GraphEdge>& channelEdges = graphElement->forwardEdges.begin()->second;
+    vector<GraphEdge>& channelEdges =
+        graphElement->forwardEdges.begin()->second;
     const GraphEdge& firstEdge = channelEdges[0];
 
     ostringstream errorStream;

@@ -49,6 +49,7 @@ void Instance::setType(
 
 void Instance::setImplementation(const shared_ptr<INode>& implementation) {
   mImplementation = implementation;
+  implementation->setSubgraphContext(mSubgraphContext);
 
   const auto source = mImplementation->asSource();
   const auto packetPusherForISources = mPacketPusherForISources.lock();

@@ -24,9 +24,9 @@ using namespace maplang;
 using namespace nlohmann;
 
 static void registerNodes() {
-  auto registration = NodeFactory::defaultRegistration();
+  auto nodeFactory = NodeFactory::defaultFactory();
 
-  registration->registerNodeFactory(
+  nodeFactory->registerNodeFactory(
       "HTTP response with address as body",
       [](const json& initParameters) {
         return make_shared<HttpResponseWithAddressAsBody>();
@@ -36,50 +36,54 @@ static void registerNodes() {
 int main(int argc, char** argv) {
   registerNodes();
 
-  const auto registration = NodeFactory::defaultRegistration();
-  const shared_ptr<INode> tcpServer =
-      registration->createNode("TCP Connection", R"(
+  DataGraph graph;
+
+  graph.connect("Setup TCP Listener", "initialized", "Start TCP Listen");
+  graph.connect("TCP Server", "Data Received", "HTTP Request Extractor");
+  graph.connect("HTTP Request Extractor", "New Request", "Create HTTP Response With Remote Address as Body");
+  graph.connect("Create HTTP Response With Remote Address as Body", "On Response", "HTTP Response Writer");
+  graph.connect("HTTP Response Writer", "Http Data", "TCP Send");
+  graph.connect("TCP Server", "Connection Closed", "Remove Connection From HTTP Extractor");
+
+  graph.setNodeInstance("TCP Server", "TCP Server Instance");
+  graph.setInstanceInitParameters("TCP Server Instance", R"(
       {
             "disableNaglesAlgorithm": true
       })"_json);
+  graph.setInstanceType("TCP Server Instance", "TCP Server");
 
-  const auto tcpSend = tcpServer->asGroup()->getNode("Sender");
-  const auto httpRequestExtractor = registration->createNode(
-      "Contextual Node",
-      R"(
+  graph.setNodeInstance("Start TCP Listen", "Start TCP Listen Instance");
+  graph.setInstanceImplementationToGroupInterface("Start TCP Listen Instance", "TCP Server Instance", "Listener");
+
+  graph.setNodeInstance("HTTP Request Extractor Router", "HTTP Request Extractor Router Instance");
+  graph.setInstanceInitParameters("HTTP Request Extractor Router Instance", R"(
         {
           "nodeImplementation": "HTTP Request Extractor",
           "key": "TcpConnectionId"
         })"_json);
-  const auto httpResponseWriter =
-      registration->createNode("HTTP Response Writer", nullptr);
-  const auto httpResponseWithAddressAsBody =
-      registration->createNode("HTTP response with address as body", nullptr);
-  const auto tcpReceive = tcpServer->asGroup()->getNode("Receiver");
-  const auto tcpListen = tcpServer->asGroup()->getNode("Listener");
-  const auto tcpDisconnector = tcpServer->asGroup()->getNode("Disconnector");
-  const auto setupListen =
-      registration->createNode("Send Once", R"({ "Port": 8080 })"_json);
+  graph.setInstanceType("HTTP Request Extractor Router Instance", "Contextual");
 
-  DataGraph graph;
+  graph.setNodeInstance("HTTP Request Extractor", "HTTP Request Extractor Instance");
+  graph.setInstanceImplementationToGroupInterface("HTTP Request Extractor Instance", "HTTP Request Extractor Router Instance", "Context Router");
 
-  graph.connect(httpResponseWriter, "Http Data", tcpSend);
-  graph.connect(
-      httpResponseWithAddressAsBody,
-      "On Response",
-      httpResponseWriter);
-  const auto httpRequestExtractorContextRouter =
-      httpRequestExtractor->asGroup()->getNode("Context Router");
-  graph.connect(
-      httpRequestExtractorContextRouter,
-      "New Request",
-      httpResponseWithAddressAsBody);
-  graph.connect(tcpReceive, "Data Received", httpRequestExtractorContextRouter);
-  graph.connect(
-      tcpDisconnector,
-      "Connection Closed",
-      httpRequestExtractor->asGroup()->getNode("Context Remover"));
-  graph.connect(setupListen, "initialized", tcpListen);
+  graph.setNodeInstance("Create HTTP Response With Remote Address as Body", "Create HTTP Response Instance");
+  graph.setInstanceType("Create HTTP Response Instance", "HTTP response with address as body");
+
+  graph.setNodeInstance("HTTP Response Writer", "HTTP Response Writer Instance");
+  graph.setInstanceType("HTTP Response Writer Instance", "HTTP Response Writer");
+
+  graph.setNodeInstance("TCP Send", "TCP Send Instance");
+  graph.setInstanceImplementationToGroupInterface("TCP Send Instance", "TCP Server Instance", "Sender");
+
+  graph.setNodeInstance("Remove Connection From HTTP Extractor", "Remove Connection From HTTP Extractor Instance");
+  graph.setInstanceImplementationToGroupInterface("Remove Connection From HTTP Extractor Instance", "HTTP Request Extractor Router Instance", "Context Remover");
+
+  //The Send-Once Setup TCP Listener comes last becase it kicks of everything and sends a Packet as soon as it is created.
+  graph.setNodeInstance("Setup TCP Listener", "Setup TCP Listener Instance");
+  graph.setInstanceInitParameters("Setup TCP Listener Instance", R"({ "Port": 8080 })"_json);
+  graph.setInstanceType("Setup TCP Listener Instance", "Send Once");
+
+  graph.validateConnections();
 
   while (true) {
     this_thread::sleep_for(std::chrono::seconds(1));

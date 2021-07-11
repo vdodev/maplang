@@ -25,7 +25,7 @@ namespace maplang {
 
 class UvTcpImpl;
 
-class UvTcpConnectionGroup : public ICohesiveGroup, public INode {
+class UvTcpConnectionGroup : public ICohesiveGroup, public INode, public ISource {
  public:
   UvTcpConnectionGroup();
   ~UvTcpConnectionGroup() override = default;
@@ -37,8 +37,11 @@ class UvTcpConnectionGroup : public ICohesiveGroup, public INode {
 
   IPathable* asPathable() override { return nullptr; }
   ISink* asSink() override { return nullptr; }
-  ISource* asSource() override { return nullptr; }
+  ISource* asSource() override { return this; }
   ICohesiveGroup* asGroup() override { return this; }
+
+  void setPacketPusher(
+      const std::shared_ptr<IPacketPusher>& pusher) override;
 
  private:
   const std::shared_ptr<UvTcpImpl> mImpl;

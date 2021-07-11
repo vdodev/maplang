@@ -58,13 +58,13 @@ static void registerNodes(const shared_ptr<NodeFactory>& factory) {
       });
 
   factory->registerNodeFactory(
-      "Contextual Node",
+      "Contextual",
       [](const nlohmann::json& initParameters) {
         return make_shared<ContextualNode>(initParameters);
       });
 
   factory->registerNodeFactory(
-      "TCP Connection",
+      "TCP Server",
       [](const nlohmann::json& initParameters) {
         return make_shared<UvTcpConnectionGroup>();
       });

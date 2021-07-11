@@ -20,11 +20,11 @@
 #include <memory>
 #include <unordered_map>
 
+#include "maplang/Graph.h"
 #include "maplang/ICohesiveGroup.h"
 #include "maplang/INode.h"
 #include "maplang/IUvLoopRunnerFactory.h"
 #include "maplang/NodeFactory.h"
-#include "maplang/Graph.h"
 
 namespace maplang {
 
@@ -58,16 +58,13 @@ class DataGraph final {
       const std::string& fromChannel,
       const std::string& toNodeName);
 
-  void sendPacket(
-      const Packet& packet,
-      const std::string& toNodeName);
+  void sendPacket(const Packet& packet, const std::string& toNodeName);
 
   void setThreadGroupForInstance(
       const std::string& instanceName,
       const std::string& threadGroup);
 
   void validateConnections() const;
-
 
   /**
    * An instance is an instantiated INode. It doesn't have a concept of
@@ -99,6 +96,11 @@ class DataGraph final {
   void setInstanceImplementation(
       const std::string& instanceName,
       const std::shared_ptr<INode>& implementation);
+
+  void setInstanceImplementationToGroupInterface(
+      const std::string& instanceName,
+      const std::string& groupInstanceName,
+      const std::string& groupInterfaceName);
 
   void setNodeFactory(const std::shared_ptr<NodeFactory>& factory);
 
