@@ -49,6 +49,28 @@ TEST(WhenABufferWithASingleByteIsAdded, TheStreamHasOneByte) {
   });
 }
 
+TEST(WhenAFewBytesAreReadFromEarlyInALargerBuffer, ItReadsTheBytesCorrectly) {
+  MemoryStream stream;
+  Buffer buffer;
+  static constexpr size_t kBufferSize = 27;
+  buffer.data = shared_ptr<uint8_t[]>(new uint8_t[kBufferSize]);
+  buffer.length = kBufferSize;
+  stream.append(buffer);
+
+  for (size_t i = 0; i < kBufferSize; i++) {
+    buffer.data[i] = static_cast<uint8_t>(i);
+  }
+
+  static constexpr size_t kReadBytes = 4;
+  uint8_t readBuffer[kReadBytes] = {0};
+  static constexpr size_t kReadFromOffset = 4;
+  stream.read(kReadFromOffset, kReadBytes, readBuffer, kReadBytes);
+
+  for (size_t i = 0; i < kReadBytes; i++) {
+    EXPECT_EQ(static_cast<uint8_t>(i + kReadFromOffset), readBuffer[i]);
+  }
+}
+
 TEST(WhenSeveralBuffersAreAdded, TheByteCountAndNumberOfBuffersIsCorrect) {
   MemoryStream stream;
   static constexpr size_t kBufferLength = 100;

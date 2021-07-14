@@ -522,7 +522,7 @@ size_t MemoryStream::read(
     actualNumberOfBytesToRead = bufferLength;
   }
 
-  if (mSize - streamOffset > bufferLength) {
+  if (actualNumberOfBytesToRead > bufferLength) {
     throw invalid_argument(
         "Cannot read " + to_string(actualNumberOfBytesToRead) + " at offset "
         + to_string(streamOffset)
