@@ -361,11 +361,7 @@ class UvTcpImpl final {
   void listen(const Packet& packet) {
     const bool alreadyListening = !mListeningAddressPortPair.empty();
     if (alreadyListening) {
-      sendUvErrorPacket(
-          "Already listening.",
-          EINVAL,
-          "",
-          mPacketPusher);
+      sendUvErrorPacket("Already listening.", EINVAL, "", mPacketPusher);
       return;
     }
 
@@ -466,9 +462,7 @@ class UvTcpImpl final {
     Packet listenSuccessPacket;
     listenSuccessPacket.parameters[kParameter_LocalPort] = boundPort;
     listenSuccessPacket.parameters[kParameter_LocalAddress] = boundAddress;
-    mPacketPusher->pushPacket(
-        move(listenSuccessPacket),
-        kChannel_Listening);
+    mPacketPusher->pushPacket(move(listenSuccessPacket), kChannel_Listening);
 
     printf("Listening on port %s:%hu\n", boundAddress.c_str(), boundPort);
   }
@@ -678,9 +672,7 @@ class UvTcpImpl final {
     buffer.length = nread;
     dataReceivedPacket.buffers.push_back(move(buffer));
 
-    mPacketPusher->pushPacket(
-        move(dataReceivedPacket),
-        kChannel_DataReceived);
+    mPacketPusher->pushPacket(move(dataReceivedPacket), kChannel_DataReceived);
   }
 
   void sendData(const Packet& packet) {
@@ -851,9 +843,7 @@ class UvTcpImpl final {
     Packet closedPacket;
     setConnectionParameters(connection, &closedPacket.parameters);
     closedPacket.parameters[kParameter_ClosedReason] = connection.closedReason;
-    mPacketPusher->pushPacket(
-        move(closedPacket),
-        kChannel_ConnectionClosed);
+    mPacketPusher->pushPacket(move(closedPacket), kChannel_ConnectionClosed);
   }
 
   static void onSenderShutdownWrapper(uv_shutdown_t* shutdown, int status) {

@@ -131,11 +131,7 @@ TEST(WhenAPacketIsSentUsingAsyncQueueing, ItArrives) {
         receivedPacketCount++;
       });
 
-  graph.connect(
-      "source",
-      testChannel,
-      "sink",
-      PacketDeliveryType::AlwaysQueue);
+  graph.connect("source", testChannel, "sink", PacketDeliveryType::AlwaysQueue);
 
   graph.setNodeInstance("source", "source-instance");
   graph.setNodeInstance("sink", "sink-instance");

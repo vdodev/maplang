@@ -35,7 +35,9 @@ class NodeFactory final {
 
   static std::shared_ptr<NodeFactory> defaultFactory();
 
-  void registerNodeFactory(const std::string& name, NodeFactoryFunction&& factory);
+  void registerNodeFactory(
+      const std::string& name,
+      NodeFactoryFunction&& factory);
 
   std::shared_ptr<INode> createNode(
       const std::string& name,

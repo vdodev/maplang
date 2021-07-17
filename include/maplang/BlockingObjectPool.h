@@ -50,8 +50,7 @@ class BlockingObjectPool final {
 
 template <class T>
 BlockingObjectPool<T>::BlockingObjectPool(size_t objectsInPool)
-    : maxAllocatedObjects_(objectsInPool),
-      totalAllocatedObjects_(0) {}
+    : maxAllocatedObjects_(objectsInPool), totalAllocatedObjects_(0) {}
 
 template <class T>
 void BlockingObjectPool<T>::setAllocator(Allocator&& allocator) {

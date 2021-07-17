@@ -65,7 +65,8 @@ GraphEdge& Graph::connect(
   const shared_ptr<GraphElement> toElement =
       getOrCreateGraphElement(toElementName);
 
-  std::vector<GraphEdge>& channelEdges = fromElement->forwardEdges.try_emplace(fromChannel).first->second;
+  std::vector<GraphEdge>& channelEdges =
+      fromElement->forwardEdges.try_emplace(fromChannel).first->second;
   for (auto& edge : channelEdges) {
     if (edge.next == toElement) {
       return edge;

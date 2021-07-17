@@ -20,24 +20,24 @@
 
 namespace maplang {
 
-std::string DotExporter::ExportGraph(DataGraph* graph, const std::string& graphName) {
+std::string DotExporter::ExportGraph(
+    DataGraph* graph,
+    const std::string& graphName) {
   std::vector<std::shared_ptr<GraphElement>> elements;
 
   std::ostringstream out;
-  std::unordered_map<std::shared_ptr<GraphElement>, std::string>
-      nodeToNameMap;
+  std::unordered_map<std::shared_ptr<GraphElement>, std::string> nodeToNameMap;
 
   size_t nodeIndex = 0;
-  graph->visitGraphElements(
-      [&nodeToNameMap, &nodeIndex, &out](
-          const std::shared_ptr<GraphElement>& element) {
-        nodeToNameMap[element] = element->elementName;
-        nodeIndex++;
+  graph->visitGraphElements([&nodeToNameMap, &nodeIndex, &out](
+                                const std::shared_ptr<GraphElement>& element) {
+    nodeToNameMap[element] = element->elementName;
+    nodeIndex++;
 
-        //out << "    <node id=\"" << elementName << "\"/>\n";
-      });
+    // out << "    <node id=\"" << elementName << "\"/>\n";
+  });
 
-  //out << std::endl;
+  // out << std::endl;
 
   out << "digraph " << graphName << " {" << std::endl;
   for (const auto& elementNamePair : nodeToNameMap) {

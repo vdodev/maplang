@@ -59,7 +59,9 @@ TEST(
       })"_json;
 
   graph.setNodeInstance("pass-through", "pass-through instance");
-  graph.setInstanceInitParameters("pass-through instance", passThroughInitParams);
+  graph.setInstanceInitParameters(
+      "pass-through instance",
+      passThroughInitParams);
   graph.setInstanceType("pass-through instance", "Pass-through");
 
   auto lambdaSink = make_shared<LambdaSink>(
@@ -68,7 +70,10 @@ TEST(
   graph.setNodeInstance("test lambda sink", "test lambda sink instance");
   graph.setInstanceImplementation("test lambda sink instance", lambdaSink);
 
-  graph.connect("pass-through", "Pass-through output channel", "test lambda sink");
+  graph.connect(
+      "pass-through",
+      "Pass-through output channel",
+      "test lambda sink");
 
   graph.sendPacket(Packet(), "pass-through");
 

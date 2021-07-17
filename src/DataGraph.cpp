@@ -306,8 +306,6 @@ void ThreadGroup::packetReady() {
       break;
     }
 
-    logi("Dequeued async packet");
-
     processedPacketCount += dequeuedPacketCount;
 
     for (size_t i = 0; i < dequeuedPacketCount; i++) {

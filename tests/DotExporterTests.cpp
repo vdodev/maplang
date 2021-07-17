@@ -26,9 +26,7 @@ using namespace std;
 
 namespace maplang {
 
-TEST(
-    WhenSomeNodesAreConnected,
-    TheyAppearInDotML) {
+TEST(WhenSomeNodesAreConnected, TheyAppearInDotML) {
   DataGraph graph;
 
   graph.connect("Node 1", "onNode1Output", "Node 2");

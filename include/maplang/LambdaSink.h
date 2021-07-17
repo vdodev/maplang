@@ -29,7 +29,10 @@ class LambdaSink : public INode, public ISink {
   LambdaSink(std::function<void(const Packet& packet)>&& onPacket)
       : mOnPacket(move(onPacket)) {}
 
-  void handlePacket(const Packet& packet) override { std::cout << "Lambda sink got a packet" << std::endl; mOnPacket(packet); }
+  void handlePacket(const Packet& packet) override {
+    std::cout << "Lambda sink got a packet" << std::endl;
+    mOnPacket(packet);
+  }
 
   IPathable* asPathable() override { return nullptr; }
   ISink* asSink() override { return this; }

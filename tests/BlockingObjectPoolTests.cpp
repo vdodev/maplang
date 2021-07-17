@@ -21,9 +21,7 @@ using namespace maplang;
 using namespace std;
 
 static BlockingObjectPool<string>::Allocator createAllocator() {
-  return []() {
-    return make_shared<string>("hello");
-  };
+  return []() { return make_shared<string>("hello"); };
 }
 
 TEST(WhenAStringIsRequested, ItReturnsOne) {
@@ -46,9 +44,7 @@ TEST(WhenTwoStringsAreRequestedFromAPoolOfSize1, ItReturnsTheSameOne) {
   ASSERT_NE(nullptr, str);
   ASSERT_STREQ(str->c_str(), "hello");
 
-  thread t([&str]() {
-    str.reset();
-  });
+  thread t([&str]() { str.reset(); });
   t.detach();
 
   const auto str2 = pool.get();

@@ -23,7 +23,9 @@ namespace maplang {
 
 class DotExporter final {
  public:
-  static std::string ExportGraph(DataGraph* graph, const std::string& graphName);
+  static std::string ExportGraph(
+      DataGraph* graph,
+      const std::string& graphName);
 };
 
 }  // namespace maplang
