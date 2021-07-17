@@ -31,8 +31,7 @@ std::string DotExporter::ExportGraph(DataGraph* graph, const std::string& graphN
   graph->visitGraphElements(
       [&nodeToNameMap, &nodeIndex, &out](
           const std::shared_ptr<GraphElement>& element) {
-        const std::string elementName = "element" + std::to_string(nodeIndex);
-        nodeToNameMap[element] = elementName;
+        nodeToNameMap[element] = element->elementName;
         nodeIndex++;
 
         //out << "    <node id=\"" << elementName << "\"/>\n";
@@ -52,7 +51,7 @@ std::string DotExporter::ExportGraph(DataGraph* graph, const std::string& graphN
       for (const auto& edge : channelEdges) {
         const auto otherElementName = nodeToNameMap[edge.next];
 
-        out << "    " << name << " -> " << otherElementName;
+        out << "    \"" << name << "\" -> \"" << otherElementName << "\"";
 
         if (!edge.channel.empty()) {
           out << " [label=\"" << edge.channel << "\"]";

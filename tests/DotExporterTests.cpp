@@ -39,15 +39,13 @@ TEST(
 
   cout << dot << endl;
 
-  ASSERT_NE(string::npos, dot.find("element0"));
-  ASSERT_NE(string::npos, dot.find("element1"));
-  ASSERT_NE(string::npos, dot.find("element2"));
+  ASSERT_NE(string::npos, dot.find("\"Node 1\" -> \"Node 2\""));
+  ASSERT_NE(string::npos, dot.find("\"Node 1\" -> \"Node 3\""));
+  ASSERT_NE(string::npos, dot.find("\"Node 2\" -> \"Node 3\""));
 
   ASSERT_NE(string::npos, dot.find("onNode1Output"));
   ASSERT_NE(string::npos, dot.find("onNode1ProducedSomethingElse"));
   ASSERT_NE(string::npos, dot.find("onNode2Output"));
-
-  ASSERT_EQ(string::npos, dot.find("element3"));
 }
 
 }  // namespace maplang
