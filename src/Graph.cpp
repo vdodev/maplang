@@ -25,107 +25,99 @@ using namespace nlohmann;
 
 namespace maplang {
 
-void Graph::visitGraphElements(const GraphElementVisitor& visitor) const {
-  list<shared_ptr<GraphElement>> elementList;
-  for (const auto& elementMapPair : mNameToElementMap) {
-    const auto& graphElement = elementMapPair.second;
-    visitor(graphElement);
+void Graph::visitNodes(const NodeVisitor& visitor) const {
+  list<shared_ptr<GraphNode>> nodeList;
+  for (const auto& nodeMapPair : mNameToNodeMap) {
+    const auto& node = nodeMapPair.second;
+    visitor(node);
   }
 }
 
-void Graph::visitGraphElementsHeadsLast(
-    const GraphElementVisitor& visitor) const {
-  queue<shared_ptr<GraphElement>> toProcess;
-  queue<shared_ptr<GraphElement>> heads;
+void Graph::visitNodesHeadsLast(const NodeVisitor& visitor) const {
+  queue<shared_ptr<GraphNode>> toProcess;
+  queue<shared_ptr<GraphNode>> heads;
 
-  visitGraphElements(
-      [&heads, &visitor](const shared_ptr<GraphElement>& graphElement) {
-        if (graphElement->backEdges.empty()) {
-          heads.push(graphElement);
-          return;
-        }
+  visitNodes([&heads, &visitor](const shared_ptr<GraphNode>& node) {
+    if (node->backEdges.empty()) {
+      heads.push(node);
+      return;
+    }
 
-        visitor(graphElement);
-      });
+    visitor(node);
+  });
 
   while (!heads.empty()) {
-    const auto pathableElement = move(heads.front());
+    const auto node = move(heads.front());
     heads.pop();
-    visitor(pathableElement);
+    visitor(node);
   }
 }
 
 GraphEdge& Graph::connect(
-    const string& fromElementName,
+    const string& fromNodeName,
     const string& fromChannel,
-    const string& toElementName) {
-  const shared_ptr<GraphElement> fromElement =
-      getOrCreateGraphElement(fromElementName);
-
-  const shared_ptr<GraphElement> toElement =
-      getOrCreateGraphElement(toElementName);
-
+    const string& toNodeName) {
+  const shared_ptr<GraphNode> fromNode = *getNode(fromNodeName);
+  const shared_ptr<GraphNode> toNode = *getNode(toNodeName);
   std::vector<GraphEdge>& channelEdges =
-      fromElement->forwardEdges.try_emplace(fromChannel).first->second;
+      fromNode->forwardEdges.try_emplace(fromChannel).first->second;
   for (auto& edge : channelEdges) {
-    if (edge.next == toElement) {
+    if (edge.next == toNode) {
       return edge;
     }
   }
 
   GraphEdge edge;
-  edge.next = toElement;
+  edge.next = toNode;
   edge.channel = fromChannel;
 
   channelEdges.emplace_back(move(edge));
 
   bool haveBackEdgeAlready = false;
-  for (auto it = toElement->backEdges.begin();
-       it != toElement->backEdges.end();) {
+  for (auto it = toNode->backEdges.begin(); it != toNode->backEdges.end();) {
     auto oldIt = it;
     it++;
 
     const auto strongBackEdge = oldIt->lock();
     if (strongBackEdge == nullptr) {
-      toElement->backEdges.erase(oldIt);
-    } else if (strongBackEdge == fromElement) {
+      toNode->backEdges.erase(oldIt);
+    } else if (strongBackEdge == fromNode) {
       haveBackEdgeAlready = true;
     }
   }
 
   if (!haveBackEdgeAlready) {
-    toElement->backEdges.push_back(fromElement);
+    toNode->backEdges.push_back(fromNode);
   }
 
   return *channelEdges.rbegin();
 }
 
 void Graph::disconnect(
-    const string& fromElementName,
+    const string& fromNodeName,
     const string& fromChannel,
-    const string& toElementName) {
-  if (!hasElement(fromElementName) || !hasElement(fromElementName)) {
+    const string& toNodeName) {
+  if (!hasNode(fromNodeName) || !hasNode(fromNodeName)) {
     return;
   }
 
-  const auto fromElement = getOrCreateGraphElement(fromElementName);
-  const auto toElement = getOrCreateGraphElement(toElementName);
+  const auto fromNode = *getNode(fromNodeName);
+  const auto toNode = *getNode(toNodeName);
 
   // Remove forward edges
-  auto& forwardEdges = fromElement->forwardEdges;
+  auto& forwardEdges = fromNode->forwardEdges;
   auto forwardEdgeIt = forwardEdges.find(fromChannel);
   if (forwardEdgeIt == forwardEdges.end()) {
     return;
   }
 
-  for (auto it = toElement->backEdges.begin();
-       it != toElement->backEdges.end();) {
+  for (auto it = toNode->backEdges.begin(); it != toNode->backEdges.end();) {
     auto oldIt = it;
     it++;
 
     const auto strongBackEdge = oldIt->lock();
-    if (strongBackEdge == nullptr || strongBackEdge == fromElement) {
-      toElement->backEdges.erase(oldIt);
+    if (strongBackEdge == nullptr || strongBackEdge == fromNode) {
+      toNode->backEdges.erase(oldIt);
     }
   }
 
@@ -134,62 +126,53 @@ void Graph::disconnect(
   forwardEdges.erase(fromChannel);
 }
 
-bool Graph::hasElement(const string& elementName) const {
-  auto mapIt = mNameToElementMap.find(elementName);
-  return mapIt != mNameToElementMap.end();
+bool Graph::hasNode(const string& nodeName) const {
+  auto mapIt = mNameToNodeMap.find(nodeName);
+  return mapIt != mNameToNodeMap.end();
 }
 
-shared_ptr<GraphElement> Graph::getOrCreateGraphElement(
-    const string& elementName) {
-  auto it = mNameToElementMap.find(elementName);
+shared_ptr<GraphNode> Graph::createGraphNode(
+    const string& nodeName,
+    bool allowIncomingConnections,
+    bool allowOutgoingConnections) {
+  auto it = mNameToNodeMap.find(nodeName);
 
-  if (it != mNameToElementMap.end()) {
-    return it->second;
+  if (it != mNameToNodeMap.end()) {
+    throw runtime_error(
+        "Cannot create GraphNode '" + nodeName + "'. It already exists.");
   }
 
-  auto insertedIt = mNameToElementMap.emplace(
-      make_pair(elementName, make_shared<GraphElement>(elementName)));
+  auto insertedIt = mNameToNodeMap.emplace(make_pair(
+      nodeName,
+      make_shared<GraphNode>(
+          nodeName,
+          allowIncomingConnections,
+          allowOutgoingConnections)));
 
   it = insertedIt.first;
 
-  const auto graphElement = it->second;
-
-  return graphElement;
+  return it->second;
 }
 
-optional<shared_ptr<GraphElement>> Graph::getGraphElement(
-    const string& elementName) const {
-  auto it = mNameToElementMap.find(elementName);
+optional<shared_ptr<GraphNode>> Graph::getNode(const string& nodeName) const {
+  auto it = mNameToNodeMap.find(nodeName);
 
-  if (it == mNameToElementMap.end()) {
+  if (it == mNameToNodeMap.end()) {
     return {};
   }
 
   return it->second;
 }
 
-GraphElement::GraphElement(const std::string& elementName)
-    : elementName(elementName) {}
+shared_ptr<GraphNode> Graph::getNodeOrThrow(const string& nodeName) const {
+  auto it = mNameToNodeMap.find(nodeName);
 
-void GraphElement::cleanUpEmptyEdges() {
-  for (auto it = forwardEdges.begin(); it != forwardEdges.end();) {
-    auto currIt = it;
-    it++;
-
-    auto& channelEdges = currIt->second;
-    if (channelEdges.empty()) {
-      forwardEdges.erase(currIt);
-    }
+  if (it == mNameToNodeMap.end()) {
+    throw runtime_error(
+        "Cannot get GraphNode '" + nodeName + "'. It does not exist.");
   }
 
-  for (auto it = backEdges.begin(); it != backEdges.end();) {
-    auto currIt = it;
-    it++;
-
-    if (currIt->lock() == nullptr) {
-      backEdges.erase(currIt);
-    }
-  }
+  return it->second;
 }
 
 }  // namespace maplang

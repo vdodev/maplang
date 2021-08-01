@@ -17,28 +17,21 @@
 #ifndef __MAPLANG_RESPONSE_WRITER_H__
 #define __MAPLANG_RESPONSE_WRITER_H__
 
-#include "maplang/INode.h"
-#include "maplang/ISink.h"
+#include "maplang/IImplementation.h"
 #include "maplang/ISource.h"
 
 namespace maplang {
 
-class HttpResponseWriter : public INode, public ISink, public ISource {
+class HttpResponseWriter : public IImplementation, public IPathable {
  public:
   HttpResponseWriter(const nlohmann::json& initParameters);
   ~HttpResponseWriter() override = default;
 
-  void handlePacket(const Packet& packet) override;
-  void setPacketPusher(
-      const std::shared_ptr<IPacketPusher>& packetPusher) override;
+  void handlePacket(const PathablePacket& packet) override;
 
-  ISink* asSink() override { return this; }
-  ISource* asSource() override { return this; }
-  IPathable* asPathable() override { return nullptr; }
-  ICohesiveGroup* asGroup() override { return nullptr; }
-
- private:
-  std::shared_ptr<IPacketPusher> mPacketPusher;
+  ISource* asSource() override { return nullptr; }
+  IPathable* asPathable() override { return this; }
+  IGroup* asGroup() override { return nullptr; }
 };
 
 }  // namespace maplang

@@ -21,26 +21,26 @@
 #include <unordered_map>
 
 #include "maplang/Graph.h"
-#include "maplang/ICohesiveGroup.h"
-#include "maplang/INode.h"
+#include "maplang/IGroup.h"
+#include "maplang/IImplementation.h"
 #include "maplang/IUvLoopRunnerFactory.h"
-#include "maplang/NodeFactory.h"
+#include "maplang/ImplementationFactory.h"
 
 namespace maplang {
 
 class ThreadGroup;
 class DataGraphImpl;
 
-void to_json(nlohmann::json& j, const PacketDeliveryType& packetDelivery);
-void from_json(const nlohmann::json& j, PacketDeliveryType& packetDelivery);
-
-class DataGraph final {
+class DataGraph final : public IGroup {
  public:
   static const std::string kDefaultThreadGroupName;
 
  public:
   DataGraph();
-  ~DataGraph();
+  ~DataGraph() override = default;
+
+  std::shared_ptr<GraphNode>
+  createNode(const std::string& name, bool allowIncoming, bool allowOutgoing);
 
   /*
    * Need unique Node IDs so Packets can connect nodes.
@@ -64,13 +64,11 @@ class DataGraph final {
       const std::string& instanceName,
       const std::string& threadGroup);
 
-  void validateConnections() const;
-
   /**
-   * An instance is an instantiated INode. It doesn't have a concept of
-   * connections.
+   * An instance is an instantiated IImplementation. It doesn't have a concept
+   * of connections.
    *
-   * GraphElements reference an instance, which allows a single
+   * GraphNodes reference an instance, which allows a single
    * instantiation to be used in multiple paths.
    */
   void setNodeInstance(
@@ -88,23 +86,25 @@ class DataGraph final {
       const std::string& instanceName,
       const std::string& typeName);
 
-  /**
-   * Assigns the implementation to the instance.
-   *
-   * If another implementation was already instantiated, it will be removed.
-   */
   void setInstanceImplementation(
       const std::string& instanceName,
-      const std::shared_ptr<INode>& implementation);
+      const std::shared_ptr<IImplementation>& implementation);
 
   void setInstanceImplementationToGroupInterface(
       const std::string& instanceName,
       const std::string& groupInstanceName,
       const std::string& groupInterfaceName);
 
-  void setNodeFactory(const std::shared_ptr<NodeFactory>& factory);
+  void setImplementationFactory(const std::shared_ptr<ImplementationFactory>& factory);
 
-  void visitGraphElements(const Graph::GraphElementVisitor& visitor) const;
+  void visitNodes(const Graph::NodeVisitor& visitor) const;
+
+  size_t getInterfaceCount() override;
+  std::string getInterfaceName(size_t nodeIndex) override;
+  std::shared_ptr<IImplementation> getInterface(
+      const std::string& nodeName) override;
+
+  void startGraph();
 
  private:
   const std::shared_ptr<DataGraphImpl> impl;

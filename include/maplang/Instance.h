@@ -17,22 +17,22 @@
 #ifndef MAPLANG_INCLUDE_MAPLANG_INSTANCE_H_
 #define MAPLANG_INCLUDE_MAPLANG_INSTANCE_H_
 
-#include "maplang/INode.h"
+#include "maplang/IImplementation.h"
 
 namespace maplang {
 
-class NodeFactory;
+class ImplementationFactory;
 class ThreadGroup;
 
 class Instance final {
  public:
   void setType(
       const std::string& typeName,
-      const std::shared_ptr<NodeFactory>& nodeFactory);
+      const std::shared_ptr<ImplementationFactory>& nodeFactory);
   std::string getType() const { return mTypeName; }
 
-  void setImplementation(const std::shared_ptr<INode>& implementation);
-  std::shared_ptr<INode> getImplementation() const { return mImplementation; }
+  std::shared_ptr<IImplementation> getImplementation() const { return mImplementation; }
+  void setImplementation(const std::shared_ptr<IImplementation>& implementation);
 
   void setInitParameters(const nlohmann::json& initParameters);
   nlohmann::json getInitParameters() const { return mInitParameters; }
@@ -50,7 +50,7 @@ class Instance final {
 
  private:
   std::string mTypeName;
-  std::shared_ptr<INode> mImplementation;
+  std::shared_ptr<IImplementation> mImplementation;
   nlohmann::json mInitParameters;
   std::shared_ptr<ISubgraphContext> mSubgraphContext;
   std::string mThreadGroupName;

@@ -19,34 +19,30 @@
 
 #include <unordered_map>
 
-#include "maplang/ICohesiveGroup.h"
+#include "maplang/IGroup.h"
 
 namespace maplang {
 
 class UvTcpImpl;
 
-class UvTcpConnectionGroup : public ICohesiveGroup,
-                             public INode,
-                             public ISource {
+class UvTcpConnectionGroup : public IGroup,
+                             public IImplementation {
  public:
   UvTcpConnectionGroup();
   ~UvTcpConnectionGroup() override = default;
 
-  size_t getNodeCount() override;
-  std::string getNodeName(size_t nodeIndex) override;
+  size_t getInterfaceCount() override;
+  std::string getInterfaceName(size_t nodeIndex) override;
 
-  std::shared_ptr<INode> getNode(const std::string& nodeName) override;
+  std::shared_ptr<IImplementation> getInterface(const std::string& nodeName) override;
 
   IPathable* asPathable() override { return nullptr; }
-  ISink* asSink() override { return nullptr; }
-  ISource* asSource() override { return this; }
-  ICohesiveGroup* asGroup() override { return this; }
-
-  void setPacketPusher(const std::shared_ptr<IPacketPusher>& pusher) override;
+  ISource* asSource() override { return nullptr; }
+  IGroup* asGroup() override { return this; }
 
  private:
   const std::shared_ptr<UvTcpImpl> mImpl;
-  std::unordered_map<std::string, std::shared_ptr<INode>> mNodes;
+  std::unordered_map<std::string, std::shared_ptr<IImplementation>> mInterfaces;
 };
 
 }  // namespace maplang

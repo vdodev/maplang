@@ -14,26 +14,23 @@
  *  limitations under the License.
  */
 
-#ifndef MAPLANG_SRC_NODES_HTTPREQUESTHEADERWRITER_H_
-#define MAPLANG_SRC_NODES_HTTPREQUESTHEADERWRITER_H_
+#ifndef MAPLANG_INCLUDE_MAPLANG_GRAPHEDGE_H_
+#define MAPLANG_INCLUDE_MAPLANG_GRAPHEDGE_H_
 
-#include "maplang/IImplementation.h"
-#include "maplang/ISource.h"
+#include "maplang/PacketDeliveryType.h"
 
 namespace maplang {
 
-class HttpRequestHeaderWriter : public IImplementation, public IPathable {
- public:
-  HttpRequestHeaderWriter(const nlohmann::json& initParameters);
-  ~HttpRequestHeaderWriter() override = default;
+struct GraphNode;
 
-  void handlePacket(const PathablePacket& packet) override;
+struct GraphEdge final {
+  std::string channel;
+  std::shared_ptr<GraphNode> next;
 
-  ISource* asSource() override { return nullptr; }
-  IPathable* asPathable() override { return this; }
-  IGroup* asGroup() override { return nullptr; }
+  PacketDeliveryType sameThreadQueueToTargetType =
+      PacketDeliveryType::PushDirectlyToTarget;
 };
 
 }  // namespace maplang
 
-#endif  // MAPLANG_SRC_NODES_HTTPREQUESTHEADERWRITER_H_
+#endif  // MAPLANG_INCLUDE_MAPLANG_GRAPHEDGE_H_

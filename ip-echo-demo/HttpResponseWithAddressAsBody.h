@@ -17,12 +17,12 @@
 #ifndef __MAPLANG_HTTP_RESPONSE_WITH_ADDRESS_AS_BODY_H__
 #define __MAPLANG_HTTP_RESPONSE_WITH_ADDRESS_AS_BODY_H__
 
-#include "maplang/INode.h"
+#include "maplang/IImplementation.h"
 #include "maplang/IPathable.h"
 
 namespace maplang {
 
-class HttpResponseWithAddressAsBody final : public INode, public IPathable {
+class HttpResponseWithAddressAsBody final : public IImplementation, public IPathable {
  public:
   ~HttpResponseWithAddressAsBody() override = default;
 
@@ -30,8 +30,7 @@ class HttpResponseWithAddressAsBody final : public INode, public IPathable {
 
   IPathable* asPathable() override { return this; }
   ISource* asSource() override { return nullptr; }
-  ISink* asSink() override { return nullptr; }
-  ICohesiveGroup* asGroup() override { return nullptr; }
+  IGroup* asGroup() override { return nullptr; }
 };
 
 }  // namespace maplang

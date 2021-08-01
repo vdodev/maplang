@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <maplang/LambdaSink.h>
+#include <maplang/LambdaPathable.h>
 
 #include <thread>
 
@@ -25,16 +25,15 @@ using namespace std;
 
 namespace maplang {
 
-class SimpleSource : public INode, public ISource {
+class SimpleSource : public IImplementation, public ISource {
  public:
   void setPacketPusher(const std::shared_ptr<IPacketPusher>& pusher) override {
     mPusher = pusher;
   }
 
   IPathable* asPathable() override { return nullptr; }
-  ISink* asSink() override { return nullptr; }
   ISource* asSource() override { return this; }
-  ICohesiveGroup* asGroup() override { return nullptr; }
+  IGroup* asGroup() override { return nullptr; }
 
   void sendPacket(const Packet& packet, const std::string& fromChannel) {
     mPusher->pushPacket(packet, fromChannel);
@@ -44,36 +43,14 @@ class SimpleSource : public INode, public ISource {
   std::shared_ptr<IPacketPusher> mPusher;
 };
 
-class PassThroughSourceSink : public INode, public ISource, public ISink {
- public:
-  PassThroughSourceSink(const string& sendOnChannel)
-      : mSendOnChannel(sendOnChannel) {}
-
-  void setPacketPusher(const std::shared_ptr<IPacketPusher>& pusher) override {
-    mPusher = pusher;
-  }
-
-  void handlePacket(const Packet& packet) override {
-    mPusher->pushPacket(packet, mSendOnChannel);
-  }
-
-  IPathable* asPathable() override { return nullptr; }
-  ISink* asSink() override { return this; }
-  ISource* asSource() override { return this; }
-  ICohesiveGroup* asGroup() override { return nullptr; }
-
- private:
-  shared_ptr<IPacketPusher> mPusher;
-  const string mSendOnChannel;
-};
-
 TEST(WhenSendPacketIsCalledOnce, ThenOnePacketIsDeliveredToTheSink) {
   DataGraph graph;
 
   size_t receivedPacketCount = 0;
-  auto lambdaSink = make_shared<LambdaSink>(
-      [&receivedPacketCount](const Packet& packet) { receivedPacketCount++; });
+  auto lambdaSink = make_shared<LambdaPathable>(
+      [&receivedPacketCount](const PathablePacket& packet) { receivedPacketCount++; });
 
+  graph.createNode("sink", false, true);
   graph.setNodeInstance("sink", "sink-instance");
   graph.setInstanceImplementation("sink-instance", lambdaSink);
 
@@ -94,19 +71,24 @@ TEST(WhenAPacketIsSentDirectlyFromADifferentThread, ItArrives) {
   auto source = make_shared<SimpleSource>();
   thread::id packetReceivedOnThreadId;
 
-  auto lambdaSink = make_shared<LambdaSink>(
-      [&receivedPacketCount, &packetReceivedOnThreadId](const Packet& packet) {
+  auto lambdaSink = make_shared<LambdaPathable>(
+      [&receivedPacketCount, &packetReceivedOnThreadId](const PathablePacket& packet) {
         packetReceivedOnThreadId = this_thread::get_id();
         receivedPacketCount++;
       });
 
-  graph.connect("source", testChannel, "sink");
+  graph.createNode("source", false, true);
+  graph.createNode("sink", true, false);
 
   graph.setNodeInstance("source", "source-instance");
   graph.setNodeInstance("sink", "sink-instance");
 
+  graph.connect("source", testChannel, "sink");
+
   graph.setInstanceImplementation("source-instance", source);
   graph.setInstanceImplementation("sink-instance", lambdaSink);
+
+  graph.startGraph();
 
   source->sendPacket(Packet(), testChannel);
 
@@ -125,19 +107,24 @@ TEST(WhenAPacketIsSentUsingAsyncQueueing, ItArrives) {
 
   thread::id packetReceivedOnThreadId;
   auto source = make_shared<SimpleSource>();
-  auto lambdaSink = make_shared<LambdaSink>(
-      [&receivedPacketCount, &packetReceivedOnThreadId](const Packet& packet) {
+  auto lambdaSink = make_shared<LambdaPathable>(
+      [&receivedPacketCount, &packetReceivedOnThreadId](const PathablePacket& packet) {
         packetReceivedOnThreadId = this_thread::get_id();
         receivedPacketCount++;
       });
 
-  graph.connect("source", testChannel, "sink", PacketDeliveryType::AlwaysQueue);
+  graph.createNode("source", false, true);
+  graph.createNode("sink", true, false);
 
   graph.setNodeInstance("source", "source-instance");
   graph.setNodeInstance("sink", "sink-instance");
 
+  graph.connect("source", testChannel, "sink", PacketDeliveryType::AlwaysQueue);
+
   graph.setInstanceImplementation("source-instance", source);
   graph.setInstanceImplementation("sink-instance", lambdaSink);
+
+  graph.startGraph();
 
   source->sendPacket(Packet(), testChannel);
   usleep(100000);
@@ -157,19 +144,27 @@ TEST(WhenAPacketIsSentUsingDirectAndAsyncQueueing, ItArrives) {
   thread::id directThreadId;
   thread::id asyncThreadId;
   auto source = make_shared<SimpleSource>();
-  auto lambdaSinkDirect = make_shared<LambdaSink>(
-      [&receivedPacketCount, &directThreadId](const Packet& packet) {
+  auto lambdaSinkDirect = make_shared<LambdaPathable>(
+      [&receivedPacketCount, &directThreadId](const PathablePacket& packet) {
         directThreadId = this_thread::get_id();
         cout << "Got direct" << endl;
         receivedPacketCount++;
       });
 
-  auto lambdaSinkAsync = make_shared<LambdaSink>(
-      [&receivedPacketCount, &asyncThreadId](const Packet& packet) {
+  auto lambdaSinkAsync = make_shared<LambdaPathable>(
+      [&receivedPacketCount, &asyncThreadId](const PathablePacket& packet) {
         asyncThreadId = this_thread::get_id();
         cout << "Got async" << endl;
         receivedPacketCount++;
       });
+
+  graph.createNode("source", false, true);
+  graph.createNode("sinkDirect", true, false);
+  graph.createNode("sinkAsync", true, false);
+
+  graph.setNodeInstance("source", "source-instance");
+  graph.setNodeInstance("sinkDirect", "sink-direct-instance");
+  graph.setNodeInstance("sinkAsync", "sink-async-instance");
 
   graph.connect(
       "source",
@@ -183,13 +178,11 @@ TEST(WhenAPacketIsSentUsingDirectAndAsyncQueueing, ItArrives) {
       "sinkAsync",
       PacketDeliveryType::AlwaysQueue);
 
-  graph.setNodeInstance("source", "source-instance");
-  graph.setNodeInstance("sinkDirect", "sink-direct-instance");
-  graph.setNodeInstance("sinkAsync", "sink-async-instance");
-
   graph.setInstanceImplementation("source-instance", source);
   graph.setInstanceImplementation("sink-direct-instance", lambdaSinkDirect);
   graph.setInstanceImplementation("sink-async-instance", lambdaSinkAsync);
+
+  graph.startGraph();
 
   Packet packet;
   packet.buffers.push_back(Buffer("Tracer"));
@@ -216,17 +209,25 @@ TEST(WhenTwoPacketsAreSentToDifferentThreadGroups, TheyHaveDifferentThreadIds) {
   thread::id threadId1;
   thread::id threadId2;
   auto source = make_shared<SimpleSource>();
-  auto lambdaSink1 = make_shared<LambdaSink>(
-      [&receivedPacketCount, &threadId1](const Packet& packet) {
+  auto lambdaSink1 = make_shared<LambdaPathable>(
+      [&receivedPacketCount, &threadId1](const PathablePacket& packet) {
         threadId1 = this_thread::get_id();
         receivedPacketCount++;
       });
 
-  auto lambdaSink2 = make_shared<LambdaSink>(
-      [&receivedPacketCount, &threadId2](const Packet& packet) {
+  auto lambdaSink2 = make_shared<LambdaPathable>(
+      [&receivedPacketCount, &threadId2](const PathablePacket& packet) {
         threadId2 = this_thread::get_id();
         receivedPacketCount++;
       });
+
+  graph.createNode("source", false, true);
+  graph.createNode("sink 1", true, false);
+  graph.createNode("sink 2", true, false);
+
+  graph.setNodeInstance("source", "source instance");
+  graph.setNodeInstance("sink 1", "sink 1 instance");
+  graph.setNodeInstance("sink 2", "sink 2 instance");
 
   graph.connect(
       "source",
@@ -240,15 +241,13 @@ TEST(WhenTwoPacketsAreSentToDifferentThreadGroups, TheyHaveDifferentThreadIds) {
       "sink 2",
       PacketDeliveryType::AlwaysQueue);
 
-  graph.setNodeInstance("source", "source instance");
-  graph.setNodeInstance("sink 1", "sink 1 instance");
-  graph.setNodeInstance("sink 2", "sink 2 instance");
-
   graph.setInstanceImplementation("source instance", source);
   graph.setInstanceImplementation("sink 1 instance", lambdaSink1);
   graph.setInstanceImplementation("sink 2 instance", lambdaSink2);
 
   graph.setThreadGroupForInstance("sink 2 instance", "test");
+
+  graph.startGraph();
 
   source->sendPacket(Packet(), testChannel);
   usleep(100000);
@@ -273,17 +272,25 @@ TEST(
   thread::id threadId1;
   thread::id threadId2;
   auto source = make_shared<SimpleSource>();
-  auto lambdaSink1 = make_shared<LambdaSink>(
-      [&receivedPacketCount, &threadId1](const Packet& packet) {
+  auto lambdaSink1 = make_shared<LambdaPathable>(
+      [&receivedPacketCount, &threadId1](const PathablePacket& packet) {
         threadId1 = this_thread::get_id();
         receivedPacketCount++;
       });
 
-  auto lambdaSink2 = make_shared<LambdaSink>(
-      [&receivedPacketCount, &threadId2](const Packet& packet) {
+  auto lambdaSink2 = make_shared<LambdaPathable>(
+      [&receivedPacketCount, &threadId2](const PathablePacket& packet) {
         threadId2 = this_thread::get_id();
         receivedPacketCount++;
       });
+
+  graph.createNode("source", false, true);
+  graph.createNode("sink 1", true, false);
+  graph.createNode("sink 2", true, false);
+
+  graph.setNodeInstance("source", "source instance");
+  graph.setNodeInstance("sink 1", "sink 1 instance");
+  graph.setNodeInstance("sink 2", "sink 2 instance");
 
   graph.connect(
       "source",
@@ -297,16 +304,14 @@ TEST(
       "sink 2",
       PacketDeliveryType::AlwaysQueue);
 
-  graph.setNodeInstance("source", "source instance");
-  graph.setNodeInstance("sink 1", "sink 1 instance");
-  graph.setNodeInstance("sink 2", "sink 2 instance");
-
   graph.setInstanceImplementation("source instance", source);
   graph.setInstanceImplementation("sink 1 instance", lambdaSink1);
   graph.setInstanceImplementation("sink 2 instance", lambdaSink2);
 
   graph.setThreadGroupForInstance("sink 1 instance", "test 1");
   graph.setThreadGroupForInstance("sink 2 instance", "test 2");
+
+  graph.startGraph();
 
   source->sendPacket(Packet(), testChannel);
   usleep(100000);
@@ -330,8 +335,10 @@ TEST(WhenOneSourceSendsAPacketAndTwoSinksReceive, ThePacketIsTheSame) {
   thread::id directThreadId;
   thread::id asyncThreadId;
   auto source = make_shared<SimpleSource>();
-  auto lambdaSinkDirect = make_shared<LambdaSink>(
-      [&receivedPacketCount, &directThreadId](const Packet& packet) {
+  auto lambdaSinkDirect = make_shared<LambdaPathable>(
+      [&receivedPacketCount, &directThreadId](const PathablePacket& pathablePacket) {
+        const auto& packet = pathablePacket.packet;
+
         directThreadId = this_thread::get_id();
         receivedPacketCount++;
 
@@ -340,8 +347,10 @@ TEST(WhenOneSourceSendsAPacketAndTwoSinksReceive, ThePacketIsTheSame) {
         ASSERT_EQ("value1", packet.parameters["key1"].get<string>());
       });
 
-  auto lambdaSinkAsync = make_shared<LambdaSink>(
-      [&receivedPacketCount, &asyncThreadId](const Packet& packet) {
+  auto lambdaSinkAsync = make_shared<LambdaPathable>(
+      [&receivedPacketCount, &asyncThreadId](const PathablePacket& pathablePacket) {
+        const auto& packet = pathablePacket.packet;
+
         asyncThreadId = this_thread::get_id();
         receivedPacketCount++;
 
@@ -349,6 +358,16 @@ TEST(WhenOneSourceSendsAPacketAndTwoSinksReceive, ThePacketIsTheSame) {
             << packet.parameters.dump(2);
         ASSERT_EQ("value1", packet.parameters["key1"].get<string>());
       });
+
+  graph.createNode("source", false, true);
+  graph.createNode("pass-through", true, true);
+  graph.createNode("sink direct", true, false);
+  graph.createNode("sink async", true, false);
+
+  graph.setNodeInstance("source", "source instance");
+  graph.setNodeInstance("pass-through", "pass-through instance");
+  graph.setNodeInstance("sink direct", "sink direct instance");
+  graph.setNodeInstance("sink async", "sink async instance");
 
   graph.connect("source", "test channel", "pass-through");
   graph.connect(
@@ -363,11 +382,6 @@ TEST(WhenOneSourceSendsAPacketAndTwoSinksReceive, ThePacketIsTheSame) {
       "sink async",
       PacketDeliveryType::AlwaysQueue);
 
-  graph.setNodeInstance("source", "source instance");
-  graph.setNodeInstance("pass-through", "pass-through instance");
-  graph.setNodeInstance("sink direct", "sink direct instance");
-  graph.setNodeInstance("sink async", "sink async instance");
-
   graph.setInstanceInitParameters("pass-through instance", R"({
         "outputChannel": "test channel"
       })"_json);
@@ -376,6 +390,8 @@ TEST(WhenOneSourceSendsAPacketAndTwoSinksReceive, ThePacketIsTheSame) {
   graph.setInstanceType("pass-through instance", "Pass-through");
   graph.setInstanceImplementation("sink direct instance", lambdaSinkDirect);
   graph.setInstanceImplementation("sink async instance", lambdaSinkAsync);
+
+  graph.startGraph();
 
   source->sendPacket(packet, "test channel");
   usleep(100000);

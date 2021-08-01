@@ -14,32 +14,31 @@
  *  limitations under the License.
  */
 
-#ifndef MAPLANG_SRC_LAMBDASINK_H_
-#define MAPLANG_SRC_LAMBDASINK_H_
+#ifndef MAPLANG_SRC_LAMBDAPATHABLE_H_
+#define MAPLANG_SRC_LAMBDAPATHABLE_H_
 
-#include <maplang/INode.h>
+#include <maplang/IImplementation.h>
 
 #include <functional>
 #include <iostream>
 
 namespace maplang {
 
-class LambdaSink : public INode, public ISink {
+class LambdaPathable : public IImplementation, public IPathable {
  public:
-  LambdaSink(std::function<void(const Packet& packet)>&& onPacket)
+  LambdaPathable(std::function<void(const PathablePacket& packet)>&& onPacket)
       : mOnPacket(move(onPacket)) {}
 
-  void handlePacket(const Packet& packet) override { mOnPacket(packet); }
+  void handlePacket(const PathablePacket& packet) override { mOnPacket(packet); }
 
-  IPathable* asPathable() override { return nullptr; }
-  ISink* asSink() override { return this; }
+  IPathable* asPathable() override { return this; }
   ISource* asSource() override { return nullptr; }
-  ICohesiveGroup* asGroup() override { return nullptr; };
+  IGroup* asGroup() override { return nullptr; }
 
  private:
-  std::function<void(const Packet& packet)> mOnPacket;
+  std::function<void(const PathablePacket& packet)> mOnPacket;
 };
 
 }  // namespace maplang
 
-#endif  // MAPLANG_SRC_LAMBDASINK_H_
+#endif  // MAPLANG_SRC_LAMBDAPATHABLE_H_

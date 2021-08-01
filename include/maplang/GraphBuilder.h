@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 VDO Dev Inc <support@maplang.com>
+ * Copyright 2021 VDO Dev Inc <support@maplang.com>
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,24 +14,24 @@
  *  limitations under the License.
  */
 
-#ifndef MAPLANG_INCLUDE_MAPLANG_ISUBCOMPONENT_H_
-#define MAPLANG_INCLUDE_MAPLANG_ISUBCOMPONENT_H_
+#ifndef MAPLANG_SRC_GRAPHBUILDER_H_
+#define MAPLANG_SRC_GRAPHBUILDER_H_
 
-#include <memory>
-
-#include "maplang/IImplementation.h"
+#include "maplang/DataGraph.h"
 
 namespace maplang {
 
-class ISubcomponent {
- public:
-  virtual ~ISubcomponent() = default;
+std::shared_ptr<DataGraph> buildDataGraphFromFile(const std::string& fileName);
+std::shared_ptr<DataGraph> buildDataGraph(const std::string& dotGraphString);
 
-  virtual size_t getInterfaceCount() = 0;
-  virtual std::string getInterfaceName(size_t nodeIndex) = 0;
+void implementDataGraphFromFile(
+    const std::shared_ptr<DataGraph>& dataGraph,
+    const std::string& fileName);
 
-  virtual std::shared_ptr<INode> getInterface(const std::string& nodeName) = 0;
-};
+void implementDataGraph(
+    const std::shared_ptr<DataGraph>& dataGraph,
+    const std::string& implementationJson);
 
 }  // namespace maplang
-#endif  // MAPLANG_INCLUDE_MAPLANG_ISUBCOMPONENT_H_
+
+#endif  // MAPLANG_SRC_GRAPHBUILDER_H_

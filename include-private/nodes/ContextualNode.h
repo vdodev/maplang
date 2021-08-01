@@ -17,24 +17,23 @@
 #ifndef __MAPLANG_CONTEXTUAL_NODE_H__
 #define __MAPLANG_CONTEXTUAL_NODE_H__
 
-#include "maplang/ICohesiveGroup.h"
+#include "maplang/IGroup.h"
 
 namespace maplang {
 
-class ContextualNode final : public ICohesiveGroup, public INode {
+class ContextualNode final : public IGroup, public IImplementation {
  public:
   ContextualNode(const nlohmann::json& initData);
   ~ContextualNode() override = default;
 
-  size_t getNodeCount() override;
-  virtual std::string getNodeName(size_t partitionIndex) override;
+  size_t getInterfaceCount() override;
+  virtual std::string getInterfaceName(size_t partitionIndex) override;
 
-  virtual std::shared_ptr<INode> getNode(const std::string& partition) override;
+  virtual std::shared_ptr<IImplementation> getInterface(const std::string& partition) override;
 
   IPathable* asPathable() override { return nullptr; }
-  ISink* asSink() override { return nullptr; }
   ISource* asSource() override { return nullptr; }
-  ICohesiveGroup* asGroup() override { return this; }
+  IGroup* asGroup() override { return this; }
 
  private:
   class Impl;

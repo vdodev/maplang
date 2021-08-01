@@ -1,0 +1,33 @@
+strict digraph "IP Echo" {
+  compound=true
+
+  "Setup TCP Listener" [instance="Setup TCP Listener Instance", allowOutgoing=true]
+  "Create HTTP Response With Remote Address as Body" [instance="Create HTTP Response Instance", allowIncoming=true, allowOutgoing=true]
+  "HTTP Response Writer" [instance="HTTP Response Writer Instance", allowIncoming=true, allowOutgoing=true]
+
+  subgraph "Cluster TCP Server" {
+    instance="TCP Server Instance"
+    label="Cluster TCP Server"
+
+    "TCP Listen"       [instance="TCP Listen Instance",       allowIncoming=true, allowOutgoing=true]
+    "TCP Send"         [instance="TCP Send Instance",         allowIncoming=true]
+    "TCP Receive"      [instance="TCP Receive Instance",                          allowOutgoing=true]
+    "TCP Disconnect"   [instance="TCP Disconnect Instance",   allowIncoming=true, allowOutgoing=true]
+    "TCP Async Events" [instance="TCP Async Events Instance",                     allowOutgoing=true]
+  }
+
+  subgraph "Cluster HTTP Request Extractor" {
+    instance="HTTP Request Extractor Instance"
+    label="HTTP Request Extractor Contextual"
+
+    "HTTP Request Extractor Context Router"  [instance="HTTP Request Extractor Context Router Instance",  allowIncoming=true, allowOutgoing=true]
+    "HTTP Request Extractor Context Remover" [instance="HTTP Request Extractor Context Remover Instance", allowIncoming=true]
+  }
+
+  "Setup TCP Listener" -> "TCP Listen" [label="initialized"]
+  "TCP Receive" -> "HTTP Request Extractor Context Router" [label="Data Received"]
+  "HTTP Request Extractor Context Router" -> "Create HTTP Response With Remote Address as Body" [label="New Request"]
+  "Create HTTP Response With Remote Address as Body" -> "HTTP Response Writer" [label="On Response"]
+  "HTTP Response Writer" -> "TCP Send" [label="Http Data"]
+  "TCP Async Events" -> "HTTP Request Extractor Context Remover" [label="Connection Closed"]
+}

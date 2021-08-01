@@ -17,11 +17,11 @@
 #ifndef MAPLANG_INCLUDE_PRIVATE_NODES_PASSTHROUGHNODE_H_
 #define MAPLANG_INCLUDE_PRIVATE_NODES_PASSTHROUGHNODE_H_
 
-#include "maplang/INode.h"
+#include "maplang/IImplementation.h"
 
 namespace maplang {
 
-class PassThroughNode : public INode, public IPathable {
+class PassThroughNode : public IImplementation, public IPathable {
  public:
   static const std::string kInputParam_OutputChannel;
 
@@ -32,9 +32,8 @@ class PassThroughNode : public INode, public IPathable {
   void handlePacket(const PathablePacket& incomingPacket) override;
 
   IPathable* asPathable() override { return this; }
-  ISink* asSink() override { return nullptr; }
   ISource* asSource() override { return nullptr; }
-  ICohesiveGroup* asGroup() override { return nullptr; }
+  IGroup* asGroup() override { return nullptr; }
 
  private:
   const std::string mOutputChannel;

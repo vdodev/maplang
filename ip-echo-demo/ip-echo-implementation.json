@@ -1,0 +1,52 @@
+{
+  "TCP Server Instance": {
+    "type": "TCP Server",
+    "initParameters": {
+      "disableNaglesAlgorithm": true
+    },
+    "instanceToInterfaceMap": {
+      "TCP Listen Instance": {
+        "interface": "Listener"
+      },
+      "TCP Send Instance": {
+        "interface": "Sender"
+      },
+      "TCP Receive Instance": {
+        "interface": "Receiver"
+      },
+      "TCP Disconnect Instance": {
+        "interface": "Disconnector"
+      },
+      "TCP Async Events Instance": {
+        "interface": "Async Events"
+      }
+    }
+  },
+  "HTTP Request Extractor Instance": {
+    "type": "Contextual",
+    "initParameters": {
+      "type": "HTTP Request Extractor",
+      "key": "TcpConnectionId"
+    },
+    "instanceToInterfaceMap": {
+      "HTTP Request Extractor Context Router Instance": {
+        "interface": "Context Router"
+      },
+      "HTTP Request Extractor Context Remover Instance": {
+        "interface": "Context Remover"
+      }
+    }
+  },
+  "Create HTTP Response Instance": {
+    "type": "HTTP Response With Remote Address As Body"
+  },
+  "HTTP Response Writer Instance": {
+    "type": "HTTP Response Writer"
+  },
+  "Setup TCP Listener Instance": {
+    "type": "Send Once",
+    "initParameters": {
+      "Port": 8080
+    }
+  }
+}

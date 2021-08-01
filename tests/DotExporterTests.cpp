@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <maplang/LambdaSink.h>
+#include <maplang/LambdaPathable.h>
 
 #include <thread>
 
@@ -29,6 +29,14 @@ namespace maplang {
 TEST(WhenSomeNodesAreConnected, TheyAppearInDotML) {
   DataGraph graph;
 
+  graph.createNode("Node 1", false, true);
+  graph.createNode("Node 2", true, true);
+  graph.createNode("Node 3", true, false);
+
+  graph.setNodeInstance("Node 1", "Node 1 Instance");
+  graph.setNodeInstance("Node 2", "Node 2 Instance");
+  graph.setNodeInstance("Node 3", "Node 3 Instance");
+
   graph.connect("Node 1", "onNode1Output", "Node 2");
   graph.connect("Node 1", "onNode1ProducedSomethingElse", "Node 3");
   graph.connect("Node 2", "onNode2Output", "Node 3");
@@ -37,13 +45,9 @@ TEST(WhenSomeNodesAreConnected, TheyAppearInDotML) {
 
   cout << dot << endl;
 
-  ASSERT_NE(string::npos, dot.find("\"Node 1\" -> \"Node 2\""));
-  ASSERT_NE(string::npos, dot.find("\"Node 1\" -> \"Node 3\""));
-  ASSERT_NE(string::npos, dot.find("\"Node 2\" -> \"Node 3\""));
-
-  ASSERT_NE(string::npos, dot.find("onNode1Output"));
-  ASSERT_NE(string::npos, dot.find("onNode1ProducedSomethingElse"));
-  ASSERT_NE(string::npos, dot.find("onNode2Output"));
+  ASSERT_NE(string::npos, dot.find("\"Node 1\" -> \"Node 2\" [label=\"onNode1Output\"]"));
+  ASSERT_NE(string::npos, dot.find("\"Node 1\" -> \"Node 3\" [label=\"onNode1ProducedSomethingElse\"]"));
+  ASSERT_NE(string::npos, dot.find("\"Node 2\" -> \"Node 3\" [label=\"onNode2Output\"]"));
 }
 
 }  // namespace maplang

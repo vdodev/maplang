@@ -17,12 +17,12 @@
 #ifndef __MAPLANG_SEND_ONCE_H__
 #define __MAPLANG_SEND_ONCE_H__
 
-#include "maplang/INode.h"
+#include "maplang/IImplementation.h"
 #include "maplang/ISource.h"
 
 namespace maplang {
 
-class SendOnce : public INode, public ISource {
+class SendOnce : public IImplementation, public ISource {
  public:
   SendOnce(const nlohmann::json& sendOnceData);
   ~SendOnce() override = default;
@@ -30,9 +30,8 @@ class SendOnce : public INode, public ISource {
   void setPacketPusher(const std::shared_ptr<IPacketPusher>& pusher) override;
 
   IPathable* asPathable() override { return nullptr; }
-  ISink* asSink() override { return nullptr; }
   ISource* asSource() override { return this; }
-  ICohesiveGroup* asGroup() override { return nullptr; }
+  IGroup* asGroup() override { return nullptr; }
 
  private:
   const nlohmann::json mSendOnceData;

@@ -8,7 +8,7 @@
 input and output Packets, and optionally tests that validate behavior. It does
 not contain any implementation.
 
-An Interface an ICohesiveGroup and an ISource. The ICohesiveGroup's sub-nodes
+An Interface an IGroup and an ISource. The IGroup's sub-nodes
 are the Interface's inputs, and the output channels of the Interface's ISource
 are the Interface's outputs.
 

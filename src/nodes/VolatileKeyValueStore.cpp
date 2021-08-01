@@ -31,7 +31,7 @@ namespace maplang {
 
 using StorageMap = unordered_map<string, Packet>;
 
-class Setter : public INode, public ISink {
+class Setter : public IImplementation, public IPathable {
  public:
   Setter(
       const shared_ptr<StorageMap>& storage,
@@ -41,25 +41,24 @@ class Setter : public INode, public ISink {
 
   ~Setter() override = default;
 
-  IPathable* asPathable() override { return nullptr; }
+  IPathable* asPathable() override { return this; }
   ISource* asSource() override { return nullptr; }
-  ISink* asSink() override { return this; }
-  ICohesiveGroup* asGroup() override { return nullptr; }
+  IGroup* asGroup() override { return nullptr; }
 
-  void handlePacket(const Packet& incomingPacket) override {
-    const json& key = incomingPacket.parameters[mKeyName];
+  void handlePacket(const PathablePacket& incomingPacket) override {
+    const json& key = incomingPacket.packet.parameters[mKeyName];
     if (key.is_null() || !key.is_string()) {
       return;
     }
 
     vector<Buffer> storeBuffers;
     if (mRetainBuffers) {
-      storeBuffers = incomingPacket.buffers;
+      storeBuffers = incomingPacket.packet.buffers;
     }
 
     (*mStorage).emplace(pair<string, Packet>(
         key.get<string>(),
-        {incomingPacket.parameters,
+        {incomingPacket.packet.parameters,
          move(storeBuffers)}));  //[key.get<string>()] = move(toStore);
   }
 
@@ -69,7 +68,7 @@ class Setter : public INode, public ISink {
   const shared_ptr<StorageMap> mStorage;
 };
 
-class Getter : public INode, public IPathable {
+class Getter : public IImplementation, public IPathable {
  public:
   Getter(const shared_ptr<const StorageMap>& storage, const string& keyName)
       : mKeyName(keyName) {}
@@ -78,8 +77,7 @@ class Getter : public INode, public IPathable {
 
   IPathable* asPathable() override { return this; }
   ISource* asSource() override { return nullptr; }
-  ISink* asSink() override { return nullptr; }
-  ICohesiveGroup* asGroup() override { return nullptr; }
+  IGroup* asGroup() override { return nullptr; }
 
   void handlePacket(const PathablePacket& incomingPathablePacket) override {
     const Packet& incomingPacket = incomingPathablePacket.packet;
@@ -129,9 +127,9 @@ VolatileKeyValueStore::VolatileKeyValueStore(
   mPartitions[kGetPartitionName].node = getter;
 }
 
-size_t VolatileKeyValueStore::getNodeCount() { return mPartitions.size(); }
+size_t VolatileKeyValueStore::getInterfaceCount() { return mPartitions.size(); }
 
-string VolatileKeyValueStore::getNodeName(size_t partitionIndex) {
+string VolatileKeyValueStore::getInterfaceName(size_t partitionIndex) {
   switch (partitionIndex) {
     case kSetPartitionIndex:
       return kSetPartitionName;
@@ -142,7 +140,7 @@ string VolatileKeyValueStore::getNodeName(size_t partitionIndex) {
   }
 }
 
-std::shared_ptr<INode> VolatileKeyValueStore::getNode(
+std::shared_ptr<IImplementation> VolatileKeyValueStore::getInterface(
     const string& partitionName) {
   return mPartitions[partitionName].node;
 }

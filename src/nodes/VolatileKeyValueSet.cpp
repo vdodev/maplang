@@ -49,7 +49,7 @@ namespace maplang {
 
 using StorageMap = unordered_map<string, unordered_set<string>>;
 
-class Adder : public INode, public IPathable {
+class Adder : public IImplementation, public IPathable {
  public:
   Adder(
       const shared_ptr<StorageMap>& storage,
@@ -61,8 +61,7 @@ class Adder : public INode, public IPathable {
 
   IPathable* asPathable() override { return this; }
   ISource* asSource() override { return nullptr; }
-  ISink* asSink() override { return nullptr; }
-  ICohesiveGroup* asGroup() override { return nullptr; }
+  IGroup* asGroup() override { return nullptr; }
 
   void handlePacket(const PathablePacket& incomingPathablePacket) override {
     const Packet& incomingPacket = incomingPathablePacket.packet;
@@ -105,7 +104,7 @@ class Adder : public INode, public IPathable {
   const shared_ptr<StorageMap> mStorage;
 };
 
-class Getter : public INode, public IPathable {
+class Getter : public IImplementation, public IPathable {
  public:
   Getter(
       const shared_ptr<const StorageMap>& storage,
@@ -117,8 +116,7 @@ class Getter : public INode, public IPathable {
 
   IPathable* asPathable() override { return this; }
   ISource* asSource() override { return nullptr; }
-  ISink* asSink() override { return nullptr; }
-  ICohesiveGroup* asGroup() override { return nullptr; }
+  IGroup* asGroup() override { return nullptr; }
 
   void handlePacket(const PathablePacket& incomingPathablePacket) override {
     const Packet& incomingPacket = incomingPathablePacket.packet;
@@ -164,7 +162,7 @@ class Getter : public INode, public IPathable {
   const shared_ptr<const StorageMap> mStorage;
 };
 
-class Remover : public INode, public IPathable {
+class Remover : public IImplementation, public IPathable {
  public:
   Remover(
       const shared_ptr<StorageMap>& storage,
@@ -176,8 +174,7 @@ class Remover : public INode, public IPathable {
 
   IPathable* asPathable() override { return this; }
   ISource* asSource() override { return nullptr; }
-  ISink* asSink() override { return nullptr; }
-  ICohesiveGroup* asGroup() override { return nullptr; }
+  IGroup* asGroup() override { return nullptr; }
 
   void handlePacket(const PathablePacket& incomingPathablePacket) override {
     const Packet& incomingPacket = incomingPathablePacket.packet;
@@ -240,7 +237,7 @@ class Remover : public INode, public IPathable {
   const shared_ptr<StorageMap> mStorage;
 };
 
-class RemoveAll : public INode, public IPathable {
+class RemoveAll : public IImplementation, public IPathable {
  public:
   RemoveAll(
       const shared_ptr<StorageMap>& storage,
@@ -252,8 +249,7 @@ class RemoveAll : public INode, public IPathable {
 
   IPathable* asPathable() override { return this; }
   ISource* asSource() override { return nullptr; }
-  ISink* asSink() override { return nullptr; }
-  ICohesiveGroup* asGroup() override { return nullptr; }
+  IGroup* asGroup() override { return nullptr; }
 
   void handlePacket(const PathablePacket& incomingPathablePacket) override {
     const Packet& incomingPacket = incomingPathablePacket.packet;
@@ -349,9 +345,9 @@ VolatileKeyValueSet::VolatileKeyValueSet(const nlohmann::json& initParameters) {
   mPartitions[kRemoveAllPartitionName].node = remover;
 }
 
-size_t VolatileKeyValueSet::getNodeCount() { return mPartitions.size(); }
+size_t VolatileKeyValueSet::getInterfaceCount() { return mPartitions.size(); }
 
-string VolatileKeyValueSet::getNodeName(size_t partitionIndex) {
+string VolatileKeyValueSet::getInterfaceName(size_t partitionIndex) {
   switch (partitionIndex) {
     case kSetterPartitionIndex:
       return kAdderPartitionName;
@@ -366,7 +362,7 @@ string VolatileKeyValueSet::getNodeName(size_t partitionIndex) {
   }
 }
 
-std::shared_ptr<INode> VolatileKeyValueSet::getNode(
+std::shared_ptr<IImplementation> VolatileKeyValueSet::getInterface(
     const string& partitionName) {
   return mPartitions[partitionName].node;
 }

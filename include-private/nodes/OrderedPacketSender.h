@@ -17,21 +17,20 @@
 #ifndef MAPLANG_SRC_NODES_ORDEREDPACKETSENDER_H_
 #define MAPLANG_SRC_NODES_ORDEREDPACKETSENDER_H_
 
-#include "maplang/INode.h"
+#include "maplang/IImplementation.h"
 #include "maplang/IPathable.h"
 
 namespace maplang {
 
-class OrderedPacketSender final : public INode, public IPathable {
+class OrderedPacketSender final : public IImplementation, public IPathable {
  public:
   ~OrderedPacketSender() override = default;
 
   void handlePacket(const PathablePacket& incomingPacket) override;
 
   IPathable* asPathable() override { return this; }
-  ISink* asSink() override { return nullptr; }
   ISource* asSource() override { return nullptr; }
-  ICohesiveGroup* asGroup() override { return nullptr; }
+  IGroup* asGroup() override { return nullptr; }
 };
 
 }  // namespace maplang

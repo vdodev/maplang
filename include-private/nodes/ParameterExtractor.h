@@ -17,11 +17,11 @@
 #ifndef MAPLANG_SRC_NODES_PARAMETEREXTRACTOR_H_
 #define MAPLANG_SRC_NODES_PARAMETEREXTRACTOR_H_
 
-#include <maplang/INode.h>
+#include <maplang/IImplementation.h>
 
 namespace maplang {
 
-class ParameterExtractor : public IPathable, public INode {
+class ParameterExtractor : public IPathable, public IImplementation {
  public:
   static const std::string kChannel_ExtractedParameter;
 
@@ -31,10 +31,9 @@ class ParameterExtractor : public IPathable, public INode {
 
   void handlePacket(const PathablePacket& packet) override;
 
-  ISink* asSink() override { return nullptr; }
   ISource* asSource() override { return nullptr; }
   IPathable* asPathable() override { return this; }
-  ICohesiveGroup* asGroup() override { return nullptr; }
+  IGroup* asGroup() override { return nullptr; }
 
  private:
   const nlohmann::json_pointer<nlohmann::basic_json<>>

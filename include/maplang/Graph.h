@@ -20,81 +20,53 @@
 #include <functional>
 #include <list>
 
-#include "maplang/INode.h"
+#include "maplang/GraphNode.h"
+#include "maplang/IImplementation.h"
+#include "maplang/ImplementationFactory.h"
 #include "maplang/Instance.h"
-#include "maplang/NodeFactory.h"
 
 namespace maplang {
-
-enum class PacketDeliveryType { PushDirectlyToTarget, AlwaysQueue };
-
-struct GraphElement;
-
-struct GraphEdge final {
-  std::string channel;
-  std::shared_ptr<GraphElement> next;
-
-  PacketDeliveryType sameThreadQueueToTargetType =
-      PacketDeliveryType::PushDirectlyToTarget;
-};
-
-struct ThreadGroup;
-
-struct GraphElement final {
- public:
-  GraphElement(const std::string& elementName);
-  void cleanUpEmptyEdges();
-
- public:
-  const std::string elementName;
-  std::string instanceName;
-  std::shared_ptr<IPacketPusher> packetPusher;
-
-  // for parameter propagation when the downstream node(s) get a packet from
-  // this node.
-  std::shared_ptr<const nlohmann::json> lastReceivedParameters;
-  std::list<std::weak_ptr<GraphElement>> backEdges;
-
-  // All GraphElements this one connects to. channel => edges from this channel
-  std::unordered_map<std::string, std::vector<GraphEdge>> forwardEdges;
-};
 
 class Graph final {
  public:
   GraphEdge& connect(
-      const std::string& fromElementName,
+      const std::string& fromNodeName,
       const std::string& fromChannel,
-      const std::string& toItem);
+      const std::string& toNodeName);
 
   void disconnect(
-      const std::string& fromItem,
+      const std::string& fromNodeName,
       const std::string& fromChannel,
-      const std::string& toItem);
+      const std::string& toNodeName);
 
-  using GraphElementVisitor =
-      std::function<void(const std::shared_ptr<GraphElement>& graphElement)>;
+  using NodeVisitor =
+      std::function<void(const std::shared_ptr<GraphNode>& graphNode)>;
 
   /**
-   * Visits GraphElements. Order is unspecified.
-   * @param visitor Called for each GraphElement in the Graph.
+   * Visits GraphNodes. Order is unspecified.
+   * @param visitor Called for each GraphNode in the Graph.
    */
-  void visitGraphElements(const GraphElementVisitor& visitor) const;
+  void visitNodes(const NodeVisitor& visitor) const;
 
-  void visitGraphElementsHeadsLast(const GraphElementVisitor& visitor) const;
+  void visitNodesHeadsLast(const NodeVisitor& visitor) const;
 
-  bool hasElement(const std::string& elementName) const;
+  bool hasNode(const std::string& nodeName) const;
 
-  std::shared_ptr<GraphElement> getOrCreateGraphElement(
-      const std::string& elementName);
+  std::shared_ptr<GraphNode> createGraphNode(
+      const std::string& nodeName,
+      bool allowIncomingConnections,
+      bool allowOutgoingConnections);
 
-  std::optional<std::shared_ptr<GraphElement>> getGraphElement(
-      const std::string& elementName) const;
+  std::optional<std::shared_ptr<GraphNode>> getNode(
+      const std::string& nodeName) const;
+
+  std::shared_ptr<GraphNode> getNodeOrThrow(
+      const std::string& nodeName) const;
 
  private:
-  std::unordered_map<std::string, std::shared_ptr<GraphElement>>
-      mNameToElementMap;
+  std::unordered_map<std::string, std::shared_ptr<GraphNode>> mNameToNodeMap;
 
-  std::shared_ptr<NodeFactory> mNodeFactory;
+  std::shared_ptr<ImplementationFactory> mNodeFactory;
 };
 
 }  // namespace maplang

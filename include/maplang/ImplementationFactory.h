@@ -14,41 +14,40 @@
  * limitations under the License.
  */
 
-#ifndef __MAPLANG_NODEFACTORY_H__
-#define __MAPLANG_NODEFACTORY_H__
+#ifndef __MAPLANG_IMPLEMENTATIONFACTORY_H__
+#define __MAPLANG_IMPLEMENTATIONFACTORY_H__
 
 #include <memory>
 #include <set>
 
-#include "maplang/ICohesiveGroup.h"
-#include "maplang/INode.h"
+#include "maplang/IGroup.h"
+#include "maplang/IImplementation.h"
 #include "maplang/json.hpp"
 
 namespace maplang {
 
-class NodeFactory final {
+class ImplementationFactory final {
  public:
-  using NodeFactoryFunction = std::function<std::shared_ptr<INode>(
+  using FactoryFunction = std::function<std::shared_ptr<IImplementation>(
       const nlohmann::json& initParameters)>;
 
-  using NodeNameVisitor = std::function<void(const std::string& nodeName)>;
+  using ImplementationNameVisitor =
+      std::function<void(const std::string& nodeName)>;
 
-  static std::shared_ptr<NodeFactory> defaultFactory();
+  static std::shared_ptr<ImplementationFactory> defaultFactory();
 
-  void registerNodeFactory(
-      const std::string& name,
-      NodeFactoryFunction&& factory);
+  void registerFactory(const std::string& name, FactoryFunction&& factory);
 
-  std::shared_ptr<INode> createNode(
+  std::shared_ptr<IImplementation> createImplementation(
       const std::string& name,
       const nlohmann::json& initParameters) const;
 
-  void visitNodeNames(const NodeNameVisitor& visitor);
+  void visitImplementationNames(const ImplementationNameVisitor& visitor);
 
  private:
-  std::unordered_map<std::string, NodeFactoryFunction> mNodeFactoryFunctionMap;
+  std::unordered_map<std::string, FactoryFunction> mFactoryFunctionMap;
 };
 
 }  // namespace maplang
 
-#endif  // __MAPLANG_NODEFACTORY_H__
+#endif  // __MAPLANG_IMPLEMENTATIONFACTORY_H__

@@ -17,29 +17,28 @@
 #ifndef __MAPLANG_VOLATILE_KEY_VALUE_SET_H__
 #define __MAPLANG_VOLATILE_KEY_VALUE_SET_H__
 
-#include "maplang/ICohesiveGroup.h"
+#include "maplang/IGroup.h"
 
 namespace maplang {
 
-class VolatileKeyValueSet : public ICohesiveGroup, public INode {
+class VolatileKeyValueSet : public IGroup, public IImplementation {
  public:
   VolatileKeyValueSet(const nlohmann::json& initParameters);
   ~VolatileKeyValueSet() override = default;
 
-  size_t getNodeCount() override;
-  std::string getNodeName(size_t partitionIndex) override;
+  size_t getInterfaceCount() override;
+  std::string getInterfaceName(size_t partitionIndex) override;
 
-  std::shared_ptr<INode> getNode(const std::string& partitionName) override;
+  std::shared_ptr<IImplementation> getInterface(const std::string& partitionName) override;
 
   IPathable* asPathable() override { return nullptr; }
-  ISink* asSink() override { return nullptr; }
   ISource* asSource() override { return nullptr; }
-  ICohesiveGroup* asGroup() override { return this; }
+  IGroup* asGroup() override { return this; }
 
  private:
   struct Partition {
     std::string name;
-    std::shared_ptr<INode> node;
+    std::shared_ptr<IImplementation> node;
   };
 
   std::unordered_map<std::string, Partition> mPartitions;

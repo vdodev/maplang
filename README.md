@@ -1,5 +1,9 @@
 # Maplang: Diagrams as Code
 
+### Prerequisites
+Ubuntu/Debian: libgraphviz-dev
+Redhat/CentOS: libgraphviz-devel
+
 ### What problem does Maplang solve?
 
 Logic in your code is processed by the language centers in your brain.

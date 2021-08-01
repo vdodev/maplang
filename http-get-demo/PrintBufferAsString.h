@@ -17,7 +17,7 @@
 #ifndef __MAPLANG_PRINTBUFFERASSTRING_H__
 #define __MAPLANG_PRINTBUFFERASSTRING_H__
 
-#include "maplang/INode.h"
+#include "maplang/IImplementation.h"
 #include "maplang/IPathable.h"
 
 namespace maplang {

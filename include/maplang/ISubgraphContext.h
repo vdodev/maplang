@@ -25,7 +25,7 @@ typedef struct uv_loop_s uv_loop_t;
 
 namespace maplang {
 
-class INode;
+class IImplementation;
 
 class ISubgraphContext {
  public:

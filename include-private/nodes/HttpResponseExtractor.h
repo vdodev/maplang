@@ -19,25 +19,25 @@
 
 #include <random>
 
-#include "maplang/INode.h"
-#include "maplang/ISink.h"
+#include "maplang/IImplementation.h"
 #include "maplang/ISource.h"
 #include "maplang/MemoryStream.h"
 
 namespace maplang {
 
-class HttpResponseExtractor final : public INode, public ISink, public ISource {
+class HttpResponseExtractor final : public IImplementation,
+                                    public IPathable,
+                                    public ISource {
  public:
   HttpResponseExtractor(const nlohmann::json& parameters);
   ~HttpResponseExtractor() override;
 
-  void handlePacket(const Packet& packet) override;
+  void handlePacket(const PathablePacket& packet) override;
   void setPacketPusher(const std::shared_ptr<IPacketPusher>& pusher) override;
 
   IPathable* asPathable() override { return nullptr; }
-  ISink* asSink() override { return this; }
   ISource* asSource() override { return this; }
-  ICohesiveGroup* asGroup() override { return nullptr; }
+  IGroup* asGroup() override { return nullptr; }
 
  private:
   std::shared_ptr<IPacketPusher> mPacketPusher;

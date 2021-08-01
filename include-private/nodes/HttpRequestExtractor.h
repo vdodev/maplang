@@ -20,28 +20,26 @@
 #include <list>
 #include <random>
 
-#include "maplang/INode.h"
+#include "maplang/IImplementation.h"
 #include "maplang/ISource.h"
 #include "maplang/MemoryStream.h"
 #include "maplang/json.hpp"
 
 namespace maplang {
 
-class HttpRequestExtractor final : public INode, public ISink, public ISource {
+class HttpRequestExtractor final : public IImplementation, public IPathable {
  public:
   HttpRequestExtractor(const nlohmann::json& parameters);
   ~HttpRequestExtractor() override;
 
-  void handlePacket(const Packet& packet) override;
-  void setPacketPusher(const std::shared_ptr<IPacketPusher>& pusher) override;
+  void handlePacket(const PathablePacket& packet) override;
 
-  IPathable* asPathable() override { return nullptr; }
-  ISink* asSink() override { return this; }
-  ISource* asSource() override { return this; }
-  ICohesiveGroup* asGroup() override { return nullptr; }
+  IPathable* asPathable() override { return this; }
+  ISource* asSource() override { return nullptr; }
+  IGroup* asGroup() override { return nullptr; }
 
  private:
-  std::shared_ptr<IPacketPusher> mPacketPusher;
+  std::shared_ptr<IPacketPusher> mLastPayloadsPacketPusher;
   std::random_device mRandomDevice;
   std::uniform_int_distribution<uint64_t> mUniformDistribution;
   bool mSentHeaders;
@@ -55,7 +53,8 @@ class HttpRequestExtractor final : public INode, public ISink, public ISource {
   Packet createHeaderPacket(const MemoryStream& memoryStream) const;
   Packet createBodyPacket(const Buffer& bodyBuffer) const;
 
-  void sendEndOfRequestPacketIfRequestPending();
+  void sendEndOfRequestPacketIfRequestPending(
+      const std::shared_ptr<IPacketPusher>& packetPusher);
 };
 
 }  // namespace maplang

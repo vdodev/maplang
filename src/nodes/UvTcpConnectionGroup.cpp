@@ -18,7 +18,9 @@
 
 #include <uv.h>
 
+#include <atomic>
 #include <list>
+#include <mutex>
 #include <sstream>
 
 #include "Cleanup.h"
@@ -54,7 +56,9 @@ static const string kParameter_ClosedReason = "Closed Reason";
 static const string kClosedReason_StreamEnded = "Stream Ended";
 
 static const string kNodeName_Sender = "Sender";
+static const string kNodeName_Receiver = "Receiver";
 static const string kNodeName_Listener = "Listener";
+static const string kNodeName_AsyncEvents = "Async Events";
 static const string kNodeName_Connector = "Connector";
 static const string kNodeName_Disconnector = "Disconnector";
 static const string kNodeName_ShutdownSender = "Shutdown Sender";
@@ -238,6 +242,11 @@ struct ExtendedShutdownT {
   shared_ptr<IPacketPusher> packetPusher;
 };
 
+struct ConnectInfo {
+  UvTcpImpl* tcpImpl;
+  shared_ptr<IPacketPusher> packetPusher;
+};
+
 class UvTcpImpl final {
  public:
   UvTcpImpl()
@@ -249,18 +258,24 @@ class UvTcpImpl final {
             [](ExtendedUvWriteT* writeReq) {
               writeReq->buffer.data.reset();
               writeReq->buffer.length = 0;
-            }) {}
+            }) {
+    call_once(initAtomicConnectionIndexOnce, []() {
+      atomicConnectionIndex.store(0);
+    });
+  }
 
   ~UvTcpImpl() {}
 
-  void connect(const Packet& packet) {
+  void connect(const PathablePacket& pathablePacket) {
+    const auto packet = pathablePacket.packet;
+
     if (!packet.parameters.contains(kParameter_Port)) {
       const string connectionId = "";
       sendUvErrorPacket(
           "Missing parameter '" + kParameter_Port + "'.",
           EINVAL,
           connectionId,
-          mPacketPusher);
+          pathablePacket.packetPusher);
       return;
     }
 
@@ -270,7 +285,7 @@ class UvTcpImpl final {
           "Missing parameter '" + kParameter_Address + "'.",
           EINVAL,
           connectionId,
-          mPacketPusher);
+          pathablePacket.packetPusher);
       return;
     }
 
@@ -301,7 +316,7 @@ class UvTcpImpl final {
                 + ".",
             status,
             connectionId,
-            mPacketPusher);
+            pathablePacket.packetPusher);
         return;
       }
     }
@@ -321,7 +336,7 @@ class UvTcpImpl final {
           "Could not initialize TCP client.",
           status,
           connectionId,
-          mPacketPusher);
+          pathablePacket.packetPusher);
       return;
     }
 
@@ -337,7 +352,10 @@ class UvTcpImpl final {
 
     Cleanup connectCleanup([connect]() { free(connect); });
 
-    connect->data = this;
+    ConnectInfo* connectInfo = new ConnectInfo();
+    connectInfo->tcpImpl = this;
+    connectInfo->packetPusher = pathablePacket.packetPusher;
+    connect->data = connectInfo;
 
     status = uv_tcp_connect(
         connect,
@@ -350,7 +368,7 @@ class UvTcpImpl final {
           "Connection failed.",
           status,
           connectionId,
-          mPacketPusher);
+          pathablePacket.packetPusher);
       return;
     }
 
@@ -358,10 +376,13 @@ class UvTcpImpl final {
     connectCleanup.cancelCleanup();
   }
 
-  void listen(const Packet& packet) {
+  void listen(const PathablePacket& pathablePacket) {
+    const auto& packet = pathablePacket.packet;
+    const auto packetPusher = pathablePacket.packetPusher;
+
     const bool alreadyListening = !mListeningAddressPortPair.empty();
     if (alreadyListening) {
-      sendUvErrorPacket("Already listening.", EINVAL, "", mPacketPusher);
+      sendUvErrorPacket("Already listening.", EINVAL, "", packetPusher);
       return;
     }
 
@@ -371,7 +392,7 @@ class UvTcpImpl final {
           "Missing parameter '" + kParameter_Port + "'.",
           EINVAL,
           connectionId,
-          mPacketPusher);
+          packetPusher);
       return;
     }
 
@@ -412,7 +433,7 @@ class UvTcpImpl final {
                 + ".",
             status,
             connectionId,
-            mPacketPusher);
+            packetPusher);
         return;
       }
     }
@@ -426,7 +447,7 @@ class UvTcpImpl final {
               + ".",
           status,
           connectionId,
-          mPacketPusher);
+          packetPusher);
       return;
     }
 
@@ -442,7 +463,7 @@ class UvTcpImpl final {
               + to_string(port) + ".",
           status,
           connectionId,
-          mPacketPusher);
+          packetPusher);
       return;
     }
 
@@ -450,7 +471,7 @@ class UvTcpImpl final {
     uint16_t boundPort;
     status = getLocalUvAddressAndPort(
         &mTcpServer,
-        mPacketPusher,
+        packetPusher,
         &boundAddress,
         &boundPort);
     if (status != 0) {
@@ -462,7 +483,7 @@ class UvTcpImpl final {
     Packet listenSuccessPacket;
     listenSuccessPacket.parameters[kParameter_LocalPort] = boundPort;
     listenSuccessPacket.parameters[kParameter_LocalAddress] = boundAddress;
-    mPacketPusher->pushPacket(move(listenSuccessPacket), kChannel_Listening);
+    packetPusher->pushPacket(move(listenSuccessPacket), kChannel_Listening);
 
     printf("Listening on port %s:%hu\n", boundAddress.c_str(), boundPort);
   }
@@ -470,11 +491,18 @@ class UvTcpImpl final {
   static void onOutgoingConnectionEstablishedWrapper(
       uv_connect_t* client,
       int status) {
-    auto tcpImpl = reinterpret_cast<UvTcpImpl*>(client->data);
-    tcpImpl->onOutgoingConnectionEstablished(client, status);
+    auto connectInfo = reinterpret_cast<ConnectInfo*>(client->data);
+    const auto tcpImpl = connectInfo->tcpImpl;
+    const auto packetPusher = connectInfo->packetPusher;
+    delete connectInfo;
+
+    tcpImpl->onOutgoingConnectionEstablished(packetPusher, client, status);
   }
 
-  void onOutgoingConnectionEstablished(uv_connect_t* connect, int status) {
+  void onOutgoingConnectionEstablished(
+      const shared_ptr<IPacketPusher>& packetPusher,
+      uv_connect_t* connect,
+      int status) {
     UvTcpConnection connection;
     connection.uvSocket = shared_ptr<uv_tcp_t>(
         reinterpret_cast<uv_tcp_t*>(connect->handle),
@@ -492,7 +520,7 @@ class UvTcpImpl final {
           "Outgoing connection failed.",
           status,
           "",
-          mPacketPusher);
+          packetPusher);
       free(connect);
       return;
     }
@@ -501,7 +529,7 @@ class UvTcpImpl final {
     uint16_t remotePort = 0;
     status = getRemoteUvAddressAndPort(
         connection.uvSocket.get(),
-        mPacketPusher,
+        packetPusher,
         &remoteAddress,
         &remotePort);
     if (status != 0) {
@@ -512,15 +540,16 @@ class UvTcpImpl final {
     uint16_t localPort = 0;
     status = getLocalUvAddressAndPort(
         connection.uvSocket.get(),
-        mPacketPusher,
+        packetPusher,
         &localAddress,
         &localPort);
     if (status != 0) {
       return;  // error packet already sent
     }
 
-    connection.connectionId = remoteAddress + ":" + to_string(remotePort);
-    ;
+    connection.connectionId =
+        remoteAddress + ":" + to_string(remotePort) + " "
+        + to_string(atomic_fetch_add(&atomicConnectionIndex, 1));
     connection.localAddress = localAddress;
     connection.localPort = localPort;
     connection.remoteAddress = remoteAddress;
@@ -532,7 +561,7 @@ class UvTcpImpl final {
 
     Packet connectedPacket;
     setConnectionParameters(connection, &connectedPacket.parameters);
-    mPacketPusher->pushPacket(
+    packetPusher->pushPacket(
         move(connectedPacket),
         kChannel_ConnectionEstablished);
   }
@@ -549,7 +578,7 @@ class UvTcpImpl final {
           "New connection failed.",
           status,
           connectionId,
-          mPacketPusher);
+          mAsyncEventsPacketPusher);
       return;
     }
 
@@ -563,7 +592,7 @@ class UvTcpImpl final {
           "Failed to accept connection.",
           status,
           connectionId,
-          mPacketPusher);
+          mAsyncEventsPacketPusher);
       return;
     }
 
@@ -575,7 +604,7 @@ class UvTcpImpl final {
     uint16_t remotePort = 0;
     status = getRemoteUvAddressAndPort(
         client.get(),
-        mPacketPusher,
+        mAsyncEventsPacketPusher,
         &remoteAddress,
         &remotePort);
     if (status != 0) {
@@ -586,14 +615,16 @@ class UvTcpImpl final {
     uint16_t localPort = 0;
     status = getLocalUvAddressAndPort(
         client.get(),
-        mPacketPusher,
+        mAsyncEventsPacketPusher,
         &localAddress,
         &localPort);
     if (status != 0) {
       return;  // error packet already sent
     }
 
-    const string connectionId = remoteAddress + ":" + to_string(remotePort);
+    const string connectionId =
+        remoteAddress + ":" + to_string(remotePort) + " "
+        + to_string(atomic_fetch_add(&atomicConnectionIndex, 1));
 
     UvTcpConnection connection;
     connection.uvSocket = client;
@@ -615,7 +646,7 @@ class UvTcpImpl final {
           "Failed to start reading from incoming connection.",
           status,
           connectionId,
-          mPacketPusher);
+          mAsyncEventsPacketPusher);
       uv_close(
           reinterpret_cast<uv_handle_t*>(client.get()),
           onConnectionRemovedWrapper);
@@ -625,7 +656,7 @@ class UvTcpImpl final {
     Packet newConnectionPacket;
     setConnectionParameters(connection, &newConnectionPacket.parameters);
 
-    mPacketPusher->pushPacket(
+    mAsyncEventsPacketPusher->pushPacket(
         move(newConnectionPacket),
         kChannel_NewIncomingConnection);
   }
@@ -658,7 +689,7 @@ class UvTcpImpl final {
           "TCP receive error.",
           nread,
           connection->connectionId,
-          mPacketPusher);
+          mDataReceivedPacketPusher);
       return;
     }
 
@@ -672,10 +703,12 @@ class UvTcpImpl final {
     buffer.length = nread;
     dataReceivedPacket.buffers.push_back(move(buffer));
 
-    mPacketPusher->pushPacket(move(dataReceivedPacket), kChannel_DataReceived);
+    mDataReceivedPacketPusher->pushPacket(move(dataReceivedPacket), kChannel_DataReceived);
   }
 
-  void sendData(const Packet& packet) {
+  void sendData(const PathablePacket& pathablePacket) {
+    const auto& packet = pathablePacket.packet;
+
     UvTcpConnection& connection =
         mConnections[packet.parameters[kParameter_TcpConnectionId]
                          .get<string>()];
@@ -707,7 +740,9 @@ class UvTcpImpl final {
     mUvWriteTPool.returnToPool(extendedRequest);
   }
 
-  void disconnect(const Packet& packet) {
+  void disconnect(const PathablePacket& pathablePacket) {
+    const auto& packet = pathablePacket.packet;
+
     const string connectionId = packet.parameters[kParameter_TcpConnectionId];
     const auto it = mConnections.find(connectionId);
     if (it == mConnections.end()) {
@@ -772,21 +807,29 @@ class UvTcpImpl final {
           "Could not initialize server's TCP socket.",
           status,
           connectionId,
-          mPacketPusher);
+          mAsyncEventsPacketPusher);
     }
   }
 
-  void setPacketPusher(const shared_ptr<IPacketPusher>& packetPusher) {
-    mPacketPusher = packetPusher;
+  void setReceiverPacketPusher(const shared_ptr<IPacketPusher>& packetPusher) {
+    mDataReceivedPacketPusher = packetPusher;
+  }
+
+  void setAsyncEventsPacketPusher(const shared_ptr<IPacketPusher>& packetPusher) {
+    mAsyncEventsPacketPusher = packetPusher;
   }
 
  private:
+  static atomic_uint64_t atomicConnectionIndex;
+  static once_flag initAtomicConnectionIndexOnce;
+
   shared_ptr<uv_loop_t> mUvLoop;
   uv_tcp_t mTcpServer;
   string mListeningAddressPortPair;
 
   bool mIncomingConnectionsNoDelay = false;
-  shared_ptr<IPacketPusher> mPacketPusher;
+  shared_ptr<IPacketPusher> mDataReceivedPacketPusher;
+  shared_ptr<IPacketPusher> mAsyncEventsPacketPusher;
 
   unordered_map<string, UvTcpConnection> mConnections;
   unordered_map<const void*, UvTcpConnection*> mUvClientToConnection;
@@ -843,7 +886,7 @@ class UvTcpImpl final {
     Packet closedPacket;
     setConnectionParameters(connection, &closedPacket.parameters);
     closedPacket.parameters[kParameter_ClosedReason] = connection.closedReason;
-    mPacketPusher->pushPacket(move(closedPacket), kChannel_ConnectionClosed);
+    mAsyncEventsPacketPusher->pushPacket(move(closedPacket), kChannel_ConnectionClosed);
   }
 
   static void onSenderShutdownWrapper(uv_shutdown_t* shutdown, int status) {
@@ -888,20 +931,24 @@ class UvTcpImpl final {
   }
 };
 
-class UvTcpConnector : public ISink, public INode {
+atomic_uint64_t UvTcpImpl::atomicConnectionIndex;
+once_flag UvTcpImpl::initAtomicConnectionIndexOnce;
+
+class UvTcpConnector : public IPathable, public IImplementation {
  public:
   UvTcpConnector(const shared_ptr<UvTcpImpl>& tcp) : mTcp(tcp) {}
   ~UvTcpConnector() override = default;
 
-  void handlePacket(const Packet& packet) override { mTcp->connect(packet); }
+  void handlePacket(const PathablePacket& incomingPacket) override {
+    mTcp->connect(incomingPacket);
+  }
 
-  IPathable* asPathable() override { return nullptr; }
-  ISink* asSink() override { return this; }
+  IPathable* asPathable() override { return this; }
   ISource* asSource() override { return nullptr; }
-  ICohesiveGroup* asGroup() override { return nullptr; }
+  IGroup* asGroup() override { return nullptr; }
 
   void setSubgraphContext(
-      const std::shared_ptr<ISubgraphContext>& context) override {
+      const shared_ptr<ISubgraphContext>& context) override {
     mTcp->setUvLoop(context->getUvLoop());
   }
 
@@ -909,20 +956,21 @@ class UvTcpConnector : public ISink, public INode {
   const shared_ptr<UvTcpImpl> mTcp;
 };
 
-class UvTcpListener : public ISink, public INode {
+class UvTcpListener : public IPathable, public IImplementation {
  public:
   UvTcpListener(const shared_ptr<UvTcpImpl>& tcp) : mTcp(tcp) {}
   ~UvTcpListener() override = default;
 
-  void handlePacket(const Packet& packet) override { mTcp->listen(packet); }
+  void handlePacket(const PathablePacket& pathablePacket) override {
+    mTcp->listen(pathablePacket);
+  }
 
-  IPathable* asPathable() override { return nullptr; }
-  ISink* asSink() override { return this; }
+  IPathable* asPathable() override { return this; }
   ISource* asSource() override { return nullptr; }
-  ICohesiveGroup* asGroup() override { return nullptr; }
+  IGroup* asGroup() override { return nullptr; }
 
   void setSubgraphContext(
-      const std::shared_ptr<ISubgraphContext>& context) override {
+      const shared_ptr<ISubgraphContext>& context) override {
     mTcp->setUvLoop(context->getUvLoop());
   }
 
@@ -930,38 +978,72 @@ class UvTcpListener : public ISink, public INode {
   const shared_ptr<UvTcpImpl> mTcp;
 };
 
-class UvTcpSender : public ISink, public INode {
+class UvTcpSender : public IPathable, public IImplementation {
  public:
   UvTcpSender(const shared_ptr<UvTcpImpl>& tcp) : mTcp(tcp) {}
   ~UvTcpSender() override = default;
-  void handlePacket(const Packet& packet) override { mTcp->sendData(packet); }
+  void handlePacket(const PathablePacket& pathablePacket) override {
+    mTcp->sendData(pathablePacket);
+  }
 
-  IPathable* asPathable() override { return nullptr; }
-  ISink* asSink() override { return this; }
+  IPathable* asPathable() override { return this; }
   ISource* asSource() override { return nullptr; }
-  ICohesiveGroup* asGroup() override { return nullptr; }
+  IGroup* asGroup() override { return nullptr; }
 
  private:
   const shared_ptr<UvTcpImpl> mTcp;
 };
 
-class UvTcpDisconnector : public ISink, public INode {
+class UvTcpDisconnector : public IPathable, public IImplementation {
  public:
   UvTcpDisconnector(const shared_ptr<UvTcpImpl>& tcp) : mTcp(tcp) {}
   ~UvTcpDisconnector() override = default;
 
-  void handlePacket(const Packet& packet) override { mTcp->disconnect(packet); }
+  void handlePacket(const PathablePacket& pathablePacket) override {
+    mTcp->disconnect(pathablePacket);
+  }
 
-  IPathable* asPathable() override { return nullptr; }
-  ISink* asSink() override { return this; }
+  IPathable* asPathable() override { return this; }
   ISource* asSource() override { return nullptr; }
-  ICohesiveGroup* asGroup() override { return nullptr; }
+  IGroup* asGroup() override { return nullptr; }
 
  private:
   const shared_ptr<UvTcpImpl> mTcp;
 };
 
-class UvTcpShutdownSender : public IPathable, public INode {
+class UvTcpReceiver : public ISource, public IImplementation {
+ public:
+  UvTcpReceiver(const shared_ptr<UvTcpImpl>& tcp) : mTcp(tcp) {}
+
+  void setPacketPusher(const shared_ptr<IPacketPusher>& packetPusher) {
+    mTcp->setReceiverPacketPusher(packetPusher);
+  }
+
+  IPathable* asPathable() override { return nullptr; }
+  ISource* asSource() override { return this; }
+  IGroup* asGroup() override { return nullptr; }
+
+ private:
+  const shared_ptr<UvTcpImpl> mTcp;
+};
+
+class UvTcpAsyncEvents : public ISource, public IImplementation {
+ public:
+  UvTcpAsyncEvents(const shared_ptr<UvTcpImpl>& tcp) : mTcp(tcp) {}
+
+  void setPacketPusher(const shared_ptr<IPacketPusher>& packetPusher) {
+    mTcp->setAsyncEventsPacketPusher(packetPusher);
+  }
+
+  IPathable* asPathable() override { return nullptr; }
+  ISource* asSource() override { return this; }
+  IGroup* asGroup() override { return nullptr; }
+
+ private:
+  const shared_ptr<UvTcpImpl> mTcp;
+};
+
+class UvTcpShutdownSender : public IPathable, public IImplementation {
  public:
   UvTcpShutdownSender(const shared_ptr<UvTcpImpl>& tcp) : mTcp(tcp) {}
   ~UvTcpShutdownSender() override = default;
@@ -970,46 +1052,53 @@ class UvTcpShutdownSender : public IPathable, public INode {
   }
 
   IPathable* asPathable() override { return this; }
-  ISink* asSink() override { return nullptr; }
   ISource* asSource() override { return nullptr; }
-  ICohesiveGroup* asGroup() override { return nullptr; }
+  IGroup* asGroup() override { return nullptr; }
 
  private:
   const shared_ptr<UvTcpImpl> mTcp;
 };
 
 UvTcpConnectionGroup::UvTcpConnectionGroup() : mImpl(make_shared<UvTcpImpl>()) {
-  mNodes[kNodeName_Connector] = make_shared<UvTcpConnector>(mImpl);
-  mNodes[kNodeName_Listener] = make_shared<UvTcpListener>(mImpl);
-  mNodes[kNodeName_Sender] = make_shared<UvTcpSender>(mImpl);
-  mNodes[kNodeName_Disconnector] = make_shared<UvTcpDisconnector>(mImpl);
-  mNodes[kNodeName_ShutdownSender] = make_shared<UvTcpShutdownSender>(mImpl);
+  mInterfaces[kNodeName_Connector] = make_shared<UvTcpConnector>(mImpl);
+  mInterfaces[kNodeName_Listener] = make_shared<UvTcpListener>(mImpl);
+  mInterfaces[kNodeName_AsyncEvents] = make_shared<UvTcpAsyncEvents>(mImpl);
+  mInterfaces[kNodeName_Sender] = make_shared<UvTcpSender>(mImpl);
+  mInterfaces[kNodeName_Receiver] = make_shared<UvTcpReceiver>(mImpl);
+  mInterfaces[kNodeName_Disconnector] = make_shared<UvTcpDisconnector>(mImpl);
+  mInterfaces[kNodeName_ShutdownSender] =
+      make_shared<UvTcpShutdownSender>(mImpl);
 }
 
-size_t UvTcpConnectionGroup::getNodeCount() { return mNodes.size(); }
+size_t UvTcpConnectionGroup::getInterfaceCount() { return mInterfaces.size(); }
 
-string UvTcpConnectionGroup::getNodeName(size_t nodeIndex) {
+string UvTcpConnectionGroup::getInterfaceName(size_t nodeIndex) {
   switch (nodeIndex) {
     case 0:
       return kNodeName_Connector;
     case 1:
       return kNodeName_Listener;
     case 2:
-      return kNodeName_Sender;
+      return kNodeName_AsyncEvents;
     case 3:
+      return kNodeName_Sender;
+    case 4:
+      return kNodeName_Receiver;
+    case 5:
       return kNodeName_Disconnector;
     default:
       throw runtime_error("Invalid node index: " + to_string(nodeIndex));
   }
 }
 
-shared_ptr<INode> UvTcpConnectionGroup::getNode(const string& nodeName) {
-  return mNodes[nodeName];
-}
+shared_ptr<IImplementation> UvTcpConnectionGroup::getInterface(
+    const string& interfaceName) {
+  const auto it = mInterfaces.find(interfaceName);
+  if (it == mInterfaces.end()) {
+    throw runtime_error("Interface '" + interfaceName + "' does not exist.");
+  }
 
-void UvTcpConnectionGroup::setPacketPusher(
-    const std::shared_ptr<IPacketPusher>& packetPusher) {
-  mImpl->setPacketPusher(packetPusher);
+  return it->second;
 }
 
 }  // namespace maplang

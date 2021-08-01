@@ -16,8 +16,8 @@
 
 #include "maplang/Instance.h"
 
-#include "maplang/INode.h"
-#include "maplang/NodeFactory.h"
+#include "maplang/IImplementation.h"
+#include "maplang/ImplementationFactory.h"
 
 using namespace std;
 
@@ -25,7 +25,7 @@ namespace maplang {
 
 void Instance::setType(
     const string& typeName,
-    const std::shared_ptr<NodeFactory>& nodeFactory) {
+    const std::shared_ptr<ImplementationFactory>& nodeFactory) {
   if (mTypeName == typeName) {
     return;
   }
@@ -36,7 +36,8 @@ void Instance::setType(
     return;
   }
 
-  mImplementation = nodeFactory->createNode(typeName, mInitParameters);
+  mImplementation =
+      nodeFactory->createImplementation(typeName, mInitParameters);
 
   const auto source = mImplementation->asSource();
   const auto packetPusherForISources = mPacketPusherForISources.lock();
@@ -46,8 +47,7 @@ void Instance::setType(
 
   mTypeName = typeName;
 }
-
-void Instance::setImplementation(const shared_ptr<INode>& implementation) {
+void Instance::setImplementation(const shared_ptr<IImplementation>& implementation) {
   mImplementation = implementation;
   implementation->setSubgraphContext(mSubgraphContext);
 
@@ -57,6 +57,8 @@ void Instance::setImplementation(const shared_ptr<INode>& implementation) {
     source->setPacketPusher(packetPusherForISources);
   }
 }
+
+
 
 void Instance::setInitParameters(const nlohmann::json& initParameters) {
   mInitParameters = initParameters;
@@ -84,11 +86,12 @@ string Instance::getThreadGroupName() const { return mThreadGroupName; }
 void Instance::setPacketPusherForISources(
     const std::shared_ptr<IPacketPusher>& packetPusher) {
   const auto currentPacketPusher = mPacketPusherForISources.lock();
-  if (currentPacketPusher != nullptr && packetPusher != nullptr) {
+  if (currentPacketPusher != nullptr && currentPacketPusher != packetPusher
+      && packetPusher != nullptr) {
     throw runtime_error(
         "Setting multiple packet pushers for an ISource is not supported. An "
         "Instance with an ISource implementation is probably referenced in "
-        "more than one GraphElement.");
+        "more than one GraphNode.");
   }
 
   mPacketPusherForISources = packetPusher;

@@ -14,34 +14,25 @@
  * limitations under the License.
  */
 
-#ifndef __MAPLANG_INODE_H__
-#define __MAPLANG_INODE_H__
+#ifndef __MAPLANG_IGROUP_H__
+#define __MAPLANG_IGROUP_H__
 
-#include <functional>
+#include <memory>
 
-#include "maplang/IPathable.h"
-#include "maplang/ISink.h"
-#include "maplang/ISource.h"
-#include "maplang/ISubgraphContext.h"
-#include "maplang/json.hpp"
+#include "maplang/IImplementation.h"
 
 namespace maplang {
 
-class ICohesiveGroup;
-
-class INode {
+class IGroup {
  public:
-  virtual ~INode() {}
+  virtual ~IGroup() = default;
 
-  virtual void setSubgraphContext(
-      const std::shared_ptr<ISubgraphContext>& context) {}
+  virtual size_t getInterfaceCount() = 0;
+  virtual std::string getInterfaceName(size_t nodeIndex) = 0;
 
-  virtual IPathable* asPathable() = 0;
-  virtual ISink* asSink() = 0;
-  virtual ISource* asSource() = 0;
-  virtual ICohesiveGroup* asGroup() = 0;
+  virtual std::shared_ptr<IImplementation> getInterface(const std::string& nodeName) = 0;
 };
 
 }  // namespace maplang
 
-#endif  // __MAPLANG_INODE_H__
+#endif  // __MAPLANG_IGROUP_H__

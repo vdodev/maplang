@@ -23,15 +23,15 @@ namespace maplang {
 std::string DotExporter::ExportGraph(
     DataGraph* graph,
     const std::string& graphName) {
-  std::vector<std::shared_ptr<GraphElement>> elements;
+  std::vector<std::shared_ptr<GraphNode>> elements;
 
   std::ostringstream out;
-  std::unordered_map<std::shared_ptr<GraphElement>, std::string> nodeToNameMap;
+  std::unordered_map<std::shared_ptr<GraphNode>, std::string> nodeToNameMap;
 
   size_t nodeIndex = 0;
-  graph->visitGraphElements([&nodeToNameMap, &nodeIndex, &out](
-                                const std::shared_ptr<GraphElement>& element) {
-    nodeToNameMap[element] = element->elementName;
+  graph->visitNodes([&nodeToNameMap, &nodeIndex, &out](
+                        const std::shared_ptr<GraphNode>& element) {
+    nodeToNameMap[element] = element->name;
     nodeIndex++;
 
     // out << "    <node id=\"" << elementName << "\"/>\n";
@@ -39,9 +39,9 @@ std::string DotExporter::ExportGraph(
 
   // out << std::endl;
 
-  out << "digraph " << graphName << " {" << std::endl;
+  out << "strict digraph " << graphName << " {" << std::endl;
   for (const auto& elementNamePair : nodeToNameMap) {
-    const std::shared_ptr<GraphElement>& element = elementNamePair.first;
+    const std::shared_ptr<GraphNode>& element = elementNamePair.first;
     const std::string& name = elementNamePair.second;
 
     for (const auto& edgePair : element->forwardEdges) {

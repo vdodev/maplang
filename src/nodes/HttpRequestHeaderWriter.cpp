@@ -31,12 +31,11 @@ static const char* const kChannel_HttpData = "Http Data";
 HttpRequestHeaderWriter::HttpRequestHeaderWriter(
     const nlohmann::json& initParameters) {}
 
-void HttpRequestHeaderWriter::setPacketPusher(
-    const std::shared_ptr<IPacketPusher>& packetPusher) {
-  mPacketPusher = packetPusher;
-}
+void HttpRequestHeaderWriter::handlePacket(
+    const PathablePacket& pathablePacket) {
+  const auto& packet = pathablePacket.packet;
+  const auto& packetPusher = pathablePacket.packetPusher;
 
-void HttpRequestHeaderWriter::handlePacket(const Packet& packet) {
   stringstream httpBytes;
   const auto method =
       packet.parameters[http::kParameter_HttpMethod].get<string>();
@@ -81,7 +80,7 @@ void HttpRequestHeaderWriter::handlePacket(const Packet& packet) {
     httpBytesPacket.buffers.push_back(bodyBuffer);
   }
 
-  mPacketPusher->pushPacket(move(httpBytesPacket), kChannel_HttpData);
+  packetPusher->pushPacket(move(httpBytesPacket), kChannel_HttpData);
 }
 
 }  // namespace maplang

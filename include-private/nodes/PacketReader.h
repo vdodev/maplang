@@ -17,22 +17,21 @@
 #ifndef __MAPLANG_PACKETREADER_H__
 #define __MAPLANG_PACKETREADER_H__
 
-#include "maplang/INode.h"
+#include "maplang/IImplementation.h"
 #include "maplang/IPathable.h"
 #include "maplang/MemoryStream.h"
 
 namespace maplang {
 
-class PacketReader : public INode, public IPathable {
+class PacketReader : public IImplementation, public IPathable {
  public:
   ~PacketReader() override = default;
 
   void handlePacket(const PathablePacket& incomingPacket) override;
 
   IPathable* asPathable() override { return this; }
-  ISink* asSink() override { return nullptr; }
   ISource* asSource() override { return nullptr; }
-  ICohesiveGroup* asGroup() override { return nullptr; }
+  IGroup* asGroup() override { return nullptr; }
 
  private:
   uint64_t mLength = 0;

@@ -22,6 +22,8 @@
 #include <cstdarg>
 
 namespace maplang {
+
+#ifndef NDEBUG
 __attribute__((__format__(__printf__, 1, 2))) inline void logd(
     const char* fmt,
     ...) {
@@ -31,6 +33,11 @@ __attribute__((__format__(__printf__, 1, 2))) inline void logd(
   printf("\n");
   va_end(args);
 }
+#else
+__attribute__((__format__(__printf__, 1, 2))) inline void logd(
+    const char* fmt,
+    ...) {}
+#endif
 
 __attribute__((__format__(__printf__, 1, 2))) inline void logi(
     const char* fmt,

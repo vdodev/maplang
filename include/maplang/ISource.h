@@ -21,7 +21,6 @@
 #include <vector>
 
 #include "maplang/IPacketPusher.h"
-#include "maplang/ISink.h"
 #include "maplang/Packet.h"
 
 namespace maplang {

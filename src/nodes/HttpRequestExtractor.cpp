@@ -34,17 +34,14 @@ HttpRequestExtractor::HttpRequestExtractor(const nlohmann::json& parameters) {
   reset();
 }
 
-HttpRequestExtractor::~HttpRequestExtractor() {
-  sendEndOfRequestPacketIfRequestPending();
+HttpRequestExtractor::~HttpRequestExtractor() noexcept {
+  this->sendEndOfRequestPacketIfRequestPending(mLastPayloadsPacketPusher);
 }
 
-void HttpRequestExtractor::setPacketPusher(
-    const std::shared_ptr<IPacketPusher>& pusher) {
-  mPacketPusher = pusher;
-}
-
-void HttpRequestExtractor::handlePacket(const Packet& incomingPacket) {
+void HttpRequestExtractor::handlePacket(const PathablePacket& incomingPacket) {
   try {
+    mLastPayloadsPacketPusher = incomingPacket.packetPusher;
+
     if (mSentHeaders) {
       /*
        * Won't know if it's the last one when Content-Length isn't set, but that
@@ -53,8 +50,8 @@ void HttpRequestExtractor::handlePacket(const Packet& incomingPacket) {
        * this class will handle the next request.
        */
       bool knownLastBufferInRequest = false;
-      const Buffer& incomingBuffer = incomingPacket.buffers[0];
-      Packet bodyPacket = createBodyPacket(incomingPacket.buffers[0]);
+      const Buffer& incomingBuffer = incomingPacket.packet.buffers[0];
+      Packet bodyPacket = createBodyPacket(incomingPacket.packet.buffers[0]);
       if (mBodyLength != SIZE_MAX) {
         const size_t remainingBodyLength = mBodyLength - mSentBodyDataByteCount;
         knownLastBufferInRequest = incomingBuffer.length <= remainingBodyLength;
@@ -64,10 +61,12 @@ void HttpRequestExtractor::handlePacket(const Packet& incomingPacket) {
         }
       }
 
-      mPacketPusher->pushPacket(move(bodyPacket), kChannel_BodyData);
+      incomingPacket.packetPusher->pushPacket(
+          move(bodyPacket),
+          kChannel_BodyData);
 
       if (knownLastBufferInRequest) {
-        sendEndOfRequestPacketIfRequestPending();
+        sendEndOfRequestPacketIfRequestPending(incomingPacket.packetPusher);
         reset();
       }
 
@@ -75,7 +74,7 @@ void HttpRequestExtractor::handlePacket(const Packet& incomingPacket) {
     }
 
     const size_t bufferSizeBeforeAppending = mHeaderData.size();
-    mHeaderData.append(incomingPacket.buffers[0]);
+    mHeaderData.append(incomingPacket.packet.buffers[0]);
 
     static constexpr char kDoubleCrLf[] = "\r\n\r\n";
     static constexpr size_t kDoubleCrLfLength = sizeof(kDoubleCrLf) - 1;
@@ -98,7 +97,9 @@ void HttpRequestExtractor::handlePacket(const Packet& incomingPacket) {
                           .get<uint64_t>();
     }
 
-    mPacketPusher->pushPacket(move(headerPacket), kChannel_NewRequest);
+    incomingPacket.packetPusher->pushPacket(
+        move(headerPacket),
+        kChannel_NewRequest);
     mSentHeaders = true;
 
     // If the incoming packet has part of the body, send body data as a separate
@@ -108,19 +109,19 @@ void HttpRequestExtractor::handlePacket(const Packet& incomingPacket) {
     if (availableBodyLength > 0) {
       const size_t offsetOfBodyInLastBuffer =
           bodyStart - bufferSizeBeforeAppending;
-      uint8_t* body =
-          incomingPacket.buffers[0].data.get() + offsetOfBodyInLastBuffer;
+      uint8_t* body = incomingPacket.packet.buffers[0].data.get()
+                      + offsetOfBodyInLastBuffer;
 
       Buffer bodyBuffer;
       bodyBuffer.data =
-          shared_ptr<uint8_t[]>(incomingPacket.buffers[0].data, body);
+          shared_ptr<uint8_t[]>(incomingPacket.packet.buffers[0].data, body);
 
       const size_t bodyLength = availableBodyLength < contentLength
                                     ? availableBodyLength
                                     : contentLength;
       bodyBuffer.length = bodyLength;
 
-      mPacketPusher->pushPacket(
+      incomingPacket.packetPusher->pushPacket(
           createBodyPacket(bodyBuffer),
           kChannel_BodyData);
       mSentBodyDataByteCount += bodyBuffer.length;
@@ -128,7 +129,7 @@ void HttpRequestExtractor::handlePacket(const Packet& incomingPacket) {
 
     mHeaderData.clear();
   } catch (const exception& ex) {
-    sendErrorPacket(mPacketPusher, ex);
+    sendErrorPacket(incomingPacket.packetPusher, ex);
   }
 }
 
@@ -234,7 +235,8 @@ json HttpRequestExtractor::parseHeaders(const MemoryStream& headers) {
   return parsedHeaders;
 }
 
-void HttpRequestExtractor::sendEndOfRequestPacketIfRequestPending() {
+void HttpRequestExtractor::sendEndOfRequestPacketIfRequestPending(
+    const shared_ptr<IPacketPusher>& packetPusher) {
   if (!mSentHeaders) {
     return;
   }
@@ -242,9 +244,7 @@ void HttpRequestExtractor::sendEndOfRequestPacketIfRequestPending() {
   Packet packet;
   packet.parameters[http::kParameter_HttpRequestId] = mRequestId;
 
-  if (mPacketPusher) {
-    mPacketPusher->pushPacket(move(packet), kChannel_RequestEnded);
-  }
+  packetPusher->pushPacket(move(packet), kChannel_RequestEnded);
 }
 
 }  // namespace maplang

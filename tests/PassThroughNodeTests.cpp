@@ -14,28 +14,27 @@
  * limitations under the License.
  */
 
-#include <maplang/LambdaSink.h>
+#include <maplang/LambdaPathable.h>
 
 #include <thread>
 
 #include "gtest/gtest.h"
 #include "maplang/DataGraph.h"
-#include "maplang/NodeFactory.h"
+#include "maplang/ImplementationFactory.h"
 
 using namespace std;
 
 namespace maplang {
 
-class SimpleSource : public INode, public ISource {
+class SimpleSource : public IImplementation, public ISource {
  public:
   void setPacketPusher(const std::shared_ptr<IPacketPusher>& pusher) override {
     mPusher = pusher;
   }
 
   IPathable* asPathable() override { return nullptr; }
-  ISink* asSink() override { return nullptr; }
   ISource* asSource() override { return this; }
-  ICohesiveGroup* asGroup() override { return nullptr; }
+  IGroup* asGroup() override { return nullptr; }
 
   void sendPacket(const Packet& packet, const std::string& fromChannel) {
     mPusher->pushPacket(packet, fromChannel);
@@ -58,14 +57,18 @@ TEST(
         "outputChannel": "Pass-through output channel"
       })"_json;
 
+  graph.createNode("pass-through", true, true);
+
   graph.setNodeInstance("pass-through", "pass-through instance");
   graph.setInstanceInitParameters(
       "pass-through instance",
       passThroughInitParams);
   graph.setInstanceType("pass-through instance", "Pass-through");
 
-  auto lambdaSink = make_shared<LambdaSink>(
-      [&receivedPacketCount](const Packet& packet) { receivedPacketCount++; });
+  auto lambdaSink = make_shared<LambdaPathable>(
+      [&receivedPacketCount](const PathablePacket& packet) { receivedPacketCount++; });
+
+  graph.createNode("test lambda sink", true, false);
 
   graph.setNodeInstance("test lambda sink", "test lambda sink instance");
   graph.setInstanceImplementation("test lambda sink instance", lambdaSink);
@@ -74,6 +77,8 @@ TEST(
       "pass-through",
       "Pass-through output channel",
       "test lambda sink");
+
+  graph.startGraph();
 
   graph.sendPacket(Packet(), "pass-through");
 

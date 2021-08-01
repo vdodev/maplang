@@ -44,7 +44,9 @@ void HttpResponseExtractor::setPacketPusher(
   mPacketPusher = pusher;
 }
 
-void HttpResponseExtractor::handlePacket(const Packet& incomingPacket) {
+void HttpResponseExtractor::handlePacket(const PathablePacket& pathablePacket) {
+  const auto& incomingPacket = pathablePacket.packet;
+
   try {
     if (mReceivedHeaders) {
       bool knownLastBufferInRequest = false;
@@ -123,7 +125,7 @@ void HttpResponseExtractor::handlePacket(const Packet& incomingPacket) {
 
     mHeaderData.clear();
   } catch (const exception& ex) {
-    sendErrorPacket(mPacketPusher, ex);
+    sendErrorPacket(pathablePacket.packetPusher, ex);
   }
 }
 

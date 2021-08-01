@@ -14,28 +14,32 @@
  * limitations under the License.
  */
 
-#ifndef __MAPLANG_ISINK_H__
-#define __MAPLANG_ISINK_H__
+#ifndef __MAPLANG_IIMPLEMENTATION_H__
+#define __MAPLANG_IIMPLEMENTATION_H__
 
-#include "maplang/Packet.h"
+#include <functional>
+
+#include "maplang/IPathable.h"
+#include "maplang/ISource.h"
+#include "maplang/ISubgraphContext.h"
+#include "maplang/json.hpp"
 
 namespace maplang {
 
-class ISink {
+class IGroup;
+
+class IImplementation {
  public:
-  virtual ~ISink() = default;
+  virtual ~IImplementation() {}
 
-  virtual void handlePacket(const Packet& incomingPacket) = 0;
-};
+  virtual void setSubgraphContext(
+      const std::shared_ptr<ISubgraphContext>& context) {}
 
-class ISinkFactory {
- public:
-  virtual ~ISinkFactory() = default;
-
-  virtual std::shared_ptr<ISink> create(
-      const nlohmann::json& initParameters) = 0;
+  virtual IPathable* asPathable() = 0;
+  virtual ISource* asSource() = 0;
+  virtual IGroup* asGroup() = 0;
 };
 
 }  // namespace maplang
 
-#endif  // __MAPLANG_ISINK_H__
+#endif  // __MAPLANG_IIMPLEMENTATION_H__

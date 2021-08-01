@@ -14,26 +14,18 @@
  *  limitations under the License.
  */
 
-#ifndef MAPLANG_SRC_NODES_HTTPREQUESTHEADERWRITER_H_
-#define MAPLANG_SRC_NODES_HTTPREQUESTHEADERWRITER_H_
+#ifndef MAPLANG_INCLUDE_MAPLANG_PACKETDELIVERYTYPE_H_
+#define MAPLANG_INCLUDE_MAPLANG_PACKETDELIVERYTYPE_H_
 
-#include "maplang/IImplementation.h"
-#include "maplang/ISource.h"
+#include "maplang/json.hpp"
 
 namespace maplang {
 
-class HttpRequestHeaderWriter : public IImplementation, public IPathable {
- public:
-  HttpRequestHeaderWriter(const nlohmann::json& initParameters);
-  ~HttpRequestHeaderWriter() override = default;
+enum class PacketDeliveryType { PushDirectlyToTarget, AlwaysQueue };
 
-  void handlePacket(const PathablePacket& packet) override;
-
-  ISource* asSource() override { return nullptr; }
-  IPathable* asPathable() override { return this; }
-  IGroup* asGroup() override { return nullptr; }
-};
+void to_json(nlohmann::json& j, const PacketDeliveryType& packetDelivery);
+void from_json(const nlohmann::json& j, PacketDeliveryType& packetDelivery);
 
 }  // namespace maplang
 
-#endif  // MAPLANG_SRC_NODES_HTTPREQUESTHEADERWRITER_H_
+#endif  // MAPLANG_INCLUDE_MAPLANG_PACKETDELIVERYTYPE_H_

@@ -19,7 +19,7 @@
 #include <sstream>
 
 #include "logging.h"
-#include "maplang/NodeFactory.h"
+#include "maplang/ImplementationFactory.h"
 
 using namespace std;
 using namespace nlohmann;
@@ -30,17 +30,16 @@ static const string kPartitionName_ContextRouter = "Context Router";
 static const string kPartitionName_ContextRemover = "Context Remover";
 
 static const string kInitDataParameter_Key = "key";
-static const string kInitDataParameter_NodeImplementation =
-    "nodeImplementation";
+static const string kInitDataParameter_Type = "type";
 
 class IContextRouter {
  public:
   virtual ~IContextRouter() = default;
 
-  virtual shared_ptr<INode> asINode() = 0;
+  virtual shared_ptr<IImplementation> asINode() = 0;
   virtual void addNode(
       const string& contextLookup,
-      const shared_ptr<INode>& node) = 0;
+      const shared_ptr<IImplementation>& node) = 0;
   virtual bool removeNode(const string& contextLookup) = 0;
 };
 
@@ -69,54 +68,53 @@ class ContextualNode::Impl
 
  public:
   const json mInitParameters;
-  const string mNodeImplementation;
+  const string mType;
   const string mKey;
 
   shared_ptr<IContextRouter> mContextRouter;
-  shared_ptr<INode> mContextRemover;
-  unordered_map<string, shared_ptr<INode>> mNodeMap;
+  shared_ptr<IImplementation> mContextRemover;
+  unordered_map<string, shared_ptr<IImplementation>> mNodeMap;
 };
 
 class CohesiveGroupRouter
-    : public INode,
-      public ICohesiveGroup,
+    : public IImplementation,
+      public IGroup,
       public IRouterInstanceCreator,
       public IContextRouter,
       public enable_shared_from_this<CohesiveGroupRouter> {
  public:
   CohesiveGroupRouter(
       const weak_ptr<IRouterInstanceCreator>& subinstanceCreator,
-      ICohesiveGroup* const templateGroup,
+      IGroup* const templateGroup,
       const string& key);
 
   // Implementation needs to pass a weak pointer of "this", which can only be
   // done after the constructor.
-  void initialize(ICohesiveGroup* const templateGroup);
+  void initialize(IGroup* const templateGroup);
 
   ~CohesiveGroupRouter() override = default;
 
-  static vector<string> createGroupNamesVector(
-      ICohesiveGroup* const templateGroup);
+  static vector<string> createGroupNamesVector(IGroup* const templateGroup);
   unordered_map<string, shared_ptr<IContextRouter>> createGroupRouterNodes(
       const weak_ptr<IRouterInstanceCreator>& subinstanceCreator,
-      ICohesiveGroup* const templateGroup,
+      IGroup* const templateGroup,
       const string& key);
 
-  shared_ptr<INode> asINode() { return shared_from_this(); }
-  void addNode(const string& contextLookup, const shared_ptr<INode>& node)
-      override;
+  shared_ptr<IImplementation> asINode() override { return shared_from_this(); }
+  void addNode(
+      const string& contextLookup,
+      const shared_ptr<IImplementation>& node) override;
   bool removeNode(const string& contextLookup) override;
   void createNewInstance(const string& forNewContextLookup) override;
 
   IPathable* asPathable() override { return nullptr; }
-  ISink* asSink() override { return nullptr; }
   ISource* asSource() override { return nullptr; }
-  ICohesiveGroup* asGroup() override { return this; }
+  IGroup* asGroup() override { return this; }
 
-  size_t getNodeCount() override;
-  string getNodeName(size_t nodeIndex) override;
+  size_t getInterfaceCount() override;
+  string getInterfaceName(size_t nodeIndex) override;
 
-  shared_ptr<INode> getNode(const string& nodeName) override;
+  shared_ptr<IImplementation> getInterface(const string& nodeName) override;
 
  private:
   const weak_ptr<IRouterInstanceCreator> mSubinstanceCreator;
@@ -127,8 +125,7 @@ class CohesiveGroupRouter
   unordered_map<string, shared_ptr<IContextRouter>> mNodeRouters;
 };
 
-class SingleNodeRouter : public INode,
-                         public ISink,
+class SingleNodeRouter : public IImplementation,
                          public ISource,
                          public IPathable,
                          public ISubgraphContext,
@@ -137,20 +134,20 @@ class SingleNodeRouter : public INode,
  public:
   SingleNodeRouter(
       const weak_ptr<IRouterInstanceCreator>& instanceCreator,
-      const shared_ptr<INode>& templateNode,
+      const shared_ptr<IImplementation>& templateNode,
       const string& key)
       : mInstanceCreator(instanceCreator),
-        mThisAsSink(templateNode->asSink() ? this : nullptr),
         mThisAsSource(templateNode->asSource() ? this : nullptr),
         mThisAsPathable(templateNode->asPathable() ? this : nullptr),
         mKey(key) {}
 
   ~SingleNodeRouter() override = default;
 
-  shared_ptr<INode> asINode() { return shared_from_this(); }
+  shared_ptr<IImplementation> asINode() { return shared_from_this(); }
 
-  void addNode(const string& contextLookup, const shared_ptr<INode>& node)
-      override {
+  void addNode(
+      const string& contextLookup,
+      const shared_ptr<IImplementation>& node) override {
     mNodes[contextLookup] = node;
     mReverseNodeLookup[node.get()] = contextLookup;
 
@@ -165,7 +162,7 @@ class SingleNodeRouter : public INode,
   void handlePacket(const PathablePacket& incomingPathablePacket) override {
     const Packet& incomingPacket = incomingPathablePacket.packet;
     const auto contextLookup = incomingPacket.parameters[mKey].get<string>();
-    shared_ptr<INode> node;
+    shared_ptr<IImplementation> node;
     auto it = mNodes.find(contextLookup);
     if (it != mNodes.end()) {
       node = it->second;
@@ -183,25 +180,6 @@ class SingleNodeRouter : public INode,
     }
 
     node->asPathable()->handlePacket(incomingPathablePacket);
-  }
-
-  void handlePacket(const Packet& packet) override {
-    if (!packet.parameters.contains(mKey)) {
-      throw runtime_error("Packet parameters must contain key '" + mKey + "'.");
-    }
-    const auto contextLookup = packet.parameters[mKey].get<string>();
-    shared_ptr<INode> node;
-    const auto it = mNodes.find(contextLookup);
-    if (it != mNodes.end()) {
-      node = it->second;
-    } else {
-      const auto instanceCreator = mInstanceCreator.lock();
-      instanceCreator->createNewInstance(contextLookup);
-
-      node = mNodes[contextLookup];
-    }
-
-    node->asSink()->handlePacket(packet);
   }
 
   void setSubgraphContext(
@@ -229,9 +207,8 @@ class SingleNodeRouter : public INode,
   }
 
   IPathable* asPathable() override { return mThisAsPathable; }
-  ISink* asSink() override { return mThisAsSink; }
   ISource* asSource() override { return mThisAsSource; }
-  ICohesiveGroup* asGroup() override { return nullptr; }
+  IGroup* asGroup() override { return nullptr; }
 
   void setPacketPusher(const shared_ptr<IPacketPusher>& pusher) override;
 
@@ -239,19 +216,18 @@ class SingleNodeRouter : public INode,
   const weak_ptr<IRouterInstanceCreator> mInstanceCreator;
   IPathable* const mThisAsPathable;
   ISource* const mThisAsSource;
-  ISink* const mThisAsSink;
   const string mKey;
 
   shared_ptr<ISubgraphContext> mOriginalSubgraphContext;
   shared_ptr<IPacketPusher> mPacketPusher;
 
-  unordered_map<string, shared_ptr<INode>> mNodes;
-  unordered_map<INode*, string> mReverseNodeLookup;
+  unordered_map<string, shared_ptr<IImplementation>> mNodes;
+  unordered_map<IImplementation*, string> mReverseNodeLookup;
 };
 
 static shared_ptr<IContextRouter> createContextRouter(
     const weak_ptr<IRouterInstanceCreator>& subinstanceCreator,
-    const shared_ptr<INode>& templateNode,
+    const shared_ptr<IImplementation>& templateNode,
     const string& key) {
   if (templateNode->asGroup() != nullptr) {
     auto templateGroup = templateNode->asGroup();
@@ -303,7 +279,7 @@ void SingleNodeRouter::setPacketPusher(
   }
 }
 
-class ContextRemover : public INode, public IPathable {
+class ContextRemover : public IImplementation, public IPathable {
  public:
   ContextRemover(
       const weak_ptr<IContextRouter>& contextRouter,
@@ -330,9 +306,8 @@ class ContextRemover : public INode, public IPathable {
   }
 
   IPathable* asPathable() override { return this; }
-  ISink* asSink() override { return nullptr; }
   ISource* asSource() override { return nullptr; }
-  ICohesiveGroup* asGroup() override { return nullptr; }
+  IGroup* asGroup() override { return nullptr; }
 
  private:
   const weak_ptr<IContextRouter> mContextRouter;
@@ -341,28 +316,28 @@ class ContextRemover : public INode, public IPathable {
 
 CohesiveGroupRouter::CohesiveGroupRouter(
     const weak_ptr<IRouterInstanceCreator>& subinstanceCreator,
-    ICohesiveGroup* const templateGroup,
+    IGroup* const templateGroup,
     const string& key)
     : mSubinstanceCreator(subinstanceCreator),
-      mGroupNodeCount(templateGroup->getNodeCount()),
+      mGroupNodeCount(templateGroup->getInterfaceCount()),
       mGroupNodeNames(createGroupNamesVector(templateGroup)), mKey(key) {}
 
-void CohesiveGroupRouter::initialize(ICohesiveGroup* const templateGroup) {
+void CohesiveGroupRouter::initialize(IGroup* const templateGroup) {
   mNodeRouters =
       createGroupRouterNodes(shared_from_this(), templateGroup, mKey);
 }
 
 vector<string> CohesiveGroupRouter::createGroupNamesVector(
-    ICohesiveGroup* const templateGroup) {
+    IGroup* const templateGroup) {
   const size_t nodeCount =
-      templateGroup != nullptr ? templateGroup->getNodeCount() : 0;
+      templateGroup != nullptr ? templateGroup->getInterfaceCount() : 0;
   vector<string> nodeNames(nodeCount);
   if (templateGroup == nullptr) {
     return nodeNames;
   }
 
   for (size_t i = 0; i < nodeCount; i++) {
-    const string groupNodeName = templateGroup->getNodeName(i);
+    const string groupNodeName = templateGroup->getInterfaceName(i);
     nodeNames[i] = groupNodeName;
   }
 
@@ -372,17 +347,17 @@ vector<string> CohesiveGroupRouter::createGroupNamesVector(
 unordered_map<string, shared_ptr<IContextRouter>>
 CohesiveGroupRouter::createGroupRouterNodes(
     const weak_ptr<IRouterInstanceCreator>& subinstanceCreator,
-    ICohesiveGroup* const templateGroup,
+    IGroup* const templateGroup,
     const string& key) {
   unordered_map<string, shared_ptr<IContextRouter>> routerNodes;
   if (templateGroup == nullptr) {
     return routerNodes;
   }
 
-  const size_t nodeCount = templateGroup->getNodeCount();
+  const size_t nodeCount = templateGroup->getInterfaceCount();
   for (size_t i = 0; i < nodeCount; i++) {
-    const string nodeName = templateGroup->getNodeName(i);
-    const auto groupNodeTemplate = templateGroup->getNode(nodeName);
+    const string nodeName = templateGroup->getInterfaceName(i);
+    const auto groupNodeTemplate = templateGroup->getInterface(nodeName);
     const auto routerNode = make_shared<SingleNodeRouter>(
         subinstanceCreator,
         groupNodeTemplate,
@@ -394,13 +369,14 @@ CohesiveGroupRouter::createGroupRouterNodes(
   return routerNodes;
 }
 
-size_t CohesiveGroupRouter::getNodeCount() { return mGroupNodeCount; }
+size_t CohesiveGroupRouter::getInterfaceCount() { return mGroupNodeCount; }
 
-string CohesiveGroupRouter::getNodeName(size_t nodeIndex) {
+string CohesiveGroupRouter::getInterfaceName(size_t nodeIndex) {
   return mGroupNodeNames[nodeIndex];
 }
 
-shared_ptr<INode> CohesiveGroupRouter::getNode(const string& nodeName) {
+shared_ptr<IImplementation> CohesiveGroupRouter::getInterface(
+    const string& nodeName) {
   auto it = mNodeRouters.find(nodeName);
   if (it == mNodeRouters.end()) {
     return nullptr;
@@ -411,13 +387,13 @@ shared_ptr<INode> CohesiveGroupRouter::getNode(const string& nodeName) {
 
 void CohesiveGroupRouter::addNode(
     const string& contextLookup,
-    const shared_ptr<INode>& node) {
+    const shared_ptr<IImplementation>& node) {
   auto group = node->asGroup();
-  const size_t subnodeCount = group->getNodeCount();
+  const size_t subnodeCount = group->getInterfaceCount();
 
   for (size_t i = 0; i < subnodeCount; i++) {
-    const string subnodeName = group->getNodeName(i);
-    const auto subnode = group->getNode(subnodeName);
+    const string subnodeName = group->getInterfaceName(i);
+    const auto subnode = group->getInterface(subnodeName);
 
     const auto& routerNode = mNodeRouters[subnodeName];
     routerNode->addNode(contextLookup, subnode);
@@ -454,18 +430,62 @@ ContextualNode::ContextualNode(const json& initData)
                         // it can only get after the constructor.
 }
 
+static nlohmann::json getJson(
+    const nlohmann::json& containingObject,
+    const string& containingKey,
+    const string& key) {
+  if (!containingObject.contains(key)) {
+    ostringstream errorStream;
+    errorStream << "'" << key << "' is missing in '" << containingKey << "'";
+    throw runtime_error(errorStream.str());
+  }
+
+  return containingObject[key];
+}
+
+static string getNonEmptyStringOrThrow(
+    const nlohmann::json& containingObject,
+    const string& containingKey,
+    const string& key) {
+  const nlohmann::json& value = getJson(containingObject, containingKey, key);
+
+  if (!value.is_string()) {
+    ostringstream errorStream;
+    errorStream << "'" << key << "' must be a string in '" << containingKey
+                << "'. Actual type: " << value.type_name();
+
+    throw runtime_error(errorStream.str());
+  }
+
+  string stringValue = value.get<string>();
+  if (stringValue.empty()) {
+    ostringstream errorStream;
+    errorStream << "'" << key << "' cannot be an empty string in '"
+                << containingKey << "'";
+
+    throw runtime_error(errorStream.str());
+  }
+
+  return stringValue;
+}
+
 ContextualNode::Impl::Impl(const json& initParameters)
-    : mInitParameters(initParameters),
-      mNodeImplementation(
-          initParameters[kInitDataParameter_NodeImplementation].get<string>()),
-      mKey(initParameters[kInitDataParameter_Key].get<string>()) {}
+    : mInitParameters(initParameters), mType(getNonEmptyStringOrThrow(
+                                           initParameters,
+                                           "initParameters",
+                                           kInitDataParameter_Type)),
+      mKey(getNonEmptyStringOrThrow(
+          initParameters,
+          "initParameters",
+          kInitDataParameter_Key)) {}
 
 ContextualNode::Impl::~Impl() {}
 
 void ContextualNode::Impl::initialize() {
-  const auto templateNode = NodeFactory::defaultFactory()->createNode(
-      mNodeImplementation,
-      mInitParameters);
+  const auto templateNode =
+      ImplementationFactory::defaultFactory()->createImplementation(
+          mType,
+          mInitParameters);
   mContextRouter = createContextRouter(shared_from_this(), templateNode, mKey);
   mContextRemover = make_shared<ContextRemover>(mContextRouter, mKey);
 
@@ -475,15 +495,16 @@ void ContextualNode::Impl::initialize() {
 
 void ContextualNode::Impl::createNewInstance(
     const string& forNewContextLookup) {
-  const auto newInstance = NodeFactory::defaultFactory()->createNode(
-      mNodeImplementation,
-      mInitParameters);
+  const auto newInstance =
+      ImplementationFactory::defaultFactory()->createImplementation(
+          mType,
+          mInitParameters);
   mContextRouter->addNode(forNewContextLookup, newInstance);
 }
 
-size_t ContextualNode::getNodeCount() { return mImpl->mNodeMap.size(); }
+size_t ContextualNode::getInterfaceCount() { return mImpl->mNodeMap.size(); }
 
-string ContextualNode::getNodeName(size_t partitionIndex) {
+string ContextualNode::getInterfaceName(size_t partitionIndex) {
   if (partitionIndex == 0) {
     return kPartitionName_ContextRouter;
   } else if (partitionIndex == 1) {
@@ -493,7 +514,8 @@ string ContextualNode::getNodeName(size_t partitionIndex) {
   }
 }
 
-shared_ptr<INode> ContextualNode::getNode(const string& nodeName) {
+shared_ptr<IImplementation> ContextualNode::getInterface(
+    const string& nodeName) {
   auto it = mImpl->mNodeMap.find(nodeName);
   if (it == mImpl->mNodeMap.end()) {
     throw runtime_error("Node '" + nodeName + "' not found.");

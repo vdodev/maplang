@@ -75,14 +75,14 @@ TEST(WhenAnHttpRequestIsProcessed, HeaderFieldsAndBodyAreCorrect) {
   size_t unexpectedChannelCount = 0;
   size_t requestEndedPacketCount = 0;
   Packet requestEndedPacket;
-  extractor->setPacketPusher(make_shared<LambdaPacketPusher>(
+  const auto packetPusher = make_shared<LambdaPacketPusher>(
       [&receivedHeaderPacketCount,
-       &headerPacket,
-       &bodyPackets,
-       &lastUnexpectedChannel,
-       &requestEndedPacketCount,
-       &requestEndedPacket,
-       &unexpectedChannelCount](const Packet& packet, const string& channel) {
+          &headerPacket,
+          &bodyPackets,
+          &lastUnexpectedChannel,
+          &requestEndedPacketCount,
+          &requestEndedPacket,
+          &unexpectedChannelCount](const Packet& packet, const string& channel) {
         if (channel == "New Request") {
           headerPacket = packet;
           receivedHeaderPacketCount++;
@@ -95,10 +95,10 @@ TEST(WhenAnHttpRequestIsProcessed, HeaderFieldsAndBodyAreCorrect) {
           lastUnexpectedChannel = channel;
           unexpectedChannelCount++;
         }
-      }));
+      });
 
-  extractor->handlePacket(packet);
-  extractor->handlePacket(bodyOnlyPacket);
+  extractor->handlePacket(PathablePacket(packet, packetPusher));
+  extractor->handlePacket(PathablePacket(bodyOnlyPacket, packetPusher));
 
   ASSERT_EQ(1, receivedHeaderPacketCount);
   ASSERT_EQ(0, unexpectedChannelCount)
