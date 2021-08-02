@@ -7,7 +7,7 @@ strict digraph "IP Echo" {
 
   subgraph "Cluster TCP Server" {
     instance="TCP Server Instance"
-    label="Cluster TCP Server"
+    label="TCP Server"
 
     "TCP Listen"       [instance="TCP Listen Instance",       allowIncoming=true, allowOutgoing=true]
     "TCP Send"         [instance="TCP Send Instance",         allowIncoming=true]
