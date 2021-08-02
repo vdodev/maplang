@@ -26,6 +26,7 @@
 #include "nodes/HttpResponseWriter.h"
 #include "nodes/OrderedPacketSender.h"
 #include "nodes/ParameterExtractor.h"
+#include "nodes/ParameterRouter.h"
 #include "nodes/PassThroughNode.h"
 #include "nodes/SendOnce.h"
 #include "nodes/UvTcpConnectionGroup.h"
@@ -56,6 +57,12 @@ static void registerImplementations(
       "Parameter Extractor",
       [](const nlohmann::json& initParameters) {
         return make_shared<ParameterExtractor>(initParameters);
+      });
+
+  factory->registerFactory(
+      "Parameter Router",
+      [](const nlohmann::json& initParameters) {
+        return make_shared<ParameterRouter>(initParameters);
       });
 
   factory->registerFactory(

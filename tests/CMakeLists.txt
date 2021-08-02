@@ -26,7 +26,8 @@ add_executable(
         AddParameterTests.cpp
         PassThroughNodeTests.cpp
         DotExporterTests.cpp
-        GraphBuilderTests.cpp)
+        GraphBuilderTests.cpp
+        ParameterRouterTests.cpp)
 
 target_link_libraries(
         maplang_tests

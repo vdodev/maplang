@@ -97,7 +97,9 @@ add_library(maplang
         include/maplang/PacketDeliveryType.h
         src/PacketDeliveryType.cpp
         include/maplang/GraphBuilder.h
-        src/GraphBuilder.cpp)
+        src/GraphBuilder.cpp
+        include-private/nodes/ParameterRouter.h
+        src/nodes/ParameterRouter.cpp)
 
 target_include_directories(maplang SYSTEM PUBLIC /usr/local/include)
 target_include_directories(maplang SYSTEM PRIVATE ${libcgraph_INCLUDE_DIRS})
