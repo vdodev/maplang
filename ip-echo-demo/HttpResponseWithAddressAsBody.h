@@ -22,7 +22,8 @@
 
 namespace maplang {
 
-class HttpResponseWithAddressAsBody final : public IImplementation, public IPathable {
+class HttpResponseWithAddressAsBody final : public IImplementation,
+                                            public IPathable {
  public:
   ~HttpResponseWithAddressAsBody() override = default;
 

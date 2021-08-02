@@ -47,7 +47,8 @@ void Instance::setType(
 
   mTypeName = typeName;
 }
-void Instance::setImplementation(const shared_ptr<IImplementation>& implementation) {
+void Instance::setImplementation(
+    const shared_ptr<IImplementation>& implementation) {
   mImplementation = implementation;
   implementation->setSubgraphContext(mSubgraphContext);
 

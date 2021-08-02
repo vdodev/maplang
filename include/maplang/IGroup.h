@@ -30,7 +30,8 @@ class IGroup {
   virtual size_t getInterfaceCount() = 0;
   virtual std::string getInterfaceName(size_t nodeIndex) = 0;
 
-  virtual std::shared_ptr<IImplementation> getInterface(const std::string& nodeName) = 0;
+  virtual std::shared_ptr<IImplementation> getInterface(
+      const std::string& nodeName) = 0;
 };
 
 }  // namespace maplang

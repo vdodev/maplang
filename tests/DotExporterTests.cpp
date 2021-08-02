@@ -45,9 +45,16 @@ TEST(WhenSomeNodesAreConnected, TheyAppearInDotML) {
 
   cout << dot << endl;
 
-  ASSERT_NE(string::npos, dot.find("\"Node 1\" -> \"Node 2\" [label=\"onNode1Output\"]"));
-  ASSERT_NE(string::npos, dot.find("\"Node 1\" -> \"Node 3\" [label=\"onNode1ProducedSomethingElse\"]"));
-  ASSERT_NE(string::npos, dot.find("\"Node 2\" -> \"Node 3\" [label=\"onNode2Output\"]"));
+  ASSERT_NE(
+      string::npos,
+      dot.find("\"Node 1\" -> \"Node 2\" [label=\"onNode1Output\"]"));
+  ASSERT_NE(
+      string::npos,
+      dot.find(
+          "\"Node 1\" -> \"Node 3\" [label=\"onNode1ProducedSomethingElse\"]"));
+  ASSERT_NE(
+      string::npos,
+      dot.find("\"Node 2\" -> \"Node 3\" [label=\"onNode2Output\"]"));
 }
 
 }  // namespace maplang

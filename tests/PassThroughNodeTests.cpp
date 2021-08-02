@@ -66,7 +66,9 @@ TEST(
   graph.setInstanceType("pass-through instance", "Pass-through");
 
   auto lambdaSink = make_shared<LambdaPathable>(
-      [&receivedPacketCount](const PathablePacket& packet) { receivedPacketCount++; });
+      [&receivedPacketCount](const PathablePacket& packet) {
+        receivedPacketCount++;
+      });
 
   graph.createNode("test lambda sink", true, false);
 

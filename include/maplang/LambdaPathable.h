@@ -29,7 +29,9 @@ class LambdaPathable : public IImplementation, public IPathable {
   LambdaPathable(std::function<void(const PathablePacket& packet)>&& onPacket)
       : mOnPacket(move(onPacket)) {}
 
-  void handlePacket(const PathablePacket& packet) override { mOnPacket(packet); }
+  void handlePacket(const PathablePacket& packet) override {
+    mOnPacket(packet);
+  }
 
   IPathable* asPathable() override { return this; }
   ISource* asSource() override { return nullptr; }

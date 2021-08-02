@@ -31,8 +31,11 @@ class Instance final {
       const std::shared_ptr<ImplementationFactory>& nodeFactory);
   std::string getType() const { return mTypeName; }
 
-  std::shared_ptr<IImplementation> getImplementation() const { return mImplementation; }
-  void setImplementation(const std::shared_ptr<IImplementation>& implementation);
+  std::shared_ptr<IImplementation> getImplementation() const {
+    return mImplementation;
+  }
+  void setImplementation(
+      const std::shared_ptr<IImplementation>& implementation);
 
   void setInitParameters(const nlohmann::json& initParameters);
   void insertInitParameters(const nlohmann::json& initParameters);

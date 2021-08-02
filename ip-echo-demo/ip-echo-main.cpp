@@ -37,8 +37,11 @@ static void registerNodes() {
 int main(int argc, char** argv) {
   registerNodes();
 
-  const auto graph = buildDataGraphFromFile("../ip-echo-demo/ip-echo-architecture.dot");
-  implementDataGraphFromFile(graph, "../ip-echo-demo/ip-echo-implementation.json");
+  const auto graph =
+      buildDataGraphFromFile("../ip-echo-demo/ip-echo-architecture.dot");
+  implementDataGraphFromFile(
+      graph,
+      "../ip-echo-demo/ip-echo-implementation.json");
 
   graph->startGraph();
 

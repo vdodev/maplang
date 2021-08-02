@@ -102,7 +102,8 @@ class DataGraph final : public IGroup {
       const std::string& groupInstanceName,
       const std::string& groupInterfaceName);
 
-  void setImplementationFactory(const std::shared_ptr<ImplementationFactory>& factory);
+  void setImplementationFactory(
+      const std::shared_ptr<ImplementationFactory>& factory);
 
   void visitNodes(const Graph::NodeVisitor& visitor) const;
 

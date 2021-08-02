@@ -48,7 +48,9 @@ TEST(WhenSendPacketIsCalledOnce, ThenOnePacketIsDeliveredToTheSink) {
 
   size_t receivedPacketCount = 0;
   auto lambdaSink = make_shared<LambdaPathable>(
-      [&receivedPacketCount](const PathablePacket& packet) { receivedPacketCount++; });
+      [&receivedPacketCount](const PathablePacket& packet) {
+        receivedPacketCount++;
+      });
 
   graph.createNode("sink", false, true);
   graph.setNodeInstance("sink", "sink-instance");
@@ -72,7 +74,8 @@ TEST(WhenAPacketIsSentDirectlyFromADifferentThread, ItArrives) {
   thread::id packetReceivedOnThreadId;
 
   auto lambdaSink = make_shared<LambdaPathable>(
-      [&receivedPacketCount, &packetReceivedOnThreadId](const PathablePacket& packet) {
+      [&receivedPacketCount,
+       &packetReceivedOnThreadId](const PathablePacket& packet) {
         packetReceivedOnThreadId = this_thread::get_id();
         receivedPacketCount++;
       });
@@ -108,7 +111,8 @@ TEST(WhenAPacketIsSentUsingAsyncQueueing, ItArrives) {
   thread::id packetReceivedOnThreadId;
   auto source = make_shared<SimpleSource>();
   auto lambdaSink = make_shared<LambdaPathable>(
-      [&receivedPacketCount, &packetReceivedOnThreadId](const PathablePacket& packet) {
+      [&receivedPacketCount,
+       &packetReceivedOnThreadId](const PathablePacket& packet) {
         packetReceivedOnThreadId = this_thread::get_id();
         receivedPacketCount++;
       });
@@ -335,8 +339,9 @@ TEST(WhenOneSourceSendsAPacketAndTwoSinksReceive, ThePacketIsTheSame) {
   thread::id directThreadId;
   thread::id asyncThreadId;
   auto source = make_shared<SimpleSource>();
-  auto lambdaSinkDirect = make_shared<LambdaPathable>(
-      [&receivedPacketCount, &directThreadId](const PathablePacket& pathablePacket) {
+  auto lambdaSinkDirect =
+      make_shared<LambdaPathable>([&receivedPacketCount, &directThreadId](
+                                      const PathablePacket& pathablePacket) {
         const auto& packet = pathablePacket.packet;
 
         directThreadId = this_thread::get_id();
@@ -347,8 +352,9 @@ TEST(WhenOneSourceSendsAPacketAndTwoSinksReceive, ThePacketIsTheSame) {
         ASSERT_EQ("value1", packet.parameters["key1"].get<string>());
       });
 
-  auto lambdaSinkAsync = make_shared<LambdaPathable>(
-      [&receivedPacketCount, &asyncThreadId](const PathablePacket& pathablePacket) {
+  auto lambdaSinkAsync =
+      make_shared<LambdaPathable>([&receivedPacketCount, &asyncThreadId](
+                                      const PathablePacket& pathablePacket) {
         const auto& packet = pathablePacket.packet;
 
         asyncThreadId = this_thread::get_id();

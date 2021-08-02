@@ -60,8 +60,7 @@ class Graph final {
   std::optional<std::shared_ptr<GraphNode>> getNode(
       const std::string& nodeName) const;
 
-  std::shared_ptr<GraphNode> getNodeOrThrow(
-      const std::string& nodeName) const;
+  std::shared_ptr<GraphNode> getNodeOrThrow(const std::string& nodeName) const;
 
  private:
   std::unordered_map<std::string, std::shared_ptr<GraphNode>> mNameToNodeMap;

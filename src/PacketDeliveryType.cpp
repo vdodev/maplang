@@ -35,7 +35,7 @@ void to_json(nlohmann::json& j, const PacketDeliveryType& packetDelivery) {
     default:
       throw invalid_argument(
           "Unknown packet delivery type: "
-              + to_string(static_cast<uint32_t>(packetDelivery)));
+          + to_string(static_cast<uint32_t>(packetDelivery)));
   }
 }
 

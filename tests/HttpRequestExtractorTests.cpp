@@ -77,12 +77,12 @@ TEST(WhenAnHttpRequestIsProcessed, HeaderFieldsAndBodyAreCorrect) {
   Packet requestEndedPacket;
   const auto packetPusher = make_shared<LambdaPacketPusher>(
       [&receivedHeaderPacketCount,
-          &headerPacket,
-          &bodyPackets,
-          &lastUnexpectedChannel,
-          &requestEndedPacketCount,
-          &requestEndedPacket,
-          &unexpectedChannelCount](const Packet& packet, const string& channel) {
+       &headerPacket,
+       &bodyPackets,
+       &lastUnexpectedChannel,
+       &requestEndedPacketCount,
+       &requestEndedPacket,
+       &unexpectedChannelCount](const Packet& packet, const string& channel) {
         if (channel == "New Request") {
           headerPacket = packet;
           receivedHeaderPacketCount++;

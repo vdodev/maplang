@@ -29,7 +29,8 @@ class ContextualNode final : public IGroup, public IImplementation {
   size_t getInterfaceCount() override;
   virtual std::string getInterfaceName(size_t partitionIndex) override;
 
-  virtual std::shared_ptr<IImplementation> getInterface(const std::string& partition) override;
+  virtual std::shared_ptr<IImplementation> getInterface(
+      const std::string& partition) override;
 
   IPathable* asPathable() override { return nullptr; }
   ISource* asSource() override { return nullptr; }

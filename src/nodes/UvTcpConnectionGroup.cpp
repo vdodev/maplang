@@ -703,7 +703,9 @@ class UvTcpImpl final {
     buffer.length = nread;
     dataReceivedPacket.buffers.push_back(move(buffer));
 
-    mDataReceivedPacketPusher->pushPacket(move(dataReceivedPacket), kChannel_DataReceived);
+    mDataReceivedPacketPusher->pushPacket(
+        move(dataReceivedPacket),
+        kChannel_DataReceived);
   }
 
   void sendData(const PathablePacket& pathablePacket) {
@@ -815,7 +817,8 @@ class UvTcpImpl final {
     mDataReceivedPacketPusher = packetPusher;
   }
 
-  void setAsyncEventsPacketPusher(const shared_ptr<IPacketPusher>& packetPusher) {
+  void setAsyncEventsPacketPusher(
+      const shared_ptr<IPacketPusher>& packetPusher) {
     mAsyncEventsPacketPusher = packetPusher;
   }
 
@@ -886,7 +889,9 @@ class UvTcpImpl final {
     Packet closedPacket;
     setConnectionParameters(connection, &closedPacket.parameters);
     closedPacket.parameters[kParameter_ClosedReason] = connection.closedReason;
-    mAsyncEventsPacketPusher->pushPacket(move(closedPacket), kChannel_ConnectionClosed);
+    mAsyncEventsPacketPusher->pushPacket(
+        move(closedPacket),
+        kChannel_ConnectionClosed);
   }
 
   static void onSenderShutdownWrapper(uv_shutdown_t* shutdown, int status) {

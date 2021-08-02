@@ -25,8 +25,7 @@ namespace maplang {
 
 class UvTcpImpl;
 
-class UvTcpConnectionGroup : public IGroup,
-                             public IImplementation {
+class UvTcpConnectionGroup : public IGroup, public IImplementation {
  public:
   UvTcpConnectionGroup();
   ~UvTcpConnectionGroup() override = default;
@@ -34,7 +33,8 @@ class UvTcpConnectionGroup : public IGroup,
   size_t getInterfaceCount() override;
   std::string getInterfaceName(size_t nodeIndex) override;
 
-  std::shared_ptr<IImplementation> getInterface(const std::string& nodeName) override;
+  std::shared_ptr<IImplementation> getInterface(
+      const std::string& nodeName) override;
 
   IPathable* asPathable() override { return nullptr; }
   ISource* asSource() override { return nullptr; }

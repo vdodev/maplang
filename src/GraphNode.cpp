@@ -22,8 +22,7 @@ GraphNode::GraphNode(
     const std::string& _elementName,
     bool _allowIncomingConnections,
     bool _allowOutgoingConnections)
-    : name(_elementName),
-      allowsIncomingConnections(_allowIncomingConnections),
+    : name(_elementName), allowsIncomingConnections(_allowIncomingConnections),
       allowsOutgoingConnections(_allowOutgoingConnections) {}
 
 void GraphNode::cleanUpEmptyEdges() {

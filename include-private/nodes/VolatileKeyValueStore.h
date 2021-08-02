@@ -29,7 +29,8 @@ class VolatileKeyValueStore : public IGroup, public IImplementation {
   size_t getInterfaceCount() override;
   std::string getInterfaceName(size_t partitionIndex) override;
 
-  std::shared_ptr<IImplementation> getInterface(const std::string& partitionName) override;
+  std::shared_ptr<IImplementation> getInterface(
+      const std::string& partitionName) override;
 
   IPathable* asPathable() override { return nullptr; }
   ISource* asSource() override { return nullptr; }
