@@ -58,10 +58,16 @@ void Instance::setImplementation(const shared_ptr<IImplementation>& implementati
   }
 }
 
-
-
 void Instance::setInitParameters(const nlohmann::json& initParameters) {
   mInitParameters = initParameters;
+}
+
+void Instance::insertInitParameters(const nlohmann::json& initParameters) {
+  if (mInitParameters == nullptr) {
+    mInitParameters = initParameters;
+  } else {
+    mInitParameters.insert(initParameters.begin(), initParameters.end());
+  }
 }
 
 void Instance::setSubgraphContext(

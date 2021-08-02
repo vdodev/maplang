@@ -80,6 +80,13 @@ class DataGraph final : public IGroup {
       const nlohmann::json& initParameters);
 
   /**
+   * Adds parameters, but does not overwrite existing parameters.
+   */
+  void insertInstanceInitParameters(
+      const std::string& instanceName,
+      const nlohmann::json& initParameters);
+
+  /**
    * Sets the type to be instantiated from the NodeFactory.
    */
   void setInstanceType(

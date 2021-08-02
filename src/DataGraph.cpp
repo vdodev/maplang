@@ -562,6 +562,17 @@ void DataGraph::setInstanceInitParameters(
   instance->setInitParameters(initParameters);
 }
 
+void DataGraph::insertInstanceInitParameters(
+    const std::string& instanceName,
+    const nlohmann::json& initParameters) {
+  if (!initParameters.is_object()) {
+    throw runtime_error("initParameters must be an object.");
+  }
+
+  const shared_ptr<Instance> instance = impl->getOrCreateInstance(instanceName);
+  instance->insertInitParameters(initParameters);
+}
+
 void DataGraph::setInstanceType(
     const std::string& instanceName,
     const std::string& typeName) {

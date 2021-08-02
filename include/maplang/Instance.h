@@ -35,6 +35,7 @@ class Instance final {
   void setImplementation(const std::shared_ptr<IImplementation>& implementation);
 
   void setInitParameters(const nlohmann::json& initParameters);
+  void insertInitParameters(const nlohmann::json& initParameters);
   nlohmann::json getInitParameters() const { return mInitParameters; }
 
   void setSubgraphContext(

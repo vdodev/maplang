@@ -221,7 +221,7 @@ shared_ptr<DataGraph> buildDataGraph(const string& dotGraphString) {
     dataGraph->createNode(subgraphName, allowIncoming, allowOutgoing);
     dataGraph->setNodeInstance(subgraphName, instanceName);
 
-    logi(
+    logd(
         "Found subgraph %s, instance %s\n",
         subgraphName.c_str(),
         instanceName.c_str());
@@ -238,10 +238,17 @@ shared_ptr<DataGraph> buildDataGraph(const string& dotGraphString) {
         getOptionalNodeBoolAttribute(node, "allowOutgoing").value_or(false);
 
     dataGraph->createNode(nodeName, allowIncoming, allowOutgoing);
-
     dataGraph->setNodeInstance(nodeName, instanceName);
 
-    logi("Found node %s instance %s\n", nodeName.c_str(), instanceName.c_str());
+    const optional<string> initParameters =
+        getOptionalStringAttribute(node, "initParameters");
+    if (initParameters) {
+      dataGraph->setInstanceInitParameters(
+          instanceName,
+          nlohmann::json::parse(*initParameters));
+    }
+
+    logd("Found node %s instance %s\n", nodeName.c_str(), instanceName.c_str());
   }
 
   for (Agnode_t* fromNode = agfstnode(cgraph.get()); fromNode;
@@ -260,13 +267,13 @@ shared_ptr<DataGraph> buildDataGraph(const string& dotGraphString) {
 
       if (channel.empty()) {
         throw runtime_error(
-            "label (i.e. output channel) cannot be empty in edge from node '" + fromNodeName
-            + "' to '" + toNodeName + "'");
+            "label (i.e. output channel) cannot be empty in edge from node '"
+            + fromNodeName + "' to '" + toNodeName + "'");
       }
 
       dataGraph->connect(fromNodeName, channel, toNodeName);
 
-      logi(
+      logd(
           "Found connection %s -> %s (channel %s)\n",
           fromNodeName.c_str(),
           toNodeName.c_str(),
@@ -354,7 +361,7 @@ void implementDataGraph(
   }
 
   for (auto& [instanceName, instanceImplementation] : implementation.items()) {
-    logi("Implementing instance '%s'\n", instanceName.c_str());
+    logd("Implementing instance '%s'\n", instanceName.c_str());
 
     // Set initParameters
 
@@ -365,7 +372,7 @@ void implementDataGraph(
             + "'");
       }
 
-      dataGraph->setInstanceInitParameters(
+      dataGraph->insertInstanceInitParameters(
           instanceName,
           instanceImplementation["initParameters"]);
     }
