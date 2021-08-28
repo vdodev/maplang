@@ -21,13 +21,14 @@
 #include "gtest/gtest.h"
 #include "maplang/DataGraph.h"
 #include "maplang/DotExporter.h"
+#include "maplang/FactoriesBuilder.h"
 
 using namespace std;
 
 namespace maplang {
 
 TEST(WhenSomeNodesAreConnected, TheyAppearInDotML) {
-  DataGraph graph;
+  DataGraph graph(FactoriesBuilder().BuildFactories());
 
   graph.createNode("Node 1", false, true);
   graph.createNode("Node 2", true, true);

@@ -14,19 +14,26 @@
  * limitations under the License.
  */
 
-#include <maplang/LambdaPathable.h>
-
 #include <thread>
 
 #include "gtest/gtest.h"
 #include "maplang/DataGraph.h"
+#include "maplang/FactoriesBuilder.h"
 #include "maplang/GraphBuilder.h"
+#include "maplang/LambdaPathable.h"
 
 using namespace std;
 
 namespace maplang {
 
-TEST(WhenASimplGraphIsLoaded, ItHasTheCorrectConnections) {
+class GraphBuilderTests : public testing::Test {
+ public:
+  GraphBuilderTests() : mFactories(FactoriesBuilder().BuildFactories()) {}
+
+  const std::shared_ptr<const IFactories> mFactories;
+};
+
+TEST_F(GraphBuilderTests, WhenASimplGraphIsLoaded_ItHasTheCorrectConnections) {
   const string dotGraph = R"(
     digraph SomeGraphName {
       "Node 1" [instance="Node 1 instance", allowOutgoing=true]
@@ -38,7 +45,7 @@ TEST(WhenASimplGraphIsLoaded, ItHasTheCorrectConnections) {
       "Node 2" -> "Node 3" [label="On Node 2 Output"]
     }
   )";
-  const auto dataGraph = buildDataGraph(dotGraph);
+  const auto dataGraph = buildDataGraph(mFactories, dotGraph);
 
   bool foundNode1 = false;
   bool foundNode2 = false;

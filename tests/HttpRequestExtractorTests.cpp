@@ -18,32 +18,13 @@
 
 #include "gtest/gtest.h"
 #include "maplang/HttpUtilities.h"
+#include "maplang/LambdaPacketPusher.h"
 #include "nodes/HttpRequestExtractor.h"
 
 using namespace std;
 using namespace nlohmann;
 
 namespace maplang {
-
-class LambdaPacketPusher : public IPacketPusher {
- public:
-  LambdaPacketPusher(
-      function<void(const Packet& packet, const string& channel)>&& onPacket)
-      : mOnPacket(move(onPacket)) {}
-
-  ~LambdaPacketPusher() override = default;
-
-  void pushPacket(const Packet& packet, const string& channel) override {
-    mOnPacket(packet, channel);
-  }
-
-  void pushPacket(Packet&& packet, const string& channel) override {
-    mOnPacket(packet, channel);
-  }
-
- private:
-  function<void(const Packet& packet, const string& channel)> mOnPacket;
-};
 
 TEST(WhenAnHttpRequestIsProcessed, HeaderFieldsAndBodyAreCorrect) {
   auto extractor = make_shared<HttpRequestExtractor>(nullptr);

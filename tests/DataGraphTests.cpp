@@ -20,36 +20,46 @@
 
 #include "gtest/gtest.h"
 #include "maplang/DataGraph.h"
+#include "maplang/FactoriesBuilder.h"
 #include "maplang/SimpleSource.h"
 
 using namespace std;
 
 namespace maplang {
 
-TEST(WhenSendPacketIsCalledOnce, ThenOnePacketIsDeliveredToTheSink) {
-  DataGraph graph;
+class DataGraphTests : public testing::Test {
+ public:
+  DataGraphTests()
+      : mDataGraph(
+          make_shared<DataGraph>(FactoriesBuilder().BuildFactories())) {}
 
+  const std::shared_ptr<DataGraph> mDataGraph;
+};
+
+TEST_F(
+    DataGraphTests,
+    WhenSendPacketIsCalledOnce_ThenOnePacketIsDeliveredToTheSink) {
   size_t receivedPacketCount = 0;
   auto lambdaSink = make_shared<LambdaPathable>(
       [&receivedPacketCount](const PathablePacket& packet) {
         receivedPacketCount++;
       });
 
-  graph.createNode("sink", false, true);
-  graph.setNodeInstance("sink", "sink-instance");
-  graph.setInstanceImplementation("sink-instance", lambdaSink);
+  mDataGraph->createNode("sink", false, true);
+  mDataGraph->setNodeInstance("sink", "sink-instance");
+  mDataGraph->setInstanceImplementation("sink-instance", lambdaSink);
 
-  graph.sendPacket(Packet(), "sink");
+  mDataGraph->sendPacket(Packet(), "sink");
 
   usleep(100000);
 
   ASSERT_EQ(1, receivedPacketCount);
 }
 
-TEST(WhenAPacketIsSentDirectlyFromADifferentThread, ItArrives) {
+TEST_F(
+    DataGraphTests,
+    WhenAPacketIsSentDirectlyFromADifferentThread_ItArrives) {
   const string testChannel = "test channel";
-
-  DataGraph graph;
 
   size_t receivedPacketCount = 0;
 
@@ -63,18 +73,18 @@ TEST(WhenAPacketIsSentDirectlyFromADifferentThread, ItArrives) {
         receivedPacketCount++;
       });
 
-  graph.createNode("source", false, true);
-  graph.createNode("sink", true, false);
+  mDataGraph->createNode("source", false, true);
+  mDataGraph->createNode("sink", true, false);
 
-  graph.setNodeInstance("source", "source-instance");
-  graph.setNodeInstance("sink", "sink-instance");
+  mDataGraph->setNodeInstance("source", "source-instance");
+  mDataGraph->setNodeInstance("sink", "sink-instance");
 
-  graph.connect("source", testChannel, "sink");
+  mDataGraph->connect("source", testChannel, "sink");
 
-  graph.setInstanceImplementation("source-instance", source);
-  graph.setInstanceImplementation("sink-instance", lambdaSink);
+  mDataGraph->setInstanceImplementation("source-instance", source);
+  mDataGraph->setInstanceImplementation("sink-instance", lambdaSink);
 
-  graph.startGraph();
+  mDataGraph->startGraph();
 
   source->sendPacket(Packet(), testChannel);
 
@@ -84,10 +94,8 @@ TEST(WhenAPacketIsSentDirectlyFromADifferentThread, ItArrives) {
   ASSERT_NE(this_thread::get_id(), packetReceivedOnThreadId);
 }
 
-TEST(WhenAPacketIsSentUsingAsyncQueueing, ItArrives) {
+TEST_F(DataGraphTests, WhenAPacketIsSentUsingAsyncQueueing_ItArrives) {
   const string testChannel = "test channel";
-
-  DataGraph graph;
 
   size_t receivedPacketCount = 0;
 
@@ -100,18 +108,19 @@ TEST(WhenAPacketIsSentUsingAsyncQueueing, ItArrives) {
         receivedPacketCount++;
       });
 
-  graph.createNode("source", false, true);
-  graph.createNode("sink", true, false);
+  mDataGraph->createNode("source", false, true);
+  mDataGraph->createNode("sink", true, false);
 
-  graph.setNodeInstance("source", "source-instance");
-  graph.setNodeInstance("sink", "sink-instance");
+  mDataGraph->setNodeInstance("source", "source-instance");
+  mDataGraph->setNodeInstance("sink", "sink-instance");
 
-  graph.connect("source", testChannel, "sink", PacketDeliveryType::AlwaysQueue);
+  mDataGraph
+      ->connect("source", testChannel, "sink", PacketDeliveryType::AlwaysQueue);
 
-  graph.setInstanceImplementation("source-instance", source);
-  graph.setInstanceImplementation("sink-instance", lambdaSink);
+  mDataGraph->setInstanceImplementation("source-instance", source);
+  mDataGraph->setInstanceImplementation("sink-instance", lambdaSink);
 
-  graph.startGraph();
+  mDataGraph->startGraph();
 
   source->sendPacket(Packet(), testChannel);
   usleep(100000);
@@ -121,10 +130,8 @@ TEST(WhenAPacketIsSentUsingAsyncQueueing, ItArrives) {
   ASSERT_EQ(1, receivedPacketCount);
 }
 
-TEST(WhenAPacketIsSentUsingDirectAndAsyncQueueing, ItArrives) {
+TEST_F(DataGraphTests, WhenAPacketIsSentUsingDirectAndAsyncQueueing_ItArrives) {
   const string testChannel = "test channel";
-
-  DataGraph graph;
 
   size_t receivedPacketCount = 0;
 
@@ -145,31 +152,33 @@ TEST(WhenAPacketIsSentUsingDirectAndAsyncQueueing, ItArrives) {
         receivedPacketCount++;
       });
 
-  graph.createNode("source", false, true);
-  graph.createNode("sinkDirect", true, false);
-  graph.createNode("sinkAsync", true, false);
+  mDataGraph->createNode("source", false, true);
+  mDataGraph->createNode("sinkDirect", true, false);
+  mDataGraph->createNode("sinkAsync", true, false);
 
-  graph.setNodeInstance("source", "source-instance");
-  graph.setNodeInstance("sinkDirect", "sink-direct-instance");
-  graph.setNodeInstance("sinkAsync", "sink-async-instance");
+  mDataGraph->setNodeInstance("source", "source-instance");
+  mDataGraph->setNodeInstance("sinkDirect", "sink-direct-instance");
+  mDataGraph->setNodeInstance("sinkAsync", "sink-async-instance");
 
-  graph.connect(
+  mDataGraph->connect(
       "source",
       testChannel,
       "sinkDirect",
       PacketDeliveryType::PushDirectlyToTarget);
 
-  graph.connect(
+  mDataGraph->connect(
       "source",
       testChannel,
       "sinkAsync",
       PacketDeliveryType::AlwaysQueue);
 
-  graph.setInstanceImplementation("source-instance", source);
-  graph.setInstanceImplementation("sink-direct-instance", lambdaSinkDirect);
-  graph.setInstanceImplementation("sink-async-instance", lambdaSinkAsync);
+  mDataGraph->setInstanceImplementation("source-instance", source);
+  mDataGraph->setInstanceImplementation(
+      "sink-direct-instance",
+      lambdaSinkDirect);
+  mDataGraph->setInstanceImplementation("sink-async-instance", lambdaSinkAsync);
 
-  graph.startGraph();
+  mDataGraph->startGraph();
 
   Packet packet;
   packet.buffers.push_back(Buffer("Tracer"));
@@ -186,10 +195,70 @@ TEST(WhenAPacketIsSentUsingDirectAndAsyncQueueing, ItArrives) {
   ASSERT_EQ(asyncThreadId, directThreadId);
 }
 
-TEST(WhenTwoPacketsAreSentToDifferentThreadGroups, TheyHaveDifferentThreadIds) {
+TEST_F(
+    DataGraphTests,
+    WhenTwoPacketsAreSentToDifferentThreadGroups_TheyHaveDifferentThreadIds) {
   const string testChannel = "test channel";
+  size_t receivedPacketCount = 0;
 
-  DataGraph graph;
+  thread::id threadId1;
+  thread::id threadId2;
+  auto source = make_shared<SimpleSource>();
+  auto lambdaSink1 = make_shared<LambdaPathable>(
+      [&receivedPacketCount, &threadId1](const PathablePacket& packet) {
+        threadId1 = this_thread::get_id();
+        receivedPacketCount++;
+      });
+
+  auto lambdaSink2 = make_shared<LambdaPathable>(
+      [&receivedPacketCount, &threadId2](const PathablePacket& packet) {
+        threadId2 = this_thread::get_id();
+        receivedPacketCount++;
+      });
+
+  mDataGraph->createNode("source", false, true);
+  mDataGraph->createNode("sink 1", true, false);
+  mDataGraph->createNode("sink 2", true, false);
+
+  mDataGraph->setNodeInstance("source", "source instance");
+  mDataGraph->setNodeInstance("sink 1", "sink 1 instance");
+  mDataGraph->setNodeInstance("sink 2", "sink 2 instance");
+
+  mDataGraph->connect(
+      "source",
+      testChannel,
+      "sink 1",
+      PacketDeliveryType::AlwaysQueue);
+
+  mDataGraph->connect(
+      "source",
+      testChannel,
+      "sink 2",
+      PacketDeliveryType::AlwaysQueue);
+
+  mDataGraph->setInstanceImplementation("source instance", source);
+  mDataGraph->setInstanceImplementation("sink 1 instance", lambdaSink1);
+  mDataGraph->setInstanceImplementation("sink 2 instance", lambdaSink2);
+
+  mDataGraph->setThreadGroupForInstance("sink 2 instance", "test");
+
+  mDataGraph->startGraph();
+
+  source->sendPacket(Packet(), testChannel);
+  usleep(100000);
+
+  ASSERT_NE(this_thread::get_id(), threadId1);
+  ASSERT_NE(this_thread::get_id(), threadId2);
+
+  ASSERT_NE(threadId1, threadId2);
+
+  ASSERT_EQ(2, receivedPacketCount);
+}
+
+TEST_F(
+    DataGraphTests,
+    WhenTwoPacketsAreSentToNonDefaultDifferentThreadGroups_TheyHaveDifferentThreadIds) {
+  const string testChannel = "test channel";
 
   size_t receivedPacketCount = 0;
 
@@ -208,33 +277,34 @@ TEST(WhenTwoPacketsAreSentToDifferentThreadGroups, TheyHaveDifferentThreadIds) {
         receivedPacketCount++;
       });
 
-  graph.createNode("source", false, true);
-  graph.createNode("sink 1", true, false);
-  graph.createNode("sink 2", true, false);
+  mDataGraph->createNode("source", false, true);
+  mDataGraph->createNode("sink 1", true, false);
+  mDataGraph->createNode("sink 2", true, false);
 
-  graph.setNodeInstance("source", "source instance");
-  graph.setNodeInstance("sink 1", "sink 1 instance");
-  graph.setNodeInstance("sink 2", "sink 2 instance");
+  mDataGraph->setNodeInstance("source", "source instance");
+  mDataGraph->setNodeInstance("sink 1", "sink 1 instance");
+  mDataGraph->setNodeInstance("sink 2", "sink 2 instance");
 
-  graph.connect(
+  mDataGraph->connect(
       "source",
       testChannel,
       "sink 1",
       PacketDeliveryType::AlwaysQueue);
 
-  graph.connect(
+  mDataGraph->connect(
       "source",
       testChannel,
       "sink 2",
       PacketDeliveryType::AlwaysQueue);
 
-  graph.setInstanceImplementation("source instance", source);
-  graph.setInstanceImplementation("sink 1 instance", lambdaSink1);
-  graph.setInstanceImplementation("sink 2 instance", lambdaSink2);
+  mDataGraph->setInstanceImplementation("source instance", source);
+  mDataGraph->setInstanceImplementation("sink 1 instance", lambdaSink1);
+  mDataGraph->setInstanceImplementation("sink 2 instance", lambdaSink2);
 
-  graph.setThreadGroupForInstance("sink 2 instance", "test");
+  mDataGraph->setThreadGroupForInstance("sink 1 instance", "test 1");
+  mDataGraph->setThreadGroupForInstance("sink 2 instance", "test 2");
 
-  graph.startGraph();
+  mDataGraph->startGraph();
 
   source->sendPacket(Packet(), testChannel);
   usleep(100000);
@@ -247,73 +317,9 @@ TEST(WhenTwoPacketsAreSentToDifferentThreadGroups, TheyHaveDifferentThreadIds) {
   ASSERT_EQ(2, receivedPacketCount);
 }
 
-TEST(
-    WhenTwoPacketsAreSentToNonDefaultDifferentThreadGroups,
-    TheyHaveDifferentThreadIds) {
-  const string testChannel = "test channel";
-
-  DataGraph graph;
-
-  size_t receivedPacketCount = 0;
-
-  thread::id threadId1;
-  thread::id threadId2;
-  auto source = make_shared<SimpleSource>();
-  auto lambdaSink1 = make_shared<LambdaPathable>(
-      [&receivedPacketCount, &threadId1](const PathablePacket& packet) {
-        threadId1 = this_thread::get_id();
-        receivedPacketCount++;
-      });
-
-  auto lambdaSink2 = make_shared<LambdaPathable>(
-      [&receivedPacketCount, &threadId2](const PathablePacket& packet) {
-        threadId2 = this_thread::get_id();
-        receivedPacketCount++;
-      });
-
-  graph.createNode("source", false, true);
-  graph.createNode("sink 1", true, false);
-  graph.createNode("sink 2", true, false);
-
-  graph.setNodeInstance("source", "source instance");
-  graph.setNodeInstance("sink 1", "sink 1 instance");
-  graph.setNodeInstance("sink 2", "sink 2 instance");
-
-  graph.connect(
-      "source",
-      testChannel,
-      "sink 1",
-      PacketDeliveryType::AlwaysQueue);
-
-  graph.connect(
-      "source",
-      testChannel,
-      "sink 2",
-      PacketDeliveryType::AlwaysQueue);
-
-  graph.setInstanceImplementation("source instance", source);
-  graph.setInstanceImplementation("sink 1 instance", lambdaSink1);
-  graph.setInstanceImplementation("sink 2 instance", lambdaSink2);
-
-  graph.setThreadGroupForInstance("sink 1 instance", "test 1");
-  graph.setThreadGroupForInstance("sink 2 instance", "test 2");
-
-  graph.startGraph();
-
-  source->sendPacket(Packet(), testChannel);
-  usleep(100000);
-
-  ASSERT_NE(this_thread::get_id(), threadId1);
-  ASSERT_NE(this_thread::get_id(), threadId2);
-
-  ASSERT_NE(threadId1, threadId2);
-
-  ASSERT_EQ(2, receivedPacketCount);
-}
-
-TEST(WhenOneSourceSendsAPacketAndTwoSinksReceive, ThePacketIsTheSame) {
-  DataGraph graph;
-
+TEST_F(
+    DataGraphTests,
+    WhenOneSourceSendsAPacketAndTwoSinksReceive_ThePacketIsTheSame) {
   Packet packet;
   packet.parameters["key1"] = "value1";
 
@@ -348,39 +354,41 @@ TEST(WhenOneSourceSendsAPacketAndTwoSinksReceive, ThePacketIsTheSame) {
         ASSERT_EQ("value1", packet.parameters["key1"].get<string>());
       });
 
-  graph.createNode("source", false, true);
-  graph.createNode("pass-through", true, true);
-  graph.createNode("sink direct", true, false);
-  graph.createNode("sink async", true, false);
+  mDataGraph->createNode("source", false, true);
+  mDataGraph->createNode("pass-through", true, true);
+  mDataGraph->createNode("sink direct", true, false);
+  mDataGraph->createNode("sink async", true, false);
 
-  graph.setNodeInstance("source", "source instance");
-  graph.setNodeInstance("pass-through", "pass-through instance");
-  graph.setNodeInstance("sink direct", "sink direct instance");
-  graph.setNodeInstance("sink async", "sink async instance");
+  mDataGraph->setNodeInstance("source", "source instance");
+  mDataGraph->setNodeInstance("pass-through", "pass-through instance");
+  mDataGraph->setNodeInstance("sink direct", "sink direct instance");
+  mDataGraph->setNodeInstance("sink async", "sink async instance");
 
-  graph.connect("source", "test channel", "pass-through");
-  graph.connect(
+  mDataGraph->connect("source", "test channel", "pass-through");
+  mDataGraph->connect(
       "pass-through",
       "test channel",
       "sink direct",
       PacketDeliveryType::PushDirectlyToTarget);
 
-  graph.connect(
+  mDataGraph->connect(
       "pass-through",
       "test channel",
       "sink async",
       PacketDeliveryType::AlwaysQueue);
 
-  graph.setInstanceInitParameters("pass-through instance", R"({
+  mDataGraph->setInstanceInitParameters("pass-through instance", R"({
         "outputChannel": "test channel"
       })"_json);
 
-  graph.setInstanceImplementation("source instance", source);
-  graph.setInstanceType("pass-through instance", "Pass-through");
-  graph.setInstanceImplementation("sink direct instance", lambdaSinkDirect);
-  graph.setInstanceImplementation("sink async instance", lambdaSinkAsync);
+  mDataGraph->setInstanceImplementation("source instance", source);
+  mDataGraph->setInstanceType("pass-through instance", "Pass-through");
+  mDataGraph->setInstanceImplementation(
+      "sink direct instance",
+      lambdaSinkDirect);
+  mDataGraph->setInstanceImplementation("sink async instance", lambdaSinkAsync);
 
-  graph.startGraph();
+  mDataGraph->startGraph();
 
   source->sendPacket(packet, "test channel");
   usleep(100000);

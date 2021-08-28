@@ -14,22 +14,28 @@
  *  limitations under the License.
  */
 
-#ifndef MAPLANG_INCLUDE_MAPLANG_IUVLOOPRUNNERFACTORY_H_
-#define MAPLANG_INCLUDE_MAPLANG_IUVLOOPRUNNERFACTORY_H_
-
-#include <maplang/UvLoopRunner.h>
+#ifndef MAPLANG_INCLUDE_MAPLANG_IIMPLEMENTATIONFACTORYBUILDER_H_
+#define MAPLANG_INCLUDE_MAPLANG_IIMPLEMENTATIONFACTORYBUILDER_H_
 
 #include <memory>
 
+#include "maplang/IBufferFactory.h"
+#include "maplang/IImplementationFactory.h"
+#include "maplang/IUvLoopRunnerFactory.h"
+
 namespace maplang {
 
-class IUvLoopRunnerFactory {
+class IImplementationFactoryBuilder {
  public:
-  virtual ~IUvLoopRunnerFactory() = default;
+  virtual ~IImplementationFactoryBuilder() = default;
 
-  virtual std::shared_ptr<UvLoopRunner> createUvLoopRunner() const = 0;
+  virtual std::shared_ptr<const IImplementationFactory>
+  BuildImplementationFactory(
+      const std::shared_ptr<const IBufferFactory>& bufferFactory,
+      const std::shared_ptr<const IUvLoopRunnerFactory>& uvRunnerFactory)
+      const = 0;
 };
 
 }  // namespace maplang
 
-#endif  // MAPLANG_INCLUDE_MAPLANG_IUVLOOPRUNNERFACTORY_H_
+#endif  // MAPLANG_INCLUDE_MAPLANG_IIMPLEMENTATIONFACTORYBUILDER_H_

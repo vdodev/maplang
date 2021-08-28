@@ -20,32 +20,46 @@
 #include <memory>
 #include <set>
 
+#include "maplang/IBufferFactory.h"
 #include "maplang/IGroup.h"
 #include "maplang/IImplementation.h"
+#include "maplang/IImplementationFactory.h"
+#include "maplang/IUvLoopRunnerFactory.h"
 #include "maplang/json.hpp"
 
 namespace maplang {
 
-class ImplementationFactory final {
+class ImplementationFactory final
+    : public IImplementationFactory,
+      public std::enable_shared_from_this<ImplementationFactory> {
  public:
-  using FactoryFunction = std::function<std::shared_ptr<IImplementation>(
-      const nlohmann::json& initParameters)>;
+  static std::shared_ptr<ImplementationFactory> Create(
+      const std::shared_ptr<const IBufferFactory>& bufferFactory,
+      const std::shared_ptr<const IUvLoopRunnerFactory>& uvLoopRunnerFactory);
 
-  using ImplementationNameVisitor =
-      std::function<void(const std::string& nodeName)>;
+  ~ImplementationFactory() override = default;
 
-  static std::shared_ptr<ImplementationFactory> defaultFactory();
-
-  void registerFactory(const std::string& name, FactoryFunction&& factory);
+  void registerFactory(const std::string& name, const FactoryFunction& factory);
 
   std::shared_ptr<IImplementation> createImplementation(
       const std::string& name,
-      const nlohmann::json& initParameters) const;
+      const nlohmann::json& initParameters) const override;
 
-  void visitImplementationNames(const ImplementationNameVisitor& visitor);
+  void visitImplementationNames(
+      const ImplementationNameVisitor& visitor) const override;
 
  private:
+  const std::shared_ptr<const IBufferFactory> mBufferFactory;
+  const std::shared_ptr<const IUvLoopRunnerFactory> mUvLoopRunnerFactory;
+
   std::unordered_map<std::string, FactoryFunction> mFactoryFunctionMap;
+
+ private:
+  ImplementationFactory(
+      const std::shared_ptr<const IBufferFactory>& bufferFactory,
+      const std::shared_ptr<const IUvLoopRunnerFactory>& uvLoopRunnerFactory);
+
+  void RegisterImplementations();
 };
 
 }  // namespace maplang

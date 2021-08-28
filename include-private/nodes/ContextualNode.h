@@ -17,13 +17,16 @@
 #ifndef __MAPLANG_CONTEXTUAL_NODE_H__
 #define __MAPLANG_CONTEXTUAL_NODE_H__
 
+#include "maplang/IFactories.h"
 #include "maplang/IGroup.h"
 
 namespace maplang {
 
 class ContextualNode final : public IGroup, public IImplementation {
  public:
-  ContextualNode(const nlohmann::json& initData);
+  ContextualNode(
+      const IFactories& factories,
+      const nlohmann::json& initData);
   ~ContextualNode() override = default;
 
   size_t getInterfaceCount() override;

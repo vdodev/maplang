@@ -23,8 +23,7 @@
 #include "maplang/Graph.h"
 #include "maplang/IGroup.h"
 #include "maplang/IImplementation.h"
-#include "maplang/IUvLoopRunnerFactory.h"
-#include "maplang/ImplementationFactory.h"
+#include "maplang/IFactories.h"
 
 namespace maplang {
 
@@ -36,7 +35,7 @@ class DataGraph final : public IGroup {
   static const std::string kDefaultThreadGroupName;
 
  public:
-  DataGraph();
+  DataGraph(const std::shared_ptr<const IFactories>& factories);
   ~DataGraph() override = default;
 
   std::shared_ptr<GraphNode>
@@ -87,7 +86,7 @@ class DataGraph final : public IGroup {
       const nlohmann::json& initParameters);
 
   /**
-   * Sets the type to be instantiated from the NodeFactory.
+   * Sets the type to be instantiated from the ImplementationFactory.
    */
   void setInstanceType(
       const std::string& instanceName,
@@ -101,9 +100,6 @@ class DataGraph final : public IGroup {
       const std::string& instanceName,
       const std::string& groupInstanceName,
       const std::string& groupInterfaceName);
-
-  void setImplementationFactory(
-      const std::shared_ptr<ImplementationFactory>& factory);
 
   void visitNodes(const Graph::NodeVisitor& visitor) const;
 

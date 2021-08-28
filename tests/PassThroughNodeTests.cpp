@@ -20,36 +20,19 @@
 
 #include "gtest/gtest.h"
 #include "maplang/DataGraph.h"
-#include "maplang/ImplementationFactory.h"
+#include "maplang/FactoriesBuilder.h"
+#include "maplang/SimpleSource.h"
 
 using namespace std;
 
 namespace maplang {
-
-class SimpleSource : public IImplementation, public ISource {
- public:
-  void setPacketPusher(const std::shared_ptr<IPacketPusher>& pusher) override {
-    mPusher = pusher;
-  }
-
-  IPathable* asPathable() override { return nullptr; }
-  ISource* asSource() override { return this; }
-  IGroup* asGroup() override { return nullptr; }
-
-  void sendPacket(const Packet& packet, const std::string& fromChannel) {
-    mPusher->pushPacket(packet, fromChannel);
-  }
-
- private:
-  std::shared_ptr<IPacketPusher> mPusher;
-};
 
 TEST(
     WhenAPacketIsSentToAPassThroughNode,
     ItIsPassedThroughFromTheCorrectOutputChannel) {
   const string testChannel = "test channel";
 
-  DataGraph graph;
+  DataGraph graph(FactoriesBuilder().BuildFactories());
 
   size_t receivedPacketCount = 0;
 

@@ -181,15 +181,20 @@ static string readFileIntoString(const string& fileName) {
   return fileContents;
 }
 
-std::shared_ptr<DataGraph> buildDataGraphFromFile(const string& fileName) {
+std::shared_ptr<DataGraph> buildDataGraphFromFile(
+    const std::shared_ptr<const IFactories>& factories,
+    const string& fileName) {
   const string dataGraphString = readFileIntoString(fileName);
-  return buildDataGraph(dataGraphString);
+
+  return buildDataGraph(factories, dataGraphString);
 }
 
-shared_ptr<DataGraph> buildDataGraph(const string& dotGraphString) {
+shared_ptr<DataGraph> buildDataGraph(
+    const std::shared_ptr<const IFactories>& factories,
+    const string& dotGraphString) {
   agseterrf(onAgError);
 
-  const auto dataGraph = make_shared<DataGraph>();
+  const auto dataGraph = make_shared<DataGraph>(factories);
 
   const auto cgraph = shared_ptr<Agraph_t>(
       agmemread(dotGraphString.c_str()),

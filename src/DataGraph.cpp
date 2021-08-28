@@ -76,10 +76,9 @@ struct ThreadGroup {
 class DataGraphImpl final : public enable_shared_from_this<DataGraphImpl> {
  public:
   Graph mGraph;
-  const shared_ptr<IUvLoopRunnerFactory> mUvLoopRunnerFactory;
+  const std::shared_ptr<const IFactories> mFactories;
   unordered_map<string, shared_ptr<ThreadGroup>> mThreadGroups;
   unordered_map<string, shared_ptr<Instance>> mInstances;
-  shared_ptr<ImplementationFactory> mNodeFactory;
   vector<string> mPublicNodeNames;
 
  public:
@@ -89,9 +88,8 @@ class DataGraphImpl final : public enable_shared_from_this<DataGraphImpl> {
       const Packet& packet,
       const string& channel);
 
-  DataGraphImpl(const shared_ptr<IUvLoopRunnerFactory>& uvLoopRunnerFactory)
-      : mUvLoopRunnerFactory(uvLoopRunnerFactory),
-        mNodeFactory(ImplementationFactory::defaultFactory()) {}
+  DataGraphImpl(const std::shared_ptr<const IFactories>& factories)
+      : mFactories(factories) {}
 
   shared_ptr<ThreadGroup> getOrCreateThreadGroup(const string& name);
   shared_ptr<Instance> getOrCreateInstance(const string& instanceName);
@@ -232,7 +230,8 @@ shared_ptr<ThreadGroup> DataGraphImpl::getOrCreateThreadGroup(
     return existingIt->second;
   }
 
-  const auto loopRunner = mUvLoopRunnerFactory->createUvLoopRunner();
+  const auto loopRunner =
+      mFactories->GetUvLoopRunnerFactory()->createUvLoopRunner();
 
   const auto threadGroup =
       make_shared<ThreadGroup>(loopRunner, shared_from_this());
@@ -361,8 +360,8 @@ void ThreadGroup::sendPacketToNode(
   pathable->handlePacket(PathablePacket(packet, receivingNode->packetPusher));
 }
 
-DataGraph::DataGraph()
-    : impl(new DataGraphImpl(make_shared<UvLoopRunnerFactory>())) {}
+DataGraph::DataGraph(const std::shared_ptr<const IFactories>& factories)
+    : impl(new DataGraphImpl(factories)) {}
 
 shared_ptr<GraphNode> DataGraph::createNode(
     const string& name,
@@ -584,7 +583,7 @@ void DataGraph::setInstanceType(
   const shared_ptr<Instance> instance = impl->getOrCreateInstance(instanceName);
 
   try {
-    instance->setType(typeName, impl->mNodeFactory);
+    instance->setType(typeName);
   } catch (exception& e) {
     ostringstream errorStream;
     errorStream << "Error instantiating Instance '" << instanceName
@@ -653,7 +652,7 @@ shared_ptr<Instance> DataGraphImpl::getOrCreateInstance(
     return instanceIt->second;
   }
 
-  const auto instance = make_shared<Instance>();
+  const auto instance = make_shared<Instance>(mFactories);
   mInstances[instanceName] = instance;
   setThreadGroupForInstance(instanceName, DataGraph::kDefaultThreadGroupName);
 
@@ -726,11 +725,6 @@ void DataGraphImpl::validateConnections(
 
     throw runtime_error(errorStream.str());
   }
-}
-
-void DataGraph::setImplementationFactory(
-    const std::shared_ptr<ImplementationFactory>& factory) {
-  impl->mNodeFactory = factory;
 }
 
 void DataGraph::visitNodes(const Graph::NodeVisitor& visitor) const {

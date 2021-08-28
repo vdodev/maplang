@@ -17,8 +17,11 @@
 
 #include <mutex>
 
+#include "maplang/Factories.h"
 #include "maplang/json.hpp"
+#include "maplang/stream-util.h"
 #include "nodes/AddParametersNode.h"
+#include "nodes/BufferAccumulatorNode.h"
 #include "nodes/ContextualNode.h"
 #include "nodes/HttpRequestExtractor.h"
 #include "nodes/HttpRequestHeaderWriter.h"
@@ -32,134 +35,159 @@
 #include "nodes/UvTcpConnectionGroup.h"
 #include "nodes/VolatileKeyValueSet.h"
 #include "nodes/VolatileKeyValueStore.h"
-#include "nodes/BufferAccumulatorNode.h"
 
 using namespace std;
 using namespace nlohmann;
 
 namespace maplang {
 
-static once_flag createDefaultFactoryOnce;
-static shared_ptr<ImplementationFactory> gDefaultFactory;
+std::shared_ptr<ImplementationFactory> ImplementationFactory::Create(
+    const std::shared_ptr<const IBufferFactory>& bufferFactory,
+    const std::shared_ptr<const IUvLoopRunnerFactory>& uvLoopRunnerFactory) {
+  return shared_ptr<ImplementationFactory>(
+      new ImplementationFactory(bufferFactory, uvLoopRunnerFactory));
+}
 
-static void registerImplementations(
-    const shared_ptr<ImplementationFactory>& factory) {
-  factory->registerFactory("Pass-through", [](const json& initParams) {
-    return make_shared<PassThroughNode>(initParams);
-  });
+ImplementationFactory::ImplementationFactory(
+    const shared_ptr<const IBufferFactory>& bufferFactory,
+    const shared_ptr<const IUvLoopRunnerFactory>& uvLoopRunnerFactory)
+    : mBufferFactory(bufferFactory), mUvLoopRunnerFactory(uvLoopRunnerFactory) {
+  RegisterImplementations();
+}
 
-  factory->registerFactory(
-             "Buffer Accumulator",
-             [](const nlohmann::json& initParams) {
-               return make_shared<BufferAccumulatorNode>(initParams);
-             });
-
-  factory->registerFactory(
-      "Add Parameters",
-      [](const nlohmann::json& initParams) {
-        return make_shared<AddParametersNode>(initParams);
+void ImplementationFactory::RegisterImplementations() {
+  registerFactory(
+      "Pass-through",
+      [](const IFactories& factories,
+         const nlohmann::json& initParameters) {
+        return make_shared<PassThroughNode>(initParameters);
       });
 
-  factory->registerFactory(
+  registerFactory(
+      "Buffer Accumulator",
+      [](const IFactories& factories,
+         const nlohmann::json& initParameters) {
+        return make_shared<BufferAccumulatorNode>(initParameters);
+      });
+
+  registerFactory(
+      "Add Parameters",
+      [](const IFactories& factories,
+         const nlohmann::json& initParameters) {
+        return make_shared<AddParametersNode>(initParameters);
+      });
+
+  registerFactory(
       "Parameter Extractor",
-      [](const nlohmann::json& initParameters) {
+      [](const IFactories& factories,
+         const nlohmann::json& initParameters) {
         return make_shared<ParameterExtractor>(initParameters);
       });
 
-  factory->registerFactory(
+  registerFactory(
       "Parameter Router",
-      [](const nlohmann::json& initParameters) {
+      [](const IFactories& factories,
+         const nlohmann::json& initParameters) {
         return make_shared<ParameterRouter>(initParameters);
       });
 
-  factory->registerFactory(
+  registerFactory(
       "Contextual",
-      [](const nlohmann::json& initParameters) {
-        return make_shared<ContextualNode>(initParameters);
+      [](const IFactories& factories,
+         const nlohmann::json& initParameters) {
+        return make_shared<ContextualNode>(factories, initParameters);
       });
 
-  factory->registerFactory(
+  registerFactory(
       "TCP Server",
-      [](const nlohmann::json& initParameters) {
+      [](const IFactories& factories,
+         const nlohmann::json& initParameters) {
         return make_shared<UvTcpConnectionGroup>();
       });
 
-  factory->registerFactory(
+  registerFactory(
       "HTTP Request Header Writer",
-      [](const json& initParameters) {
+      [](const IFactories& factories,
+         const nlohmann::json& initParameters) {
         return make_shared<HttpRequestHeaderWriter>(initParameters);
       });
 
-  factory->registerFactory(
+  registerFactory(
       "HTTP Request Extractor",
-      [](const json& initParameters) {
+      [](const IFactories& factories,
+         const nlohmann::json& initParameters) {
         return make_shared<HttpRequestExtractor>(initParameters);
       });
 
-  factory->registerFactory("Send Once", [](const json& initParameters) {
-    return make_shared<SendOnce>(initParameters);
-  });
+  registerFactory(
+      "Send Once",
+      [](const IFactories& factories,
+         const nlohmann::json& initParameters) {
+        return make_shared<SendOnce>(initParameters);
+      });
 
-  factory->registerFactory(
+  registerFactory(
       "HTTP Response Writer",
-      [](const json& initParameters) {
+      [](const IFactories& factories,
+         const nlohmann::json& initParameters) {
         return make_shared<HttpResponseWriter>(initParameters);
       });
 
-  factory->registerFactory(
+  registerFactory(
       "HTTP Response Extractor",
-      [](const json& initParameters) {
+      [](const IFactories& factories,
+         const nlohmann::json& initParameters) {
         return make_shared<HttpResponseExtractor>(initParameters);
       });
 
-  factory->registerFactory(
+  registerFactory(
       "Volatile Key Value Store",
-      [](const json& initParameters) {
+      [](const IFactories& factories,
+         const nlohmann::json& initParameters) {
         return make_shared<VolatileKeyValueStore>(initParameters);
       });
 
-  factory->registerFactory(
+  registerFactory(
       "Volatile Key Value Set",
-      [](const json& initParameters) {
+      [](const IFactories& factories,
+         const nlohmann::json& initParameters) {
         return make_shared<VolatileKeyValueSet>(initParameters);
       });
 
-  factory->registerFactory(
+  registerFactory(
       "Ordered Packet Sender",
-      [](const json& initParameters) {
+      [](const IFactories& factories,
+         const nlohmann::json& initParameters) {
         return make_shared<OrderedPacketSender>();
       });
 }
 
-shared_ptr<ImplementationFactory> ImplementationFactory::defaultFactory() {
-  call_once(createDefaultFactoryOnce, []() {
-    gDefaultFactory = make_shared<ImplementationFactory>();
-    registerImplementations(gDefaultFactory);
-  });
-
-  return gDefaultFactory;
-}
-
 void ImplementationFactory::registerFactory(
     const std::string& name,
-    FactoryFunction&& factory) {
+    const FactoryFunction& factory) {
   mFactoryFunctionMap[name] = move(factory);
 }
 
 std::shared_ptr<IImplementation> ImplementationFactory::createImplementation(
     const std::string& name,
     const nlohmann::json& initParameters) const {
+  Factories factories(
+      mBufferFactory,
+      shared_from_this(),
+      mUvLoopRunnerFactory);
+
   auto it = mFactoryFunctionMap.find(name);
   if (it == mFactoryFunctionMap.end()) {
     throw runtime_error("No factory exists for implementation '" + name + "'.");
   }
 
-  const FactoryFunction& factory = it->second;
-  return factory(initParameters);
+  const FactoryFunction& nodeImplementationFactory = it->second;
+
+  return nodeImplementationFactory(factories, initParameters);
 }
 
 void ImplementationFactory::visitImplementationNames(
-    const ImplementationFactory::ImplementationNameVisitor& visitor) {
+    const ImplementationFactory::ImplementationNameVisitor& visitor) const {
   for (const auto& pair : mFactoryFunctionMap) {
     std::string key = pair.first;
     visitor(key);

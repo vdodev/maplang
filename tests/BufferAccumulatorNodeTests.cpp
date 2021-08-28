@@ -16,6 +16,7 @@
 
 #include "gtest/gtest.h"
 #include "maplang/DataGraph.h"
+#include "maplang/FactoriesBuilder.h"
 #include "maplang/GraphBuilder.h"
 #include "maplang/LambdaPacketPusher.h"
 #include "maplang/LambdaPathable.h"
@@ -24,6 +25,14 @@
 using namespace std;
 
 namespace maplang {
+
+class BufferAccumulatorNodeTests : public testing::Test {
+ public:
+  BufferAccumulatorNodeTests()
+      : mFactories(FactoriesBuilder().BuildFactories()) {}
+
+  const std::shared_ptr<const IFactories> mFactories;
+};
 
 static const string dotGraph = R"(
     digraph BufferAccumulatorTest {
@@ -78,8 +87,8 @@ static const string implementation = R"({
     }
   })";
 
-TEST(WhenASingleBufferIsSent, ItIsReceived) {
-  const auto graph = buildDataGraph(dotGraph);
+TEST_F(BufferAccumulatorNodeTests, WhenASingleBufferIsSent_ItIsReceived) {
+  const auto graph = buildDataGraph(mFactories, dotGraph);
   implementDataGraph(graph, implementation);
 
   const auto testInput = make_shared<SimpleSource>();
@@ -121,8 +130,10 @@ TEST(WhenASingleBufferIsSent, ItIsReceived) {
       memcmp("test", receivedBuffer.data.get(), receivedBuffer.length));
 }
 
-TEST(WhenTwoBuffersAreSent, TheOutputBufferIsCorrect) {
-  const auto graph = buildDataGraph(dotGraph);
+TEST_F(
+    BufferAccumulatorNodeTests,
+    WhenTwoBuffersAreSent_TheOutputBufferIsCorrect) {
+  const auto graph = buildDataGraph(mFactories, dotGraph);
   implementDataGraph(graph, implementation);
 
   const auto testInput = make_shared<SimpleSource>();
@@ -168,10 +179,10 @@ TEST(WhenTwoBuffersAreSent, TheOutputBufferIsCorrect) {
       memcmp("test, hello", receivedBuffer.data.get(), receivedBuffer.length));
 }
 
-TEST(
-    WhenMultiplePacketsWithMultipleBuffersAreSent,
-    TheOutputBuffersAreCorrect) {
-  const auto graph = buildDataGraph(dotGraph);
+TEST_F(
+    BufferAccumulatorNodeTests,
+    WhenMultiplePacketsWithMultipleBuffersAreSent_TheOutputBuffersAreCorrect) {
+  const auto graph = buildDataGraph(mFactories, dotGraph);
   implementDataGraph(graph, implementation);
 
   const auto testInput = make_shared<SimpleSource>();

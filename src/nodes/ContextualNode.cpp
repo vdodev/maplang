@@ -20,6 +20,7 @@
 
 #include "logging.h"
 #include "maplang/ImplementationFactory.h"
+#include "maplang/WrappedFactories.h"
 
 using namespace std;
 using namespace nlohmann;
@@ -60,7 +61,7 @@ class ContextualNode::Impl
     : public IRouterInstanceCreator,
       public enable_shared_from_this<ContextualNode::Impl> {
  public:
-  Impl(const json& initData);
+  Impl(const IFactories& factories, const json& initData);
   ~Impl() override;
 
   void initialize();
@@ -71,6 +72,7 @@ class ContextualNode::Impl
   const string mType;
   const string mKey;
 
+  const WrappedFactories mFactories;
   shared_ptr<IContextRouter> mContextRouter;
   shared_ptr<IImplementation> mContextRemover;
   unordered_map<string, shared_ptr<IImplementation>> mNodeMap;
@@ -424,8 +426,10 @@ void CohesiveGroupRouter::createNewInstance(const string& forNewContextLookup) {
   subinstanceCreator->createNewInstance(forNewContextLookup);
 }
 
-ContextualNode::ContextualNode(const json& initData)
-    : mImpl(make_shared<Impl>(initData)) {
+ContextualNode::ContextualNode(
+    const IFactories& factories,
+    const json& initData)
+    : mImpl(make_shared<Impl>(factories, initData)) {
   mImpl->initialize();  // internal implementation needs a weak pointer, which
                         // it can only get after the constructor.
 }
@@ -469,11 +473,14 @@ static string getNonEmptyStringOrThrow(
   return stringValue;
 }
 
-ContextualNode::Impl::Impl(const json& initParameters)
-    : mInitParameters(initParameters), mType(getNonEmptyStringOrThrow(
-                                           initParameters,
-                                           "initParameters",
-                                           kInitDataParameter_Type)),
+ContextualNode::Impl::Impl(
+    const IFactories& factories,
+    const json& initParameters)
+    : mFactories(factories), mInitParameters(initParameters),
+      mType(getNonEmptyStringOrThrow(
+          initParameters,
+          "initParameters",
+          kInitDataParameter_Type)),
       mKey(getNonEmptyStringOrThrow(
           initParameters,
           "initParameters",
@@ -483,7 +490,7 @@ ContextualNode::Impl::~Impl() {}
 
 void ContextualNode::Impl::initialize() {
   const auto templateNode =
-      ImplementationFactory::defaultFactory()->createImplementation(
+      mFactories.GetImplementationFactory()->createImplementation(
           mType,
           mInitParameters);
   mContextRouter = createContextRouter(shared_from_this(), templateNode, mKey);
@@ -496,7 +503,7 @@ void ContextualNode::Impl::initialize() {
 void ContextualNode::Impl::createNewInstance(
     const string& forNewContextLookup) {
   const auto newInstance =
-      ImplementationFactory::defaultFactory()->createImplementation(
+      mFactories.GetImplementationFactory()->createImplementation(
           mType,
           mInitParameters);
   mContextRouter->addNode(forNewContextLookup, newInstance);

@@ -16,29 +16,39 @@
 
 #include "HttpResponseWithAddressAsBody.h"
 #include "maplang/DataGraph.h"
+#include "maplang/FactoriesBuilder.h"
 #include "maplang/GraphBuilder.h"
 #include "maplang/ImplementationFactory.h"
 #include "maplang/json.hpp"
+#include "maplang/ImplementationFactoryBuilder.h"
 
 using namespace std;
 using namespace maplang;
 using namespace nlohmann;
 
-static void registerNodes() {
-  auto nodeFactory = ImplementationFactory::defaultFactory();
-
-  nodeFactory->registerFactory(
+static void registerNodes(const shared_ptr<ImplementationFactoryBuilder>& implementationFactoryBuilder) {
+  implementationFactoryBuilder->WithFactoryForName(
       "HTTP Response With Remote Address As Body",
-      [](const json& initParameters) {
+      [](const IFactories& factories,
+         const json& initParameters) {
         return make_shared<HttpResponseWithAddressAsBody>();
       });
 }
 
 int main(int argc, char** argv) {
-  registerNodes();
+  const auto implementationFactoryBuilder = make_shared<ImplementationFactoryBuilder>();
 
-  const auto graph =
-      buildDataGraphFromFile("../ip-echo-demo/ip-echo-architecture.dot");
+  registerNodes(implementationFactoryBuilder);
+
+  const shared_ptr<const IFactories> factories =
+      FactoriesBuilder()
+          .WithImplementationFactoryBuilder(implementationFactoryBuilder)
+          .BuildFactories();
+
+
+  const auto graph = buildDataGraphFromFile(
+      factories,
+      "../ip-echo-demo/ip-echo-architecture.dot");
   implementDataGraphFromFile(
       graph,
       "../ip-echo-demo/ip-echo-implementation.json");

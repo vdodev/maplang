@@ -18,6 +18,7 @@
 #define MAPLANG_INCLUDE_MAPLANG_INSTANCE_H_
 
 #include "maplang/IImplementation.h"
+#include "maplang/IFactories.h"
 
 namespace maplang {
 
@@ -26,9 +27,11 @@ class ThreadGroup;
 
 class Instance final {
  public:
+  Instance(const std::shared_ptr<const IFactories>& factories);
+
   void setType(
-      const std::string& typeName,
-      const std::shared_ptr<ImplementationFactory>& nodeFactory);
+      const std::string& typeName);
+
   std::string getType() const { return mTypeName; }
 
   std::shared_ptr<IImplementation> getImplementation() const {
@@ -53,6 +56,8 @@ class Instance final {
   std::shared_ptr<IPacketPusher> getPacketPusherForISources() const;
 
  private:
+  const std::shared_ptr<const IFactories> mFactories;
+
   std::string mTypeName;
   std::shared_ptr<IImplementation> mImplementation;
   nlohmann::json mInitParameters;

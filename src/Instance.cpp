@@ -23,9 +23,10 @@ using namespace std;
 
 namespace maplang {
 
-void Instance::setType(
-    const string& typeName,
-    const std::shared_ptr<ImplementationFactory>& nodeFactory) {
+Instance::Instance(const std::shared_ptr<const IFactories>& factories)
+    : mFactories(factories) {}
+
+void Instance::setType(const string& typeName) {
   if (mTypeName == typeName) {
     return;
   }
@@ -37,7 +38,9 @@ void Instance::setType(
   }
 
   mImplementation =
-      nodeFactory->createImplementation(typeName, mInitParameters);
+      mFactories->GetImplementationFactory()->createImplementation(
+          typeName,
+          mInitParameters);
 
   const auto source = mImplementation->asSource();
   const auto packetPusherForISources = mPacketPusherForISources.lock();

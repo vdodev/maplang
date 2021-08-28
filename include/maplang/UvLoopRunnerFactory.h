@@ -25,7 +25,7 @@ class UvLoopRunnerFactory final : public IUvLoopRunnerFactory {
  public:
   ~UvLoopRunnerFactory() override = default;
 
-  std::shared_ptr<UvLoopRunner> createUvLoopRunner() override {
+  std::shared_ptr<UvLoopRunner> createUvLoopRunner() const override {
     return std::make_shared<UvLoopRunner>();
   }
 };

@@ -17,6 +17,7 @@
 #include <functional>
 
 #include "gtest/gtest.h"
+#include "maplang/FactoriesBuilder.h"
 #include "maplang/GraphBuilder.h"
 #include "maplang/LambdaPathable.h"
 #include "nodes/ParameterExtractor.h"
@@ -34,8 +35,17 @@ class NoopPacketPusher : public IPacketPusher {
   void pushPacket(Packet&& packet, const std::string& channelName) override {}
 };
 
-TEST(WhenAParameterRouterGetsAValidValue, ItUsesThatValueAsTheChannel) {
-  const auto graph = buildDataGraph(R"(
+class ParameterRouterTests : public testing::Test {
+ public:
+  ParameterRouterTests()
+      : mFactories(
+          FactoriesBuilder().BuildFactories()) {}
+
+  const std::shared_ptr<const IFactories> mFactories;
+};
+
+TEST_F(ParameterRouterTests, WhenAParameterRouterGetsAValidValue_ItUsesThatValueAsTheChannel) {
+  const auto graph = buildDataGraph(mFactories, R"(
     strict digraph ParameterRouterTest {
       "Parameter Router" [instance="Parameter Router Instance" allowIncoming=true, allowOutgoing=true]
       "Test Sink" [instance="Test Sink Instance" allowIncoming=true]
@@ -76,8 +86,8 @@ TEST(WhenAParameterRouterGetsAValidValue, ItUsesThatValueAsTheChannel) {
   ASSERT_EQ(1, receivedPacketCount);
 }
 
-TEST(WhenAParameterRouterHasIncorrectInitParameters, ItThrows) {
-  const auto graph = buildDataGraph(R"(
+TEST_F(ParameterRouterTests, WhenAParameterRouterHasIncorrectInitParameters_ItThrows) {
+  const auto graph = buildDataGraph(mFactories, R"(
     strict digraph ParameterRouterTest {
       "Parameter Router" [instance="Parameter Router Instance" allowIncoming=true, allowOutgoing=true]
       "Test Sink" [instance="Test Sink Instance" allowIncoming=true]
@@ -96,7 +106,7 @@ TEST(WhenAParameterRouterHasIncorrectInitParameters, ItThrows) {
   })"));
 }
 
-TEST(WhenAParameterRouterDoesntGetTheRoutingKey, ItThrows) {
+TEST_F(ParameterRouterTests, WhenAParameterRouterDoesntGetTheRoutingKey_ItThrows) {
   Packet packet;
   packet.parameters = R"({
     "someId_INVALID": "value1AsChannel",
@@ -104,7 +114,7 @@ TEST(WhenAParameterRouterDoesntGetTheRoutingKey, ItThrows) {
   })"_json;
 
   const auto router =
-      ImplementationFactory::defaultFactory()->createImplementation(
+      mFactories->GetImplementationFactory()->createImplementation(
           "Parameter Router",
           R"({ "routingKey": "/someId" })"_json);
 
@@ -112,7 +122,7 @@ TEST(WhenAParameterRouterDoesntGetTheRoutingKey, ItThrows) {
       PathablePacket(packet, make_shared<NoopPacketPusher>())));
 }
 
-TEST(WhenAParameterRouterGetsAnObjectValue, ItThrows) {
+TEST_F(ParameterRouterTests, WhenAParameterRouterGetsAnObjectValue_ItThrows) {
   Packet packet;
   packet.parameters = R"({
     "someId": { "anotherKey": "value1AsChannel" },
@@ -120,7 +130,7 @@ TEST(WhenAParameterRouterGetsAnObjectValue, ItThrows) {
   })"_json;
 
   const auto router =
-      ImplementationFactory::defaultFactory()->createImplementation(
+      mFactories->GetImplementationFactory()->createImplementation(
           "Parameter Router",
           R"({ "routingKey": "/someId" })"_json);
 
