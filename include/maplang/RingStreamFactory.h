@@ -13,27 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef MAPLANG__RINGSTREAMFACTORY_H_
+#define MAPLANG__RINGSTREAMFACTORY_H_
 
-#ifndef __MAPLANG_IGROUP_H__
-#define __MAPLANG_IGROUP_H__
+#include <stddef.h>
+#include <stdint.h>
 
-#include <memory>
+#include <functional>
 
-#include "maplang/IImplementation.h"
+#include "Buffer.h"
+#include "IBufferFactory.h"
+#include "IRingStreamFactory.h"
 
 namespace maplang {
 
-class IGroup {
+class RingStreamFactory final : public IRingStreamFactory {
  public:
-  virtual ~IGroup() = default;
+  RingStreamFactory(
+      const std::shared_ptr<const IBufferFactory>& bufferFactory,
+      std::optional<size_t> initialRingBufferSize = {});
 
-  virtual size_t getInterfaceCount() = 0;
-  virtual std::string getInterfaceName(size_t interfaceIndex) = 0;
+  std::shared_ptr<RingStream> Create() const override;
 
-  virtual std::shared_ptr<IImplementation> getInterface(
-      const std::string& interfaceName) = 0;
+ private:
+  const std::shared_ptr<const IBufferFactory> mBufferFactory;
+  std::optional<size_t> mInitialSize;
 };
 
 }  // namespace maplang
 
-#endif  // __MAPLANG_IGROUP_H__
+#endif  // MAPLANG__RINGSTREAMFACTORY_H_

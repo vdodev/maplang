@@ -32,6 +32,7 @@
 #include "nodes/UvTcpConnectionGroup.h"
 #include "nodes/VolatileKeyValueSet.h"
 #include "nodes/VolatileKeyValueStore.h"
+#include "nodes/BufferAccumulatorNode.h"
 
 using namespace std;
 using namespace nlohmann;
@@ -46,6 +47,12 @@ static void registerImplementations(
   factory->registerFactory("Pass-through", [](const json& initParams) {
     return make_shared<PassThroughNode>(initParams);
   });
+
+  factory->registerFactory(
+             "Buffer Accumulator",
+             [](const nlohmann::json& initParams) {
+               return make_shared<BufferAccumulatorNode>(initParams);
+             });
 
   factory->registerFactory(
       "Add Parameters",

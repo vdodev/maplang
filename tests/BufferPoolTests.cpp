@@ -16,25 +16,14 @@
 
 #include "gtest/gtest.h"
 #include "maplang/BufferPool.h"
+#include "maplang/BufferFactory.h"
 
 using namespace std;
 
 namespace maplang {
 
-static BufferPool::Allocator createAllocator() {
-  return [](size_t size) {
-    Buffer buffer;
-
-    buffer.data = shared_ptr<uint8_t[]>(new uint8_t[size]);
-    buffer.length = size;
-
-    return buffer;
-  };
-}
-
 TEST(WhenTheFirstBufferIsRequestedWithAMovableAllocator, ItReturnsABuffer) {
-  BufferPool pool;
-  pool.setAllocator(createAllocator());
+  BufferPool pool(make_shared<BufferFactory>());
 
   const auto buffer = pool.get(1);
 
@@ -44,9 +33,7 @@ TEST(WhenTheFirstBufferIsRequestedWithAMovableAllocator, ItReturnsABuffer) {
 TEST(
     WhenTheFirstBufferIsRequestedWithAConstReferenceAllocator,
     ItReturnsABuffer) {
-  BufferPool pool;
-  const auto allocator = createAllocator();
-  pool.setAllocator(allocator);
+  BufferPool pool(make_shared<BufferFactory>());
 
   const auto buffer = pool.get(1);
 
@@ -57,8 +44,7 @@ TEST(WhenThePoolIsDeallocatedBeforeABuffer, ItDoesntCrash) {
   Buffer buffer;
 
   {
-    BufferPool pool;
-    pool.setAllocator(createAllocator());
+    BufferPool pool(make_shared<BufferFactory>());
 
     buffer = pool.get(1);
   }
@@ -67,8 +53,7 @@ TEST(WhenThePoolIsDeallocatedBeforeABuffer, ItDoesntCrash) {
 TEST(
     WhenASecondBufferIsRequestedBeforeTheFirstBufferIsReturned,
     ItReturnsADifferentBuffer) {
-  BufferPool pool;
-  pool.setAllocator(createAllocator());
+  BufferPool pool(make_shared<BufferFactory>());
 
   const auto buffer1 = pool.get(1);
   const auto buffer2 = pool.get(1);
@@ -81,8 +66,7 @@ TEST(
 TEST(
     WhenASecondBufferIsRequestedAfterTheFirstBufferIsReturned,
     ItReturnsTheSameBuffer) {
-  BufferPool pool;
-  pool.setAllocator(createAllocator());
+  BufferPool pool(make_shared<BufferFactory>());
 
   auto buffer1 = pool.get(1);
   uint8_t* const rawBuffer1 = buffer1.data.get();
@@ -95,14 +79,8 @@ TEST(
   ASSERT_EQ(rawBuffer1, buffer2.data.get());
 }
 
-TEST(WhenABufferIsRequestedAndTheAllocatorIsNotSet, ItThrowsAnException) {
-  BufferPool pool;
-  ASSERT_ANY_THROW(pool.get(1));
-}
-
 TEST(WhenAnEmptyBufferIsRequested, ItReturnsAnEmptyBuffer) {
-  BufferPool pool;
-  pool.setAllocator(createAllocator());
+  BufferPool pool(make_shared<BufferFactory>());
 
   const auto buffer = pool.get(0);
   ASSERT_EQ(nullptr, buffer.data);
@@ -112,15 +90,14 @@ TEST(WhenAnEmptyBufferIsRequested, ItReturnsAnEmptyBuffer) {
 TEST(
     WhenAnEmptyBufferIsRequestedAndTheAllocatorIsNotSet,
     ItReturnsAnEmptyBuffer) {
-  BufferPool pool;
+  BufferPool pool(make_shared<BufferFactory>());
   const auto buffer = pool.get(0);
   ASSERT_EQ(nullptr, buffer.data);
   ASSERT_EQ(0, buffer.length);
 }
 
 TEST(WhenALargerBufferIsRequested, ALargerBufferIsReturned) {
-  BufferPool pool;
-  pool.setAllocator(createAllocator());
+  BufferPool pool(make_shared<BufferFactory>());
 
   auto buffer1 = pool.get(1);
   auto buffer2 = pool.get(1);
@@ -134,8 +111,7 @@ TEST(WhenALargerBufferIsRequested, ALargerBufferIsReturned) {
 TEST(
     WhenALargerBufferThanRequestedIsReturned,
     ItIsRecycledUsingItsOriginalSize) {
-  BufferPool pool;
-  pool.setAllocator(createAllocator());
+  BufferPool pool(make_shared<BufferFactory>());
 
   auto buffer1 = pool.get(2);
   auto buffer2 = pool.get(1);

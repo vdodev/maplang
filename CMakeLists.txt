@@ -99,7 +99,18 @@ add_library(maplang
         include/maplang/GraphBuilder.h
         src/GraphBuilder.cpp
         include-private/nodes/ParameterRouter.h
-        src/nodes/ParameterRouter.cpp)
+        src/nodes/ParameterRouter.cpp
+        include/maplang/IBufferFactory.h
+        include/maplang/BufferFactory.h
+        include/maplang/IRingStreamFactory.h
+        include/maplang/RingStreamFactory.h
+        include/maplang/RingStream.h
+        include/maplang/RingStream-inl.h
+        include/maplang/stream-util.h
+        src/RingStreamFactory.cpp
+        src/nodes/BufferAccumulatorNode.cpp
+        include-private/nodes/BufferAccumulatorNode.h
+        )
 
 target_include_directories(maplang SYSTEM PUBLIC /usr/local/include)
 target_include_directories(maplang SYSTEM PRIVATE ${libcgraph_INCLUDE_DIRS})

@@ -18,6 +18,7 @@
 
 #include <stack>
 
+#include "maplang/IBufferFactory.h"
 #include "maplang/blockingconcurrentqueue.h"
 
 using namespace std;
@@ -27,34 +28,26 @@ namespace maplang {
 struct BlockingBufferPool::Impl final {
   using QueueType = moodycamel::BlockingConcurrentQueue<Buffer>;
 
-  Impl(size_t maxAllocatedBuffers)
+  Impl(
+      const shared_ptr<IBufferFactory>& _bufferFactory,
+      size_t maxAllocatedBuffers)
       : maxAllocatedBuffers(maxAllocatedBuffers), bufferSize(0),
-        totalAllocatedBuffers(0) {}
+        bufferFactory(bufferFactory), totalAllocatedBuffers(0) {}
 
   const size_t maxAllocatedBuffers;
 
-  Allocator allocator;
+  const shared_ptr<IBufferFactory> bufferFactory;
   shared_ptr<QueueType> bufferQueue;
   size_t bufferSize;
   size_t totalAllocatedBuffers;
 };
 
-BlockingBufferPool::BlockingBufferPool(size_t maxAllocatedBuffers)
-    : mImpl(make_shared<BlockingBufferPool::Impl>(maxAllocatedBuffers)) {}
-
-void BlockingBufferPool::setAllocator(Allocator&& allocator) {
-  mImpl->bufferQueue.reset();
-  mImpl->bufferSize = 0;
-  mImpl->totalAllocatedBuffers = 0;
-  mImpl->allocator = allocator;
-}
-
-void BlockingBufferPool::setAllocator(const Allocator& allocator) {
-  mImpl->bufferQueue.reset();
-  mImpl->bufferSize = 0;
-  mImpl->totalAllocatedBuffers = 0;
-  mImpl->allocator = allocator;
-}
+BlockingBufferPool::BlockingBufferPool(
+    const shared_ptr<IBufferFactory>& bufferFactory,
+    size_t maxAllocatedBuffers)
+    : mImpl(make_shared<BlockingBufferPool::Impl>(
+        bufferFactory,
+        maxAllocatedBuffers)) {}
 
 Buffer BlockingBufferPool::get(size_t bufferSize) {
   if (bufferSize == 0) {
@@ -70,12 +63,7 @@ Buffer BlockingBufferPool::get(size_t bufferSize) {
 
   Buffer sourceBuffer;
   if (mImpl->totalAllocatedBuffers < mImpl->maxAllocatedBuffers) {
-    if (mImpl->allocator == nullptr) {
-      throw runtime_error(
-          "BufferPool Allocator was not set before requesting frames.");
-    }
-
-    sourceBuffer = mImpl->allocator(mImpl->bufferSize);
+    sourceBuffer = mImpl->bufferFactory->Create(mImpl->bufferSize);
     mImpl->totalAllocatedBuffers++;
   } else {
     mImpl->bufferQueue->wait_dequeue(sourceBuffer);

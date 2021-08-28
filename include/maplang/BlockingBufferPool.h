@@ -21,17 +21,15 @@
 #include <memory>
 
 #include "maplang/Buffer.h"
+#include "maplang/IBufferFactory.h"
 
 namespace maplang {
 
 class BlockingBufferPool final {
  public:
-  using Allocator = std::function<Buffer(size_t length)>;
-
-  BlockingBufferPool(size_t buffersInPool);
-
-  void setAllocator(Allocator&& allocator);
-  void setAllocator(const Allocator& allocator);
+  BlockingBufferPool(
+      const std::shared_ptr<IBufferFactory>& _bufferFactory,
+      size_t buffersInPool);
 
   Buffer get(size_t minimumSize);
 

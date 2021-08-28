@@ -21,17 +21,13 @@
 #include <memory>
 
 #include "maplang/Buffer.h"
+#include "maplang/IBufferFactory.h"
 
 namespace maplang {
 
 class BufferPool final {
  public:
-  using Allocator = std::function<Buffer(size_t length)>;
-
-  BufferPool();
-
-  void setAllocator(Allocator&& allocator);
-  void setAllocator(const Allocator& allocator);
+  BufferPool(const std::shared_ptr<IBufferFactory>& bufferFactory);
 
   Buffer get(size_t minimumSize);
 

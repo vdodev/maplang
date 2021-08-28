@@ -27,26 +27,16 @@ namespace maplang {
 struct BufferPool::Impl final {
   using QueueType = moodycamel::ConcurrentQueue<Buffer>;
 
-  Impl() : bufferSize(0) {}
+  Impl(const std::shared_ptr<IBufferFactory>& _bufferFactory)
+      : bufferFactory(_bufferFactory), bufferSize(0) {}
 
-  Allocator allocator;
+  const std::shared_ptr<IBufferFactory> bufferFactory;
   shared_ptr<QueueType> bufferQueue;
   size_t bufferSize;
 };
 
-BufferPool::BufferPool() : mImpl(make_shared<BufferPool::Impl>()) {}
-
-void BufferPool::setAllocator(Allocator&& allocator) {
-  mImpl->bufferQueue.reset();
-  mImpl->bufferSize = 0;
-  mImpl->allocator = allocator;
-}
-
-void BufferPool::setAllocator(const Allocator& allocator) {
-  mImpl->bufferQueue.reset();
-  mImpl->bufferSize = 0;
-  mImpl->allocator = allocator;
-}
+BufferPool::BufferPool(const std::shared_ptr<IBufferFactory>& bufferFactory)
+    : mImpl(make_shared<BufferPool::Impl>(bufferFactory)) {}
 
 Buffer BufferPool::get(size_t bufferSize) {
   if (bufferSize == 0) {
@@ -61,12 +51,7 @@ Buffer BufferPool::get(size_t bufferSize) {
 
   Buffer sourceBuffer;
   if (!mImpl->bufferQueue->try_dequeue(sourceBuffer)) {
-    if (mImpl->allocator == nullptr) {
-      throw runtime_error(
-          "BufferPool Allocator was not set before requesting frames.");
-    }
-
-    sourceBuffer = mImpl->allocator(mImpl->bufferSize);
+    sourceBuffer = mImpl->bufferFactory->Create(mImpl->bufferSize);
   }
 
   if (bufferSize > sourceBuffer.length) {

@@ -13,27 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef MAPLANG__STREAM_UTIL_H_
+#define MAPLANG__STREAM_UTIL_H_
 
-#ifndef __MAPLANG_IGROUP_H__
-#define __MAPLANG_IGROUP_H__
+#include <sstream>
 
-#include <memory>
+#define STREAM_STRING(x) reinterpret_cast<std::ostringstream*>(&(std::ostringstream() << x))->str()
 
-#include "maplang/IImplementation.h"
+#define THROW(x) throw std::runtime_error(STREAM_STRING(x))
 
-namespace maplang {
-
-class IGroup {
- public:
-  virtual ~IGroup() = default;
-
-  virtual size_t getInterfaceCount() = 0;
-  virtual std::string getInterfaceName(size_t interfaceIndex) = 0;
-
-  virtual std::shared_ptr<IImplementation> getInterface(
-      const std::string& interfaceName) = 0;
-};
-
-}  // namespace maplang
-
-#endif  // __MAPLANG_IGROUP_H__
+#endif  // MAPLANG__STREAM_UTIL_H_

@@ -19,7 +19,6 @@
 #include <stdlib.h>
 #include <uv.h>
 
-#include <atomic>
 #include <iostream>
 #include <string>
 
