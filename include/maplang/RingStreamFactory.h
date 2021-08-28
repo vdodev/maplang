@@ -21,9 +21,9 @@
 
 #include <functional>
 
-#include "Buffer.h"
-#include "IBufferFactory.h"
-#include "IRingStreamFactory.h"
+#include "maplang/Buffer.h"
+#include "maplang/IBufferFactory.h"
+#include "maplang/IRingStreamFactory.h"
 
 namespace maplang {
 

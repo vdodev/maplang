@@ -16,7 +16,7 @@
 #ifndef MAPLANG__RINGSTREAM_H_
 #define MAPLANG__RINGSTREAM_H_
 
-#include "IBufferFactory.h"
+#include "maplang/IBufferFactory.h"
 
 namespace maplang {
 
@@ -53,6 +53,6 @@ class RingStream final {
 
 }  // namespace maplang
 
-#include "RingStream-inl.h"
+#include "maplang/RingStream-inl.h"
 
 #endif  // MAPLANG__RINGSTREAM_H_

@@ -16,7 +16,7 @@
 #ifndef MAPLANG__IRINGSTREAMFACTORY_H_
 #define MAPLANG__IRINGSTREAMFACTORY_H_
 
-#include "RingStream.h"
+#include "maplang/RingStream.h"
 
 namespace maplang {
 
