@@ -17,6 +17,7 @@
 #ifndef MAPLANG_INCLUDE_MAPLANG_IIMPLEMENTATIONFACTORYBUILDER_H_
 #define MAPLANG_INCLUDE_MAPLANG_IIMPLEMENTATIONFACTORYBUILDER_H_
 
+#include <future>
 #include <memory>
 
 #include "maplang/IBufferFactory.h"
@@ -31,9 +32,8 @@ class IImplementationFactoryBuilder {
 
   virtual std::shared_ptr<const IImplementationFactory>
   BuildImplementationFactory(
-      const std::shared_ptr<const IBufferFactory>& bufferFactory,
-      const std::shared_ptr<const IUvLoopRunnerFactory>& uvRunnerFactory)
-      const = 0;
+      const std::shared_future<Factories>&
+          factoriesFutureWhichDeadlocksInConstructor) const = 0;
 };
 
 }  // namespace maplang

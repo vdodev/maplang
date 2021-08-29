@@ -41,7 +41,7 @@ class ParameterRouterTests : public testing::Test {
       : mFactories(
           FactoriesBuilder().BuildFactories()) {}
 
-  const std::shared_ptr<const IFactories> mFactories;
+  const Factories mFactories;
 };
 
 TEST_F(ParameterRouterTests, WhenAParameterRouterGetsAValidValue_ItUsesThatValueAsTheChannel) {
@@ -114,7 +114,7 @@ TEST_F(ParameterRouterTests, WhenAParameterRouterDoesntGetTheRoutingKey_ItThrows
   })"_json;
 
   const auto router =
-      mFactories->GetImplementationFactory()->createImplementation(
+      mFactories.implementationFactory->createImplementation(
           "Parameter Router",
           R"({ "routingKey": "/someId" })"_json);
 
@@ -130,7 +130,7 @@ TEST_F(ParameterRouterTests, WhenAParameterRouterGetsAnObjectValue_ItThrows) {
   })"_json;
 
   const auto router =
-      mFactories->GetImplementationFactory()->createImplementation(
+      mFactories.implementationFactory->createImplementation(
           "Parameter Router",
           R"({ "routingKey": "/someId" })"_json);
 

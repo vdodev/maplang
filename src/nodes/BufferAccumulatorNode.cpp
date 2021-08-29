@@ -25,7 +25,7 @@ using namespace std;
   class CLASS_NAME__ final : public IImplementation, public IPathable { \
    public:                                                              \
     CLASS_NAME__(                                                       \
-        const shared_ptr<IBufferFactory>& bufferFactory,                \
+        const shared_ptr<const IBufferFactory>& bufferFactory,                \
         const shared_ptr<vector<BufferInfo>>& buffers)                  \
         : mBufferFactory(bufferFactory), mBuffers(buffers) {}           \
                                                                         \
@@ -36,7 +36,7 @@ using namespace std;
     maplang::IGroup* asGroup() override { return nullptr; }             \
                                                                         \
    private:                                                             \
-    const shared_ptr<IBufferFactory> mBufferFactory;                    \
+    const shared_ptr<const IBufferFactory> mBufferFactory;                    \
     const shared_ptr<vector<BufferInfo>> mBuffers;                      \
   }
 
@@ -128,8 +128,11 @@ void ClearBuffers::handlePacket(const maplang::PathablePacket& packet) {
   }
 }
 
-BufferAccumulatorNode::BufferAccumulatorNode(const nlohmann::json& initData) {
-  const auto bufferFactory = make_shared<BufferFactory>();
+BufferAccumulatorNode::BufferAccumulatorNode(
+    const Factories& factories,
+    const nlohmann::json& initData)
+    : mFactories(factories) {
+  const auto bufferFactory = factories.bufferFactory;
   const auto buffers = make_shared<vector<BufferInfo>>();
 
   mInterfaces[kNodeName_AppendBuffers] =
@@ -153,7 +156,8 @@ std::string BufferAccumulatorNode::getInterfaceName(size_t interfaceIndex) {
   THROW("Interface index " << interfaceIndex << " is out of bounds");
 }
 
-std::shared_ptr<IImplementation> BufferAccumulatorNode::getInterface(const std::string& interfaceName) {
+std::shared_ptr<IImplementation> BufferAccumulatorNode::getInterface(
+    const std::string& interfaceName) {
   return mInterfaces[interfaceName];
 }
 

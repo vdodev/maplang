@@ -17,6 +17,7 @@
 #ifndef MAPLANG_INCLUDE_MAPLANG_PARAMETERROUTER_H_
 #define MAPLANG_INCLUDE_MAPLANG_PARAMETERROUTER_H_
 
+#include "maplang/Factories.h"
 #include "maplang/IImplementation.h"
 
 namespace maplang {
@@ -26,7 +27,9 @@ class ParameterRouter final : public IPathable, public IImplementation {
   static const std::string kInitParameter_RoutingKey;
 
  public:
-  ParameterRouter(const nlohmann::json& initParameters);
+  ParameterRouter(
+      const Factories& factories,
+      const nlohmann::json& initParameters);
   ~ParameterRouter() override = default;
 
   void handlePacket(const PathablePacket& packet) override;
@@ -36,6 +39,9 @@ class ParameterRouter final : public IPathable, public IImplementation {
   IGroup* asGroup() override { return nullptr; }
 
  private:
+  const Factories mFactories;
+  const nlohmann::json mInitParameters;
+
   nlohmann::json_pointer<nlohmann::basic_json<>> mRoutingKey;
 };
 

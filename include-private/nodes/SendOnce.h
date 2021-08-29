@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-#ifndef __MAPLANG_SEND_ONCE_H__
-#define __MAPLANG_SEND_ONCE_H__
+#ifndef MAPLANG_SEND_ONCE_H__
+#define MAPLANG_SEND_ONCE_H__
 
+#include "maplang/Factories.h"
 #include "maplang/IImplementation.h"
 #include "maplang/ISource.h"
 
@@ -24,7 +25,7 @@ namespace maplang {
 
 class SendOnce : public IImplementation, public ISource {
  public:
-  SendOnce(const nlohmann::json& sendOnceData);
+  SendOnce(const Factories& factories, const nlohmann::json& sendOnceData);
   ~SendOnce() override = default;
 
   void setPacketPusher(const std::shared_ptr<IPacketPusher>& pusher) override;
@@ -34,9 +35,10 @@ class SendOnce : public IImplementation, public ISource {
   IGroup* asGroup() override { return nullptr; }
 
  private:
+  const Factories mFactories;
   const nlohmann::json mSendOnceData;
 };
 
 }  // namespace maplang
 
-#endif  // __MAPLANG_SEND_ONCE_H__
+#endif  // MAPLANG_SEND_ONCE_H__

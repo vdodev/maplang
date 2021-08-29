@@ -22,22 +22,8 @@ Factories::Factories(
     const std::shared_ptr<const IBufferFactory>& bufferFactory,
     const std::shared_ptr<const IImplementationFactory>& implementationFactory,
     const std::shared_ptr<const IUvLoopRunnerFactory>& loopRunnerFactory)
-    : mBufferFactory(bufferFactory),
-      mImplementationFactory(implementationFactory),
-      mUvLoopRunnerFactory(loopRunnerFactory) {}
-
-std::shared_ptr<const IBufferFactory> Factories::GetBufferFactory() const {
-  return mBufferFactory;
-}
-
-std::shared_ptr<const IImplementationFactory>
-Factories::GetImplementationFactory() const {
-  return mImplementationFactory;
-}
-
-std::shared_ptr<const IUvLoopRunnerFactory> Factories::GetUvLoopRunnerFactory()
-    const {
-  return mUvLoopRunnerFactory;
-}
+    : bufferFactory(bufferFactory),
+      implementationFactory(implementationFactory),
+      uvLoopRunnerFactory(loopRunnerFactory) {}
 
 }  // namespace maplang

@@ -28,7 +28,10 @@ namespace maplang {
 
 static const char* const kChannel_HttpData = "Http Data";
 
-HttpResponseWriter::HttpResponseWriter(const nlohmann::json& initParameters) {}
+HttpResponseWriter::HttpResponseWriter(
+    const Factories& factories,
+    const nlohmann::json& initParameters)
+    : mFactories(factories), mInitParameters(initParameters) {}
 
 void HttpResponseWriter::handlePacket(const PathablePacket& pathablePacket) {
   const auto& packet = pathablePacket.packet;

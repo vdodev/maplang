@@ -29,7 +29,7 @@ using namespace nlohmann;
 static void registerNodes(const shared_ptr<ImplementationFactoryBuilder>& implementationFactoryBuilder) {
   implementationFactoryBuilder->WithFactoryForName(
       "HTTP Response With Remote Address As Body",
-      [](const IFactories& factories,
+      [](const Factories& factories,
          const json& initParameters) {
         return make_shared<HttpResponseWithAddressAsBody>();
       });
@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
 
   registerNodes(implementationFactoryBuilder);
 
-  const shared_ptr<const IFactories> factories =
+  const Factories factories =
       FactoriesBuilder()
           .WithImplementationFactoryBuilder(implementationFactoryBuilder)
           .BuildFactories();

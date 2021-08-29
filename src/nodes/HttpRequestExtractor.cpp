@@ -30,7 +30,10 @@ static const string kChannel_BodyData = "Body Data";
 static const string kChannel_RequestEnded = "Request Ended";
 static const string kChannel_NewRequest = "New Request";
 
-HttpRequestExtractor::HttpRequestExtractor(const nlohmann::json& parameters) {
+HttpRequestExtractor::HttpRequestExtractor(
+    const Factories& factories,
+    const nlohmann::json& initParameters)
+    : mFactories(factories), mInitParameters(initParameters) {
   reset();
 }
 

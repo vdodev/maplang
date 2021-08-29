@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __MAPLANG_PRINTBUFFERASSTRING_H__
-#define __MAPLANG_PRINTBUFFERASSTRING_H__
+#ifndef MAPLANG_PRINTBUFFERASSTRING_H__
+#define MAPLANG_PRINTBUFFERASSTRING_H__
 
 #include "maplang/IImplementation.h"
 #include "maplang/IPathable.h"
@@ -35,4 +35,4 @@ class PrintBufferAsString final : public INode, public ISink {
 
 }  // namespace maplang
 
-#endif  // __MAPLANG_HTTP_RESPONSE_WITH_ADDRESS_AS_BODY_H__
+#endif  // MAPLANG_HTTP_RESPONSE_WITH_ADDRESS_AS_BODY_H__

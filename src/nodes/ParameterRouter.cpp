@@ -23,7 +23,10 @@ namespace maplang {
 
 const string ParameterRouter::kInitParameter_RoutingKey = "routingKey";
 
-ParameterRouter::ParameterRouter(const json& initParameters) {
+ParameterRouter::ParameterRouter(
+    const Factories& factories,
+    const json& initParameters)
+    : mFactories(factories), mInitParameters(initParameters) {
   if (!initParameters.contains(kInitParameter_RoutingKey)) {
     throw runtime_error(
         "Parameter Router requires field '" + kInitParameter_RoutingKey + "'");

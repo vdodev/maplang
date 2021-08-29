@@ -17,13 +17,16 @@
 #ifndef MAPLANG_INCLUDE_PRIVATE_NODES_ADDPARAMETERSNODE_H_
 #define MAPLANG_INCLUDE_PRIVATE_NODES_ADDPARAMETERSNODE_H_
 
+#include "maplang/Factories.h"
 #include "maplang/IImplementation.h"
 
 namespace maplang {
 
 class AddParametersNode : public IImplementation, public IPathable {
  public:
-  AddParametersNode(const nlohmann::json& initParams);
+  AddParametersNode(
+      const Factories& factories,
+      const nlohmann::json& initParams);
   ~AddParametersNode() override = default;
 
   void handlePacket(const PathablePacket& incomingPacket) override;
@@ -33,6 +36,7 @@ class AddParametersNode : public IImplementation, public IPathable {
   IGroup* asGroup() override { return nullptr; }
 
  private:
+  const Factories mFactories;
   const nlohmann::json mParametersToAdd;
 };
 

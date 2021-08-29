@@ -103,6 +103,7 @@ class Getter : public IImplementation, public IPathable {
 };
 
 VolatileKeyValueStore::VolatileKeyValueStore(
+    const Factories& factories,
     const nlohmann::json& initParameters) {
   cout << initParameters << endl;
   if (!initParameters.contains("key")) {

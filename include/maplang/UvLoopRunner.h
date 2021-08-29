@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __MAPLANG_UVLOOPRUNNER_H_
-#define __MAPLANG_UVLOOPRUNNER_H_
+#ifndef MAPLANG_UVLOOPRUNNER_H_
+#define MAPLANG_UVLOOPRUNNER_H_
 
 #include <uv.h>
 
@@ -52,4 +52,4 @@ class UvLoopRunner final {
 
 }  // namespace maplang
 
-#endif  //__MAPLANG_UVLOOPRUNNER_H_
+#endif  //MAPLANG_UVLOOPRUNNER_H_

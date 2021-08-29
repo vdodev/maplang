@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __MAPLANG_BUFFER_H__
-#define __MAPLANG_BUFFER_H__
+#ifndef MAPLANG_BUFFER_H__
+#define MAPLANG_BUFFER_H__
 
 #include <stddef.h>
 #include <stdint.h>
@@ -40,4 +40,4 @@ struct Buffer {
 };
 
 }  // namespace maplang
-#endif  // __MAPLANG_BUFFER_H__
+#endif  // MAPLANG_BUFFER_H__

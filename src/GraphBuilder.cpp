@@ -182,7 +182,7 @@ static string readFileIntoString(const string& fileName) {
 }
 
 std::shared_ptr<DataGraph> buildDataGraphFromFile(
-    const std::shared_ptr<const IFactories>& factories,
+    const Factories& factories,
     const string& fileName) {
   const string dataGraphString = readFileIntoString(fileName);
 
@@ -190,7 +190,7 @@ std::shared_ptr<DataGraph> buildDataGraphFromFile(
 }
 
 shared_ptr<DataGraph> buildDataGraph(
-    const std::shared_ptr<const IFactories>& factories,
+    const Factories& factories,
     const string& dotGraphString) {
   agseterrf(onAgError);
 

@@ -23,6 +23,11 @@ static const string kChannel_Last = "last";
 
 namespace maplang {
 
+OrderedPacketSender::OrderedPacketSender(
+    const Factories& factories,
+    const nlohmann::json& initParameters)
+    : mFactories(factories), mInitParameteres(initParameters) {}
+
 void OrderedPacketSender::handlePacket(
     const PathablePacket& incomingPathablePacket) {
   const Packet& incomingPacket = incomingPathablePacket.packet;

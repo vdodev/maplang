@@ -17,6 +17,7 @@
 #include <functional>
 
 #include "gtest/gtest.h"
+#include "maplang/FactoriesBuilder.h"
 #include "maplang/HttpUtilities.h"
 #include "maplang/LambdaPacketPusher.h"
 #include "nodes/HttpRequestExtractor.h"
@@ -26,8 +27,18 @@ using namespace nlohmann;
 
 namespace maplang {
 
-TEST(WhenAnHttpRequestIsProcessed, HeaderFieldsAndBodyAreCorrect) {
-  auto extractor = make_shared<HttpRequestExtractor>(nullptr);
+class HttpRequestExtractorTests : public testing::Test {
+ public:
+  HttpRequestExtractorTests()
+      : mFactories(FactoriesBuilder().BuildFactories()) {}
+
+  const Factories mFactories;
+};
+
+TEST_F(
+    HttpRequestExtractorTests,
+    WhenAnHttpRequestIsProcessed_HeaderFieldsAndBodyAreCorrect) {
+  auto extractor = make_shared<HttpRequestExtractor>(mFactories, json());
 
   Buffer buffer;
   char bufferContents[] = "GET / HTTP/1.1\r\nheaderKey: headerValue\r\n\r\nHi";

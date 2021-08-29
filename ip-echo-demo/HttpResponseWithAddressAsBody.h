@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __MAPLANG_HTTP_RESPONSE_WITH_ADDRESS_AS_BODY_H__
-#define __MAPLANG_HTTP_RESPONSE_WITH_ADDRESS_AS_BODY_H__
+#ifndef MAPLANG_HTTP_RESPONSE_WITH_ADDRESS_AS_BODY_H__
+#define MAPLANG_HTTP_RESPONSE_WITH_ADDRESS_AS_BODY_H__
 
 #include "maplang/IImplementation.h"
 #include "maplang/IPathable.h"
@@ -36,4 +36,4 @@ class HttpResponseWithAddressAsBody final : public IImplementation,
 
 }  // namespace maplang
 
-#endif  // __MAPLANG_HTTP_RESPONSE_WITH_ADDRESS_AS_BODY_H__
+#endif  // MAPLANG_HTTP_RESPONSE_WITH_ADDRESS_AS_BODY_H__

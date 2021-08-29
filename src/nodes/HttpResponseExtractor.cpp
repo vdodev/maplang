@@ -31,7 +31,10 @@ static const string kChannel_ResponseEnded = "Request Ended";
 static const string kChannel_ReponseHeadersReceived =
     "Reponse Headers Received";
 
-HttpResponseExtractor::HttpResponseExtractor(const nlohmann::json& parameters) {
+HttpResponseExtractor::HttpResponseExtractor(
+    const Factories& factories,
+    const nlohmann::json& parameters)
+    : mFactories(factories) {
   reset();
 }
 

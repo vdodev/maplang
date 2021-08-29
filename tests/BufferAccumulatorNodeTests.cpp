@@ -31,7 +31,7 @@ class BufferAccumulatorNodeTests : public testing::Test {
   BufferAccumulatorNodeTests()
       : mFactories(FactoriesBuilder().BuildFactories()) {}
 
-  const std::shared_ptr<const IFactories> mFactories;
+  const Factories mFactories;
 };
 
 static const string dotGraph = R"(

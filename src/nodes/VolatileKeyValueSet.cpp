@@ -313,7 +313,9 @@ class RemoveAll : public IImplementation, public IPathable {
   const shared_ptr<StorageMap> mStorage;
 };
 
-VolatileKeyValueSet::VolatileKeyValueSet(const nlohmann::json& initParameters) {
+VolatileKeyValueSet::VolatileKeyValueSet(
+    const Factories& factories,
+    const nlohmann::json& initParameters) {
   cout << initParameters << endl;
   if (!initParameters.contains("key")) {
     throw runtime_error("VolatileKeyValueSet parameters must contain 'key'.");

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __MAPLANG_PACKETREADER_H__
-#define __MAPLANG_PACKETREADER_H__
+#ifndef MAPLANG_PACKETREADER_H__
+#define MAPLANG_PACKETREADER_H__
 
 #include "maplang/IImplementation.h"
 #include "maplang/IPathable.h"
@@ -42,4 +42,4 @@ class PacketReader : public IImplementation, public IPathable {
 
 }  // namespace maplang
 
-#endif  // __MAPLANG_PACKETREADER_H__
+#endif  // MAPLANG_PACKETREADER_H__

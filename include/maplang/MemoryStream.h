@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __MAPLANG_MEMORYSTREAM_H__
-#define __MAPLANG_MEMORYSTREAM_H__
+#ifndef MAPLANG_MEMORYSTREAM_H__
+#define MAPLANG_MEMORYSTREAM_H__
 
 #include <climits>
 #include <cstring>
@@ -181,4 +181,4 @@ inline std::ostream& operator<<(
   return output;
 }
 
-#endif  // __MAPLANG_MEMORYSTREAM_H__
+#endif  // MAPLANG_MEMORYSTREAM_H__

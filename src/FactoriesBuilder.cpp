@@ -16,6 +16,8 @@
 
 #include "maplang/FactoriesBuilder.h"
 
+#include <future>
+
 #include "maplang/BufferFactory.h"
 #include "maplang/Factories.h"
 #include "maplang/ImplementationFactory.h"
@@ -41,7 +43,7 @@ FactoriesBuilder& FactoriesBuilder::WithImplementationFactoryBuilder(
   return *this;
 }
 
-std::shared_ptr<const IFactories> FactoriesBuilder::BuildFactories() const {
+Factories FactoriesBuilder::BuildFactories() const {
   const shared_ptr<const IBufferFactory> bufferFactory =
       mBufferFactory ? *mBufferFactory : make_shared<BufferFactory>();
 
@@ -54,12 +56,17 @@ std::shared_ptr<const IFactories> FactoriesBuilder::BuildFactories() const {
       mUvLoopRunnerFactory ? *mUvLoopRunnerFactory
                            : make_shared<UvLoopRunnerFactory>();
 
-  return make_shared<Factories>(
+  std::promise<Factories> factoriesPromise;
+
+  const Factories factories(
       bufferFactory,
       implementationFactoryBuilder->BuildImplementationFactory(
-          bufferFactory,
-          uvLoopRunnerFactory),
+          factoriesPromise.get_future()),
       uvLoopRunnerFactory);
+
+  factoriesPromise.set_value(factories);
+
+  return factories;
 }
 
 }  // namespace maplang

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __MAPLANG_GRAPH_H_
-#define __MAPLANG_GRAPH_H_
+#ifndef MAPLANG_GRAPH_H_
+#define MAPLANG_GRAPH_H_
 
 #include <functional>
 #include <list>
@@ -70,4 +70,4 @@ class Graph final {
 
 }  // namespace maplang
 
-#endif  // __MAPLANG_GRAPH_H_
+#endif  // MAPLANG_GRAPH_H_

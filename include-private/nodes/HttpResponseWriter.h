@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-#ifndef __MAPLANG_RESPONSE_WRITER_H__
-#define __MAPLANG_RESPONSE_WRITER_H__
+#ifndef MAPLANG_RESPONSE_WRITER_H__
+#define MAPLANG_RESPONSE_WRITER_H__
 
+#include "maplang/Factories.h"
 #include "maplang/IImplementation.h"
 #include "maplang/ISource.h"
 
@@ -24,7 +25,9 @@ namespace maplang {
 
 class HttpResponseWriter : public IImplementation, public IPathable {
  public:
-  HttpResponseWriter(const nlohmann::json& initParameters);
+  HttpResponseWriter(
+      const Factories& factories,
+      const nlohmann::json& initParameters);
   ~HttpResponseWriter() override = default;
 
   void handlePacket(const PathablePacket& packet) override;
@@ -32,8 +35,12 @@ class HttpResponseWriter : public IImplementation, public IPathable {
   ISource* asSource() override { return nullptr; }
   IPathable* asPathable() override { return this; }
   IGroup* asGroup() override { return nullptr; }
+
+ private:
+  const Factories mFactories;
+  const nlohmann::json mInitParameters;
 };
 
 }  // namespace maplang
 
-#endif  // __MAPLANG_RESPONSE_WRITER_H__
+#endif  // MAPLANG_RESPONSE_WRITER_H__

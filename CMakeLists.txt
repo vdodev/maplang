@@ -110,7 +110,6 @@ add_library(maplang
         src/RingStreamFactory.cpp
         src/nodes/BufferAccumulatorNode.cpp
         include-private/nodes/BufferAccumulatorNode.h
-        include/maplang/IFactories.h
         include/maplang/Factories.h
         src/Factories.cpp
         src/FactoriesBuilder.cpp

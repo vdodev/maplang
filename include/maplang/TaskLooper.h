@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __MAPLANG_TASKLOOPER_H_
-#define __MAPLANG_TASKLOOPER_H_
+#ifndef MAPLANG_TASKLOOPER_H_
+#define MAPLANG_TASKLOOPER_H_
 
 #include <maplang/UvLoopRunner.h>
 
@@ -45,4 +45,4 @@ class TaskLooper final {
   void loop();
 };
 
-#endif  // __MAPLANG_TASKLOOPER_H_
+#endif  // MAPLANG_TASKLOOPER_H_

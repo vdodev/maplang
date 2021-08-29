@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __MAPLANG_IGROUP_H__
-#define __MAPLANG_IGROUP_H__
+#ifndef MAPLANG_IGROUP_H__
+#define MAPLANG_IGROUP_H__
 
 #include <memory>
 
@@ -36,4 +36,4 @@ class IGroup {
 
 }  // namespace maplang
 
-#endif  // __MAPLANG_IGROUP_H__
+#endif  // MAPLANG_IGROUP_H__

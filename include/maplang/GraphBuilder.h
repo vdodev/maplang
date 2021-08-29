@@ -22,10 +22,11 @@
 namespace maplang {
 
 std::shared_ptr<DataGraph> buildDataGraphFromFile(
-    const std::shared_ptr<const IFactories>& factories,
+    const Factories& factories,
     const std::string& fileName);
+
 std::shared_ptr<DataGraph> buildDataGraph(
-    const std::shared_ptr<const IFactories>& factories,
+    const Factories& factories,
     const std::string& dotGraphString);
 
 void implementDataGraphFromFile(

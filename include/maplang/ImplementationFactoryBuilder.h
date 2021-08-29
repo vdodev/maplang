@@ -28,11 +28,9 @@ class ImplementationFactoryBuilder final
       const std::string& name,
       const IImplementationFactory::FactoryFunction& implementationFactory);
 
-  std::shared_ptr<const IImplementationFactory>
-  BuildImplementationFactory(
-      const std::shared_ptr<const IBufferFactory>& bufferFactory,
-      const std::shared_ptr<const IUvLoopRunnerFactory>& uvRunnerFactory)
-      const override;
+  std::shared_ptr<const IImplementationFactory> BuildImplementationFactory(
+      const std::shared_future<Factories>&
+          factoriesFutureWhichDeadlocksInConstructor) const override;
 
  private:
   std::unordered_map<std::string, IImplementationFactory::FactoryFunction>

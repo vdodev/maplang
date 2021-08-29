@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __MAPLANG_IPACKETPUSHER_H__
-#define __MAPLANG_IPACKETPUSHER_H__
+#ifndef MAPLANG_IPACKETPUSHER_H__
+#define MAPLANG_IPACKETPUSHER_H__
 
 #include "maplang/Packet.h"
 
@@ -48,4 +48,4 @@ class IPacketPusher {
 
 }  // namespace maplang
 
-#endif  // __MAPLANG_IPACKETPUSHER_H__
+#endif  // MAPLANG_IPACKETPUSHER_H__

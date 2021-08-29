@@ -20,6 +20,7 @@
 #include <unordered_map>
 
 #include "maplang/IBufferFactory.h"
+#include "maplang/Factories.h"
 #include "maplang/IGroup.h"
 #include "maplang/IImplementation.h"
 
@@ -34,7 +35,9 @@ class BufferAccumulatorNode : public IImplementation, public IGroup {
   static const std::string kNodeName_ClearBuffers;
 
  public:
-  BufferAccumulatorNode(const nlohmann::json& initData);
+  BufferAccumulatorNode(
+      const Factories& factories,
+      const nlohmann::json& initData);
   ~BufferAccumulatorNode() override = default;
 
   size_t getInterfaceCount() override;
@@ -48,6 +51,7 @@ class BufferAccumulatorNode : public IImplementation, public IGroup {
   IGroup* asGroup() override { return this; }
 
  private:
+  const Factories mFactories;
   std::unordered_map<std::string, std::shared_ptr<IImplementation>> mInterfaces;
 };
 

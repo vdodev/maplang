@@ -26,9 +26,12 @@ namespace maplang {
 const std::string ParameterExtractor::kChannel_ExtractedParameter =
     "Extracted Parameter";
 
-ParameterExtractor::ParameterExtractor(const nlohmann::json& initParameters)
-    : mParameterJsonPointerToExtract(json_pointer<basic_json<>>(
-        initParameters["extractParameter"].get<string>())) {}
+ParameterExtractor::ParameterExtractor(
+    const Factories& factories,
+    const nlohmann::json& initParameters)
+    : mFactories(factories), mInitParameters(initParameters),
+      mParameterJsonPointerToExtract(json_pointer<basic_json<>>(
+          initParameters["extractParameter"].get<string>())) {}
 
 void ParameterExtractor::handlePacket(const PathablePacket& incomingPacket) {
   Packet packetWithExtractedParameter;

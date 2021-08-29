@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-#ifndef __MAPLANG_UVTCPCONNECTIONGROUP_H__
-#define __MAPLANG_UVTCPCONNECTIONGROUP_H__
+#ifndef MAPLANG_UVTCPCONNECTIONGROUP_H__
+#define MAPLANG_UVTCPCONNECTIONGROUP_H__
 
 #include <unordered_map>
 
+#include "maplang/Factories.h"
 #include "maplang/IGroup.h"
 
 namespace maplang {
@@ -27,7 +28,9 @@ class UvTcpImpl;
 
 class UvTcpConnectionGroup : public IGroup, public IImplementation {
  public:
-  UvTcpConnectionGroup();
+  UvTcpConnectionGroup(
+      const Factories& factories,
+      const nlohmann::json& initParameters);
   ~UvTcpConnectionGroup() override = default;
 
   size_t getInterfaceCount() override;
@@ -47,4 +50,4 @@ class UvTcpConnectionGroup : public IGroup, public IImplementation {
 
 }  // namespace maplang
 
-#endif  // __MAPLANG_UVTCPCONNECTIONGROUP_H__
+#endif  // MAPLANG_UVTCPCONNECTIONGROUP_H__

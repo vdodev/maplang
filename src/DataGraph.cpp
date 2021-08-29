@@ -76,7 +76,7 @@ struct ThreadGroup {
 class DataGraphImpl final : public enable_shared_from_this<DataGraphImpl> {
  public:
   Graph mGraph;
-  const std::shared_ptr<const IFactories> mFactories;
+  const Factories mFactories;
   unordered_map<string, shared_ptr<ThreadGroup>> mThreadGroups;
   unordered_map<string, shared_ptr<Instance>> mInstances;
   vector<string> mPublicNodeNames;
@@ -88,7 +88,7 @@ class DataGraphImpl final : public enable_shared_from_this<DataGraphImpl> {
       const Packet& packet,
       const string& channel);
 
-  DataGraphImpl(const std::shared_ptr<const IFactories>& factories)
+  DataGraphImpl(const Factories& factories)
       : mFactories(factories) {}
 
   shared_ptr<ThreadGroup> getOrCreateThreadGroup(const string& name);
@@ -231,7 +231,7 @@ shared_ptr<ThreadGroup> DataGraphImpl::getOrCreateThreadGroup(
   }
 
   const auto loopRunner =
-      mFactories->GetUvLoopRunnerFactory()->createUvLoopRunner();
+      mFactories.uvLoopRunnerFactory->createUvLoopRunner();
 
   const auto threadGroup =
       make_shared<ThreadGroup>(loopRunner, shared_from_this());
@@ -360,7 +360,7 @@ void ThreadGroup::sendPacketToNode(
   pathable->handlePacket(PathablePacket(packet, receivingNode->packetPusher));
 }
 
-DataGraph::DataGraph(const std::shared_ptr<const IFactories>& factories)
+DataGraph::DataGraph(const Factories& factories)
     : impl(new DataGraphImpl(factories)) {}
 
 shared_ptr<GraphNode> DataGraph::createNode(

@@ -18,35 +18,28 @@
 #define MAPLANG_INCLUDE_MAPLANG_FACTORIES_H_
 
 #include <memory>
-#include <shared_mutex>
-
-#include "maplang/IFactories.h"
-#include "maplang/IImplementationFactoryBuilder.h"
+#include "maplang/IBufferFactory.h"
+#include "maplang/IImplementationFactory.h"
+#include "maplang/IUvLoopRunnerFactory.h"
 
 namespace maplang {
 
-class Factories final : public IFactories {
- public:
+struct Factories final {
   Factories(
       const std::shared_ptr<const IBufferFactory>& bufferFactory,
       const std::shared_ptr<const IImplementationFactory>&
           implementationFactory,
       const std::shared_ptr<const IUvLoopRunnerFactory>& uvLoopRunnerFactory);
 
-  ~Factories() override = default;
+  Factories(const Factories& copy) = default;
 
-  std::shared_ptr<const IBufferFactory> GetBufferFactory() const override;
+  Factories(Factories&&) = delete;
+  Factories& operator=(const Factories& copy) = delete;
+  Factories& operator=(Factories&&) = delete;
 
-  std::shared_ptr<const IImplementationFactory> GetImplementationFactory()
-      const override;
-
-  std::shared_ptr<const IUvLoopRunnerFactory> GetUvLoopRunnerFactory()
-      const override;
-
- private:
-  const std::shared_ptr<const IBufferFactory> mBufferFactory;
-  const std::shared_ptr<const IImplementationFactory> mImplementationFactory;
-  const std::shared_ptr<const IUvLoopRunnerFactory> mUvLoopRunnerFactory;
+  const std::shared_ptr<const IBufferFactory> bufferFactory;
+  const std::shared_ptr<const IImplementationFactory> implementationFactory;
+  const std::shared_ptr<const IUvLoopRunnerFactory> uvLoopRunnerFactory;
 };
 
 }  // namespace maplang

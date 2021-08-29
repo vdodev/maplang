@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-#ifndef __MAPLANG_CONTEXTUAL_NODE_H__
-#define __MAPLANG_CONTEXTUAL_NODE_H__
+#ifndef MAPLANG_CONTEXTUAL_NODE_H__
+#define MAPLANG_CONTEXTUAL_NODE_H__
 
-#include "maplang/IFactories.h"
+#include "maplang/Factories.h"
 #include "maplang/IGroup.h"
 
 namespace maplang {
@@ -25,7 +25,7 @@ namespace maplang {
 class ContextualNode final : public IGroup, public IImplementation {
  public:
   ContextualNode(
-      const IFactories& factories,
+      const Factories& factories,
       const nlohmann::json& initData);
   ~ContextualNode() override = default;
 
@@ -46,7 +46,7 @@ class ContextualNode final : public IGroup, public IImplementation {
 
 }  // namespace maplang
 
-#endif  // __MAPLANG_CONTEXTUAL_NODE_H__
+#endif  // MAPLANG_CONTEXTUAL_NODE_H__
 
 /*
  * How is instance-deletion handled?

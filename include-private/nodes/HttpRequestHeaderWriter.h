@@ -17,6 +17,7 @@
 #ifndef MAPLANG_SRC_NODES_HTTPREQUESTHEADERWRITER_H_
 #define MAPLANG_SRC_NODES_HTTPREQUESTHEADERWRITER_H_
 
+#include "maplang/Factories.h"
 #include "maplang/IImplementation.h"
 #include "maplang/ISource.h"
 
@@ -24,7 +25,9 @@ namespace maplang {
 
 class HttpRequestHeaderWriter : public IImplementation, public IPathable {
  public:
-  HttpRequestHeaderWriter(const nlohmann::json& initParameters);
+  HttpRequestHeaderWriter(
+      const Factories& factories,
+      const nlohmann::json& initParameters);
   ~HttpRequestHeaderWriter() override = default;
 
   void handlePacket(const PathablePacket& packet) override;
@@ -32,6 +35,10 @@ class HttpRequestHeaderWriter : public IImplementation, public IPathable {
   ISource* asSource() override { return nullptr; }
   IPathable* asPathable() override { return this; }
   IGroup* asGroup() override { return nullptr; }
+
+ private:
+  const Factories mFactories;
+  const nlohmann::json mInitParameters;
 };
 
 }  // namespace maplang

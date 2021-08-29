@@ -17,6 +17,7 @@
 #ifndef MAPLANG_SRC_NODES_ORDEREDPACKETSENDER_H_
 #define MAPLANG_SRC_NODES_ORDEREDPACKETSENDER_H_
 
+#include "maplang/Factories.h"
 #include "maplang/IImplementation.h"
 #include "maplang/IPathable.h"
 
@@ -24,6 +25,9 @@ namespace maplang {
 
 class OrderedPacketSender final : public IImplementation, public IPathable {
  public:
+  OrderedPacketSender(
+      const Factories& factories,
+      const nlohmann::json& initParameters);
   ~OrderedPacketSender() override = default;
 
   void handlePacket(const PathablePacket& incomingPacket) override;
@@ -31,6 +35,10 @@ class OrderedPacketSender final : public IImplementation, public IPathable {
   IPathable* asPathable() override { return this; }
   ISource* asSource() override { return nullptr; }
   IGroup* asGroup() override { return nullptr; }
+
+ private:
+  const Factories mFactories;
+  const nlohmann::json mInitParameteres;
 };
 
 }  // namespace maplang

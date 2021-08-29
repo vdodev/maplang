@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-#ifndef __MAPLANG_HTTP_REQUEST_EXTRACTOR_H__
-#define __MAPLANG_HTTP_REQUEST_EXTRACTOR_H__
+#ifndef MAPLANG_HTTP_REQUEST_EXTRACTOR_H__
+#define MAPLANG_HTTP_REQUEST_EXTRACTOR_H__
 
 #include <list>
 #include <random>
 
+#include "maplang/Factories.h"
 #include "maplang/IImplementation.h"
 #include "maplang/ISource.h"
 #include "maplang/MemoryStream.h"
@@ -29,7 +30,9 @@ namespace maplang {
 
 class HttpRequestExtractor final : public IImplementation, public IPathable {
  public:
-  HttpRequestExtractor(const nlohmann::json& parameters);
+  HttpRequestExtractor(
+      const Factories& factories,
+      const nlohmann::json& parameters);
   ~HttpRequestExtractor() override;
 
   void handlePacket(const PathablePacket& packet) override;
@@ -39,6 +42,9 @@ class HttpRequestExtractor final : public IImplementation, public IPathable {
   IGroup* asGroup() override { return nullptr; }
 
  private:
+  const Factories mFactories;
+  const nlohmann::json mInitParameters;
+
   std::shared_ptr<IPacketPusher> mLastPayloadsPacketPusher;
   std::random_device mRandomDevice;
   std::uniform_int_distribution<uint64_t> mUniformDistribution;
@@ -59,4 +65,4 @@ class HttpRequestExtractor final : public IImplementation, public IPathable {
 
 }  // namespace maplang
 
-#endif  // __MAPLANG_HTTP_REQUEST_EXTRACTOR_H__
+#endif  // MAPLANG_HTTP_REQUEST_EXTRACTOR_H__

@@ -18,8 +18,10 @@
 
 namespace maplang {
 
-AddParametersNode::AddParametersNode(const nlohmann::json& initParams)
-    : mParametersToAdd(initParams) {}
+AddParametersNode::AddParametersNode(
+    const Factories& factories,
+    const nlohmann::json& initParams)
+    : mFactories(factories), mParametersToAdd(initParams) {}
 
 void AddParametersNode::handlePacket(const PathablePacket& incomingPacket) {
   Packet p = incomingPacket.packet;

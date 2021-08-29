@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __MAPLANG_PACKETWRITER_H__
-#define __MAPLANG_PACKETWRITER_H__
+#ifndef MAPLANG_PACKETWRITER_H__
+#define MAPLANG_PACKETWRITER_H__
 
 #include "maplang/IImplementation.h"
 #include "maplang/IPathable.h"
@@ -35,4 +35,4 @@ class PacketWriter : public IImplementation, public IPathable {
 
 }  // namespace maplang
 
-#endif  // __MAPLANG_PACKETWRITER_H__
+#endif  // MAPLANG_PACKETWRITER_H__

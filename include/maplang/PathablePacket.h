@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __MAPLANG_PATHABLEPACKET_H__
-#define __MAPLANG_PATHABLEPACKET_H__
+#ifndef MAPLANG_PATHABLEPACKET_H__
+#define MAPLANG_PATHABLEPACKET_H__
 
 #include <memory>
 #include <vector>
@@ -40,4 +40,4 @@ struct PathablePacket {
 
 }  // namespace maplang
 
-#endif  // __MAPLANG_PATHABLEPACKET_H__
+#endif  // MAPLANG_PATHABLEPACKET_H__

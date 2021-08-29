@@ -19,6 +19,7 @@
 
 #include <random>
 
+#include "maplang/Factories.h"
 #include "maplang/IImplementation.h"
 #include "maplang/ISource.h"
 #include "maplang/MemoryStream.h"
@@ -29,7 +30,9 @@ class HttpResponseExtractor final : public IImplementation,
                                     public IPathable,
                                     public ISource {
  public:
-  HttpResponseExtractor(const nlohmann::json& parameters);
+  HttpResponseExtractor(
+      const Factories& factories,
+      const nlohmann::json& parameters);
   ~HttpResponseExtractor() override;
 
   void handlePacket(const PathablePacket& packet) override;
@@ -40,6 +43,8 @@ class HttpResponseExtractor final : public IImplementation,
   IGroup* asGroup() override { return nullptr; }
 
  private:
+  const Factories mFactories;
+
   std::shared_ptr<IPacketPusher> mPacketPusher;
   std::random_device mRandomDevice;
   std::uniform_int_distribution<uint64_t> mUniformDistribution;

@@ -35,7 +35,7 @@ class FactoriesBuilder final {
   FactoriesBuilder& WithUvLoopRunnerFactory(
       const std::shared_ptr<const IUvLoopRunnerFactory>& loopRunnerFactory);
 
-  std::shared_ptr<const IFactories> BuildFactories() const;
+  Factories BuildFactories() const;
 
  private:
   std::optional<std::shared_ptr<IImplementationFactoryBuilder>>

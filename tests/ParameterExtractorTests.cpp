@@ -17,16 +17,26 @@
 #include <functional>
 
 #include "gtest/gtest.h"
-#include "nodes/ParameterExtractor.h"
+#include "maplang/FactoriesBuilder.h"
 #include "maplang/LambdaPacketPusher.h"
+#include "nodes/ParameterExtractor.h"
 
 using namespace std;
 using namespace nlohmann;
 
 namespace maplang {
 
-TEST(WhenAParameterExtractorIsGivenAValidKey, ItOnlyExtractsThatKeysValue) {
-  auto extractor = make_shared<ParameterExtractor>(R"({
+class ParameterExtractorTests : public testing::Test {
+ public:
+  ParameterExtractorTests() : mFactories(FactoriesBuilder().BuildFactories()) {}
+
+  const Factories mFactories;
+};
+
+TEST_F(
+    ParameterExtractorTests,
+    WhenAParameterExtractorIsGivenAValidKey_ItOnlyExtractsThatKeysValue) {
+  auto extractor = make_shared<ParameterExtractor>(mFactories, R"({
     "extractParameter": "/key3"
   })"_json);
 
@@ -57,8 +67,10 @@ TEST(WhenAParameterExtractorIsGivenAValidKey, ItOnlyExtractsThatKeysValue) {
   extractor->handlePacket(pathablePacket);
 }
 
-TEST(WhenAParameterExtractorIsGivenAMissingKey, ItDoesNotSendAPacket) {
-  auto extractor = make_shared<ParameterExtractor>(R"({
+TEST_F(
+    ParameterExtractorTests,
+    WhenAParameterExtractorIsGivenAMissingKey_ItDoesNotSendAPacket) {
+  auto extractor = make_shared<ParameterExtractor>(mFactories, R"({
     "extractParameter": "/key3"
   })"_json);
 
@@ -81,8 +93,10 @@ TEST(WhenAParameterExtractorIsGivenAMissingKey, ItDoesNotSendAPacket) {
   ASSERT_FALSE(pushedPacket);
 }
 
-TEST(WhenAParameterExtractorIsGivenANestedKey, ItSendTheRightParameters) {
-  auto extractor = make_shared<ParameterExtractor>(R"({
+TEST_F(
+    ParameterExtractorTests,
+    WhenAParameterExtractorIsGivenANestedKey_ItSendTheRightParameters) {
+  auto extractor = make_shared<ParameterExtractor>(mFactories, R"({
     "extractParameter": "/key2/1"
   })"_json);
 

@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-#ifndef __MAPLANG_IMPLEMENTATIONFACTORY_H__
-#define __MAPLANG_IMPLEMENTATIONFACTORY_H__
+#ifndef MAPLANG_IMPLEMENTATIONFACTORY_H__
+#define MAPLANG_IMPLEMENTATIONFACTORY_H__
 
+#include <future>
 #include <memory>
 #include <set>
 
@@ -34,8 +35,8 @@ class ImplementationFactory final
       public std::enable_shared_from_this<ImplementationFactory> {
  public:
   static std::shared_ptr<ImplementationFactory> Create(
-      const std::shared_ptr<const IBufferFactory>& bufferFactory,
-      const std::shared_ptr<const IUvLoopRunnerFactory>& uvLoopRunnerFactory);
+      const std::shared_future<Factories>&
+          factoriesFutureWhichDeadlocksInConstructor);
 
   ~ImplementationFactory() override = default;
 
@@ -49,19 +50,20 @@ class ImplementationFactory final
       const ImplementationNameVisitor& visitor) const override;
 
  private:
+  std::shared_future<Factories> mFactoriesFutureWhichDeadlocksInConstructor;
+
   const std::shared_ptr<const IBufferFactory> mBufferFactory;
   const std::shared_ptr<const IUvLoopRunnerFactory> mUvLoopRunnerFactory;
 
   std::unordered_map<std::string, FactoryFunction> mFactoryFunctionMap;
 
  private:
-  ImplementationFactory(
-      const std::shared_ptr<const IBufferFactory>& bufferFactory,
-      const std::shared_ptr<const IUvLoopRunnerFactory>& uvLoopRunnerFactory);
+  ImplementationFactory(const std::shared_future<Factories>&
+                            factoriesFutureWhichDeadlocksInConstructor);
 
   void RegisterImplementations();
 };
 
 }  // namespace maplang
 
-#endif  // __MAPLANG_IMPLEMENTATIONFACTORY_H__
+#endif  // MAPLANG_IMPLEMENTATIONFACTORY_H__

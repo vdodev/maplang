@@ -30,7 +30,7 @@ class GraphBuilderTests : public testing::Test {
  public:
   GraphBuilderTests() : mFactories(FactoriesBuilder().BuildFactories()) {}
 
-  const std::shared_ptr<const IFactories> mFactories;
+  const Factories mFactories;
 };
 
 TEST_F(GraphBuilderTests, WhenASimplGraphIsLoaded_ItHasTheCorrectConnections) {

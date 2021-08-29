@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __MAPLANG_ISOURCE_H__
-#define __MAPLANG_ISOURCE_H__
+#ifndef MAPLANG_ISOURCE_H__
+#define MAPLANG_ISOURCE_H__
 
 #include <memory>
 #include <vector>
@@ -42,4 +42,4 @@ class ISource {
 
 }  // namespace maplang
 
-#endif  // __MAPLANG_ISOURCE_H__
+#endif  // MAPLANG_ISOURCE_H__

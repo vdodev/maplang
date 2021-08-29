@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-#ifndef __MAPLANG_VOLATILE_KEY_VALUE_SET_H__
-#define __MAPLANG_VOLATILE_KEY_VALUE_SET_H__
+#ifndef MAPLANG_VOLATILE_KEY_VALUE_SET_H__
+#define MAPLANG_VOLATILE_KEY_VALUE_SET_H__
 
+#include "maplang/Factories.h"
 #include "maplang/IGroup.h"
 
 namespace maplang {
 
 class VolatileKeyValueSet : public IGroup, public IImplementation {
  public:
-  VolatileKeyValueSet(const nlohmann::json& initParameters);
+  VolatileKeyValueSet(
+      const Factories& factories,
+      const nlohmann::json& initParameters);
   ~VolatileKeyValueSet() override = default;
 
   size_t getInterfaceCount() override;
@@ -47,4 +50,4 @@ class VolatileKeyValueSet : public IGroup, public IImplementation {
 
 }  // namespace maplang
 
-#endif  // __MAPLANG_VOLATILE_KEY_VALUE_SET_H__
+#endif  // MAPLANG_VOLATILE_KEY_VALUE_SET_H__

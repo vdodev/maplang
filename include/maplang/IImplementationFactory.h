@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __MAPLANG_IIMPLEMENTATIONFACTORY_H__
-#define __MAPLANG_IIMPLEMENTATIONFACTORY_H__
+#ifndef MAPLANG_IIMPLEMENTATIONFACTORY_H__
+#define MAPLANG_IIMPLEMENTATIONFACTORY_H__
 
 #include <memory>
 #include <set>
@@ -26,12 +26,12 @@
 
 namespace maplang {
 
-class IFactories;
+struct Factories;
 
 class IImplementationFactory {
  public:
   using FactoryFunction = std::function<std::shared_ptr<IImplementation>(
-      const IFactories& factories,
+      const Factories& factories,
       const nlohmann::json& initParameters)>;
 
   using ImplementationNameVisitor =
@@ -50,4 +50,4 @@ class IImplementationFactory {
 
 }  // namespace maplang
 
-#endif  // __MAPLANG_IIMPLEMENTATIONFACTORY_H__
+#endif  // MAPLANG_IIMPLEMENTATIONFACTORY_H__

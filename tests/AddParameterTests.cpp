@@ -17,16 +17,24 @@
 #include <functional>
 
 #include "gtest/gtest.h"
-#include "nodes/AddParametersNode.h"
+#include "maplang/FactoriesBuilder.h"
 #include "maplang/LambdaPacketPusher.h"
+#include "nodes/AddParametersNode.h"
 
 using namespace std;
 using namespace nlohmann;
 
 namespace maplang {
 
-TEST(WhenAParameterDoesNotExist, ItIsAdded) {
-  auto parameterAdder = make_shared<AddParametersNode>(R"({
+class AddParameterTests : public testing::Test {
+ public:
+  AddParameterTests() : mFactories(FactoriesBuilder().BuildFactories()) {}
+
+  const Factories mFactories;
+};
+
+TEST_F(AddParameterTests, WhenAParameterDoesNotExist_ItIsAdded) {
+  auto parameterAdder = make_shared<AddParametersNode>(mFactories, R"({
     "newParameter": "testStringValue"
   })"_json);
 
@@ -50,8 +58,8 @@ TEST(WhenAParameterDoesNotExist, ItIsAdded) {
   parameterAdder->handlePacket(pathablePacket);
 }
 
-TEST(WhenAParameterExists, ItIsReplaced) {
-  auto parameterAdder = make_shared<AddParametersNode>(R"({
+TEST_F(AddParameterTests, WhenAParameterExists_ItIsReplaced) {
+  auto parameterAdder = make_shared<AddParametersNode>(mFactories, R"({
     "newParameter": "new value"
   })"_json);
 

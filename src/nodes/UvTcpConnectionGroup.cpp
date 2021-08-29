@@ -249,10 +249,11 @@ struct ConnectInfo {
 
 class UvTcpImpl final {
  public:
-  UvTcpImpl()
-      : mBufferPool(
-          [] { return new uint8_t[kBufferSizeInPool]; },
-          [](uint8_t* buf) { delete[] buf; }),
+  UvTcpImpl(const Factories& factories, const nlohmann::json& initParameters)
+      : mFactories(factories), mInitParameters(initParameters),
+        mBufferPool(
+            [] { return new uint8_t[kBufferSizeInPool]; },
+            [](uint8_t* buf) { delete[] buf; }),
         mUvWriteTPool(
             [] { return new ExtendedUvWriteT(); },
             [](ExtendedUvWriteT* writeReq) {
@@ -837,6 +838,8 @@ class UvTcpImpl final {
   unordered_map<string, UvTcpConnection> mConnections;
   unordered_map<const void*, UvTcpConnection*> mUvClientToConnection;
 
+  const Factories mFactories;
+  const nlohmann::json mInitParameters;
   ObjectPool<uint8_t> mBufferPool;
   ObjectPool<ExtendedUvWriteT> mUvWriteTPool;
 
@@ -1064,7 +1067,10 @@ class UvTcpShutdownSender : public IPathable, public IImplementation {
   const shared_ptr<UvTcpImpl> mTcp;
 };
 
-UvTcpConnectionGroup::UvTcpConnectionGroup() : mImpl(make_shared<UvTcpImpl>()) {
+UvTcpConnectionGroup::UvTcpConnectionGroup(
+    const Factories& factories,
+    const nlohmann::json& initParameters)
+    : mImpl(make_shared<UvTcpImpl>(factories, initParameters)) {
   mInterfaces[kNodeName_Connector] = make_shared<UvTcpConnector>(mImpl);
   mInterfaces[kNodeName_Listener] = make_shared<UvTcpListener>(mImpl);
   mInterfaces[kNodeName_AsyncEvents] = make_shared<UvTcpAsyncEvents>(mImpl);

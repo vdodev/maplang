@@ -18,7 +18,6 @@
 
 #include "maplang/BufferFactory.h"
 #include "maplang/ImplementationFactory.h"
-#include "maplang/WrappedFactories.h"
 
 using namespace std;
 
@@ -34,10 +33,10 @@ ImplementationFactoryBuilder& ImplementationFactoryBuilder::WithFactoryForName(
 
 std::shared_ptr<const IImplementationFactory>
 ImplementationFactoryBuilder::BuildImplementationFactory(
-    const std::shared_ptr<const IBufferFactory>& bufferFactory,
-    const std::shared_ptr<const IUvLoopRunnerFactory>& uvRunnerFactory) const {
+    const std::shared_future<Factories>&
+        factoriesFutureWhichDeadlocksInConstructor) const {
   const auto implementationFactory =
-      ImplementationFactory::Create(bufferFactory, uvRunnerFactory);
+      ImplementationFactory::Create(factoriesFutureWhichDeadlocksInConstructor);
 
   for (auto& [name, factory] : mFactoryFunctions) {
     implementationFactory->registerFactory(name, std::move(factory));

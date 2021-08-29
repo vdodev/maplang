@@ -17,7 +17,8 @@
 #ifndef MAPLANG_SRC_NODES_PARAMETEREXTRACTOR_H_
 #define MAPLANG_SRC_NODES_PARAMETEREXTRACTOR_H_
 
-#include <maplang/IImplementation.h>
+#include "maplang/Factories.h"
+#include "maplang/IImplementation.h"
 
 namespace maplang {
 
@@ -26,7 +27,9 @@ class ParameterExtractor : public IPathable, public IImplementation {
   static const std::string kChannel_ExtractedParameter;
 
  public:
-  ParameterExtractor(const nlohmann::json& initParameters);
+  ParameterExtractor(
+      const Factories& factories,
+      const nlohmann::json& initParameters);
   ~ParameterExtractor() override = default;
 
   void handlePacket(const PathablePacket& packet) override;
@@ -36,6 +39,8 @@ class ParameterExtractor : public IPathable, public IImplementation {
   IGroup* asGroup() override { return nullptr; }
 
  private:
+  const Factories mFactories;
+  const nlohmann::json mInitParameters;
   const nlohmann::json_pointer<nlohmann::basic_json<>>
       mParameterJsonPointerToExtract;
 };
