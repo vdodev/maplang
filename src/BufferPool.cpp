@@ -35,7 +35,8 @@ struct BufferPool::Impl final {
   size_t bufferSize;
 };
 
-BufferPool::BufferPool(const std::shared_ptr<const IBufferFactory>& bufferFactory)
+BufferPool::BufferPool(
+    const std::shared_ptr<const IBufferFactory>& bufferFactory)
     : mImpl(make_shared<BufferPool::Impl>(bufferFactory)) {}
 
 Buffer BufferPool::get(size_t bufferSize) {

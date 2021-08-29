@@ -56,7 +56,7 @@ Factories FactoriesBuilder::BuildFactories() const {
       mUvLoopRunnerFactory ? *mUvLoopRunnerFactory
                            : make_shared<UvLoopRunnerFactory>();
 
-  std::promise<Factories> factoriesPromise;
+  std::promise<const Factories> factoriesPromise;
 
   const Factories factories(
       bufferFactory,

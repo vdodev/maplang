@@ -29,21 +29,21 @@ struct BlockingBufferPool::Impl final {
   using QueueType = moodycamel::BlockingConcurrentQueue<Buffer>;
 
   Impl(
-      const shared_ptr<IBufferFactory>& _bufferFactory,
+      const shared_ptr<const IBufferFactory>& _bufferFactory,
       size_t maxAllocatedBuffers)
       : maxAllocatedBuffers(maxAllocatedBuffers), bufferSize(0),
         bufferFactory(bufferFactory), totalAllocatedBuffers(0) {}
 
   const size_t maxAllocatedBuffers;
 
-  const shared_ptr<IBufferFactory> bufferFactory;
+  const shared_ptr<const IBufferFactory> bufferFactory;
   shared_ptr<QueueType> bufferQueue;
   size_t bufferSize;
   size_t totalAllocatedBuffers;
 };
 
 BlockingBufferPool::BlockingBufferPool(
-    const shared_ptr<IBufferFactory>& bufferFactory,
+    const shared_ptr<const IBufferFactory>& bufferFactory,
     size_t maxAllocatedBuffers)
     : mImpl(make_shared<BlockingBufferPool::Impl>(
         bufferFactory,

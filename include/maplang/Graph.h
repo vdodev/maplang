@@ -65,7 +65,7 @@ class Graph final {
  private:
   std::unordered_map<std::string, std::shared_ptr<GraphNode>> mNameToNodeMap;
 
-  std::shared_ptr<ImplementationFactory> mNodeFactory;
+  std::shared_ptr<const ImplementationFactory> mNodeFactory;
 };
 
 }  // namespace maplang

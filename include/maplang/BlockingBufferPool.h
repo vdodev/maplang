@@ -28,7 +28,7 @@ namespace maplang {
 class BlockingBufferPool final {
  public:
   BlockingBufferPool(
-      const std::shared_ptr<IBufferFactory>& _bufferFactory,
+      const std::shared_ptr<const IBufferFactory>& _bufferFactory,
       size_t buffersInPool);
 
   Buffer get(size_t minimumSize);

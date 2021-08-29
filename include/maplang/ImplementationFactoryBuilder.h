@@ -29,7 +29,7 @@ class ImplementationFactoryBuilder final
       const IImplementationFactory::FactoryFunction& implementationFactory);
 
   std::shared_ptr<const IImplementationFactory> BuildImplementationFactory(
-      const std::shared_future<Factories>&
+      const std::shared_future<const Factories>&
           factoriesFutureWhichDeadlocksInConstructor) const override;
 
  private:

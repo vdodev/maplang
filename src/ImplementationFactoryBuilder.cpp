@@ -33,16 +33,11 @@ ImplementationFactoryBuilder& ImplementationFactoryBuilder::WithFactoryForName(
 
 std::shared_ptr<const IImplementationFactory>
 ImplementationFactoryBuilder::BuildImplementationFactory(
-    const std::shared_future<Factories>&
+    const std::shared_future<const Factories>&
         factoriesFutureWhichDeadlocksInConstructor) const {
-  const auto implementationFactory =
-      ImplementationFactory::Create(factoriesFutureWhichDeadlocksInConstructor);
-
-  for (auto& [name, factory] : mFactoryFunctions) {
-    implementationFactory->registerFactory(name, std::move(factory));
-  }
-
-  return implementationFactory;
+  return ImplementationFactory::Create(
+      factoriesFutureWhichDeadlocksInConstructor,
+      mFactoryFunctions);
 }
 
 }  // namespace maplang

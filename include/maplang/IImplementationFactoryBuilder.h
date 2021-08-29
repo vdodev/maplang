@@ -32,7 +32,7 @@ class IImplementationFactoryBuilder {
 
   virtual std::shared_ptr<const IImplementationFactory>
   BuildImplementationFactory(
-      const std::shared_future<Factories>&
+      const std::shared_future<const Factories>&
           factoriesFutureWhichDeadlocksInConstructor) const = 0;
 };
 

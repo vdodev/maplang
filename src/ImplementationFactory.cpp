@@ -39,15 +39,22 @@ using namespace nlohmann;
 
 namespace maplang {
 
-std::shared_ptr<ImplementationFactory> ImplementationFactory::Create(
-    const std::shared_future<Factories>&
-        factoriesFutureWhichDeadlocksInConstructor) {
-  return shared_ptr<ImplementationFactory>(
+std::shared_ptr<const ImplementationFactory> ImplementationFactory::Create(
+    const std::shared_future<const Factories>&
+        factoriesFutureWhichDeadlocksInConstructor,
+    const std::unordered_map<std::string, FactoryFunction>& factoryFunctions) {
+  const auto implementationFactory = shared_ptr<ImplementationFactory>(
       new ImplementationFactory(factoriesFutureWhichDeadlocksInConstructor));
+
+  for (const auto& [name, factory] : factoryFunctions) {
+    implementationFactory->registerFactory(name, factory);
+  }
+
+  return implementationFactory;
 }
 
 ImplementationFactory::ImplementationFactory(
-    const std::shared_future<Factories>&
+    const std::shared_future<const Factories>&
         factoriesFutureWhichDeadlocksInConstructor)
     : mFactoriesFutureWhichDeadlocksInConstructor(
         factoriesFutureWhichDeadlocksInConstructor) {

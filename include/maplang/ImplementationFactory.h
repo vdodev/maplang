@@ -20,6 +20,7 @@
 #include <future>
 #include <memory>
 #include <set>
+#include <unordered_map>
 
 #include "maplang/IBufferFactory.h"
 #include "maplang/IGroup.h"
@@ -34,9 +35,10 @@ class ImplementationFactory final
     : public IImplementationFactory,
       public std::enable_shared_from_this<ImplementationFactory> {
  public:
-  static std::shared_ptr<ImplementationFactory> Create(
-      const std::shared_future<Factories>&
-          factoriesFutureWhichDeadlocksInConstructor);
+  static std::shared_ptr<const ImplementationFactory> Create(
+      const std::shared_future<const Factories>&
+          factoriesFutureWhichDeadlocksInConstructor,
+      const std::unordered_map<std::string, FactoryFunction>& factoryFunctions);
 
   ~ImplementationFactory() override = default;
 
@@ -50,7 +52,8 @@ class ImplementationFactory final
       const ImplementationNameVisitor& visitor) const override;
 
  private:
-  std::shared_future<Factories> mFactoriesFutureWhichDeadlocksInConstructor;
+  std::shared_future<const Factories>
+      mFactoriesFutureWhichDeadlocksInConstructor;
 
   const std::shared_ptr<const IBufferFactory> mBufferFactory;
   const std::shared_ptr<const IUvLoopRunnerFactory> mUvLoopRunnerFactory;
@@ -59,7 +62,7 @@ class ImplementationFactory final
 
  private:
   explicit ImplementationFactory(
-      const std::shared_future<Factories>&
+      const std::shared_future<const Factories>&
           factoriesFutureWhichDeadlocksInConstructor);
 
   void RegisterImplementations();
