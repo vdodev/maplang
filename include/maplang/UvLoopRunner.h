@@ -52,4 +52,4 @@ class UvLoopRunner final {
 
 }  // namespace maplang
 
-#endif  //MAPLANG_UVLOOPRUNNER_H_
+#endif  // MAPLANG_UVLOOPRUNNER_H_

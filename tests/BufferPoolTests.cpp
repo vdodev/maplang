@@ -15,8 +15,8 @@
  */
 
 #include "gtest/gtest.h"
-#include "maplang/BufferPool.h"
 #include "maplang/BufferFactory.h"
+#include "maplang/BufferPool.h"
 
 using namespace std;
 

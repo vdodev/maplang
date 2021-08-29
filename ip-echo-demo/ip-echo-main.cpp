@@ -19,24 +19,25 @@
 #include "maplang/FactoriesBuilder.h"
 #include "maplang/GraphBuilder.h"
 #include "maplang/ImplementationFactory.h"
-#include "maplang/json.hpp"
 #include "maplang/ImplementationFactoryBuilder.h"
+#include "maplang/json.hpp"
 
 using namespace std;
 using namespace maplang;
 using namespace nlohmann;
 
-static void registerNodes(const shared_ptr<ImplementationFactoryBuilder>& implementationFactoryBuilder) {
+static void registerNodes(const shared_ptr<ImplementationFactoryBuilder>&
+                              implementationFactoryBuilder) {
   implementationFactoryBuilder->WithFactoryForName(
       "HTTP Response With Remote Address As Body",
-      [](const Factories& factories,
-         const json& initParameters) {
+      [](const Factories& factories, const json& initParameters) {
         return make_shared<HttpResponseWithAddressAsBody>();
       });
 }
 
 int main(int argc, char** argv) {
-  const auto implementationFactoryBuilder = make_shared<ImplementationFactoryBuilder>();
+  const auto implementationFactoryBuilder =
+      make_shared<ImplementationFactoryBuilder>();
 
   registerNodes(implementationFactoryBuilder);
 
@@ -44,7 +45,6 @@ int main(int argc, char** argv) {
       FactoriesBuilder()
           .WithImplementationFactoryBuilder(implementationFactoryBuilder)
           .BuildFactories();
-
 
   const auto graph = buildDataGraphFromFile(
       factories,

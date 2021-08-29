@@ -20,10 +20,10 @@
 #include <memory>
 #include <unordered_map>
 
+#include "maplang/Factories.h"
 #include "maplang/Graph.h"
 #include "maplang/IGroup.h"
 #include "maplang/IImplementation.h"
-#include "maplang/Factories.h"
 
 namespace maplang {
 

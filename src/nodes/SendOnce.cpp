@@ -18,7 +18,9 @@
 
 namespace maplang {
 
-SendOnce::SendOnce(const Factories& factories, const nlohmann::json& sendOnceData)
+SendOnce::SendOnce(
+    const Factories& factories,
+    const nlohmann::json& sendOnceData)
     : mFactories(factories), mSendOnceData(sendOnceData) {}
 
 void SendOnce::setPacketPusher(const std::shared_ptr<IPacketPusher>& pusher) {

@@ -24,9 +24,7 @@ namespace maplang {
 
 class ContextualNode final : public IGroup, public IImplementation {
  public:
-  ContextualNode(
-      const Factories& factories,
-      const nlohmann::json& initData);
+  ContextualNode(const Factories& factories, const nlohmann::json& initData);
   ~ContextualNode() override = default;
 
   size_t getInterfaceCount() override;

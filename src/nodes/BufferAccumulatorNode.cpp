@@ -25,7 +25,7 @@ using namespace std;
   class CLASS_NAME__ final : public IImplementation, public IPathable { \
    public:                                                              \
     CLASS_NAME__(                                                       \
-        const shared_ptr<const IBufferFactory>& bufferFactory,                \
+        const shared_ptr<const IBufferFactory>& bufferFactory,          \
         const shared_ptr<vector<BufferInfo>>& buffers)                  \
         : mBufferFactory(bufferFactory), mBuffers(buffers) {}           \
                                                                         \
@@ -36,7 +36,7 @@ using namespace std;
     maplang::IGroup* asGroup() override { return nullptr; }             \
                                                                         \
    private:                                                             \
-    const shared_ptr<const IBufferFactory> mBufferFactory;                    \
+    const shared_ptr<const IBufferFactory> mBufferFactory;              \
     const shared_ptr<vector<BufferInfo>> mBuffers;                      \
   }
 

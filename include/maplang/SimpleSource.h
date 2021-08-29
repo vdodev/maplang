@@ -42,6 +42,6 @@ class SimpleSource : public IImplementation, public ISource {
   std::shared_ptr<IPacketPusher> mPusher;
 };
 
-}  // maplang
+}  // namespace maplang
 
 #endif  // MAPLANG_INCLUDE_MAPLANG_SIMPLESOURCE_H_

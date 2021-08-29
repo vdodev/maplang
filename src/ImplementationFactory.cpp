@@ -162,7 +162,9 @@ std::shared_ptr<IImplementation> ImplementationFactory::createImplementation(
 
   const FactoryFunction& nodeImplementationFactory = it->second;
 
-  return nodeImplementationFactory(mFactoriesFutureWhichDeadlocksInConstructor.get(), initParameters);
+  return nodeImplementationFactory(
+      mFactoriesFutureWhichDeadlocksInConstructor.get(),
+      initParameters);
 }
 
 void ImplementationFactory::visitImplementationNames(

@@ -27,6 +27,6 @@ class IRingStreamFactory {
   virtual std::shared_ptr<RingStream> Create() const = 0;
 };
 
-} // namespace maplang
+}  // namespace maplang
 
 #endif  // MAPLANG__IRINGSTREAMFACTORY_H_

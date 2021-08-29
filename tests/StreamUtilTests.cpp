@@ -19,13 +19,9 @@
 
 using namespace std;
 
-static void testThrow() {
-  THROW("string " << 5 << "");
-}
+static void testThrow() { THROW("string " << 5 << ""); }
 
-TEST(
-    WhenThrowing,
-    ItThrowsAndDoesNotGenerateASignal) {
+TEST(WhenThrowing, ItThrowsAndDoesNotGenerateASignal) {
   EXPECT_ANY_THROW(testThrow());
 
   try {

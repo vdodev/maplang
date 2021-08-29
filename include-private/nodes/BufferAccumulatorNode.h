@@ -19,8 +19,8 @@
 
 #include <unordered_map>
 
-#include "maplang/IBufferFactory.h"
 #include "maplang/Factories.h"
+#include "maplang/IBufferFactory.h"
 #include "maplang/IGroup.h"
 #include "maplang/IImplementation.h"
 

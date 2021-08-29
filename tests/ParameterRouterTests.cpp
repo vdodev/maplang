@@ -37,14 +37,14 @@ class NoopPacketPusher : public IPacketPusher {
 
 class ParameterRouterTests : public testing::Test {
  public:
-  ParameterRouterTests()
-      : mFactories(
-          FactoriesBuilder().BuildFactories()) {}
+  ParameterRouterTests() : mFactories(FactoriesBuilder().BuildFactories()) {}
 
   const Factories mFactories;
 };
 
-TEST_F(ParameterRouterTests, WhenAParameterRouterGetsAValidValue_ItUsesThatValueAsTheChannel) {
+TEST_F(
+    ParameterRouterTests,
+    WhenAParameterRouterGetsAValidValue_ItUsesThatValueAsTheChannel) {
   const auto graph = buildDataGraph(mFactories, R"(
     strict digraph ParameterRouterTest {
       "Parameter Router" [instance="Parameter Router Instance" allowIncoming=true, allowOutgoing=true]
@@ -86,7 +86,9 @@ TEST_F(ParameterRouterTests, WhenAParameterRouterGetsAValidValue_ItUsesThatValue
   ASSERT_EQ(1, receivedPacketCount);
 }
 
-TEST_F(ParameterRouterTests, WhenAParameterRouterHasIncorrectInitParameters_ItThrows) {
+TEST_F(
+    ParameterRouterTests,
+    WhenAParameterRouterHasIncorrectInitParameters_ItThrows) {
   const auto graph = buildDataGraph(mFactories, R"(
     strict digraph ParameterRouterTest {
       "Parameter Router" [instance="Parameter Router Instance" allowIncoming=true, allowOutgoing=true]
@@ -106,17 +108,18 @@ TEST_F(ParameterRouterTests, WhenAParameterRouterHasIncorrectInitParameters_ItTh
   })"));
 }
 
-TEST_F(ParameterRouterTests, WhenAParameterRouterDoesntGetTheRoutingKey_ItThrows) {
+TEST_F(
+    ParameterRouterTests,
+    WhenAParameterRouterDoesntGetTheRoutingKey_ItThrows) {
   Packet packet;
   packet.parameters = R"({
     "someId_INVALID": "value1AsChannel",
     "key2": [ 0, 1, 2 ]
   })"_json;
 
-  const auto router =
-      mFactories.implementationFactory->createImplementation(
-          "Parameter Router",
-          R"({ "routingKey": "/someId" })"_json);
+  const auto router = mFactories.implementationFactory->createImplementation(
+      "Parameter Router",
+      R"({ "routingKey": "/someId" })"_json);
 
   EXPECT_ANY_THROW(router->asPathable()->handlePacket(
       PathablePacket(packet, make_shared<NoopPacketPusher>())));
@@ -129,10 +132,9 @@ TEST_F(ParameterRouterTests, WhenAParameterRouterGetsAnObjectValue_ItThrows) {
     "key2": [ 0, 1, 2 ]
   })"_json;
 
-  const auto router =
-      mFactories.implementationFactory->createImplementation(
-          "Parameter Router",
-          R"({ "routingKey": "/someId" })"_json);
+  const auto router = mFactories.implementationFactory->createImplementation(
+      "Parameter Router",
+      R"({ "routingKey": "/someId" })"_json);
 
   EXPECT_ANY_THROW(router->asPathable()->handlePacket(
       PathablePacket(packet, make_shared<NoopPacketPusher>())));

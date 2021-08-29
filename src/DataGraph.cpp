@@ -88,8 +88,7 @@ class DataGraphImpl final : public enable_shared_from_this<DataGraphImpl> {
       const Packet& packet,
       const string& channel);
 
-  DataGraphImpl(const Factories& factories)
-      : mFactories(factories) {}
+  DataGraphImpl(const Factories& factories) : mFactories(factories) {}
 
   shared_ptr<ThreadGroup> getOrCreateThreadGroup(const string& name);
   shared_ptr<Instance> getOrCreateInstance(const string& instanceName);
@@ -230,8 +229,7 @@ shared_ptr<ThreadGroup> DataGraphImpl::getOrCreateThreadGroup(
     return existingIt->second;
   }
 
-  const auto loopRunner =
-      mFactories.uvLoopRunnerFactory->createUvLoopRunner();
+  const auto loopRunner = mFactories.uvLoopRunnerFactory->createUvLoopRunner();
 
   const auto threadGroup =
       make_shared<ThreadGroup>(loopRunner, shared_from_this());

@@ -18,6 +18,7 @@
 #define MAPLANG_INCLUDE_MAPLANG_FACTORIES_H_
 
 #include <memory>
+
 #include "maplang/IBufferFactory.h"
 #include "maplang/IImplementationFactory.h"
 #include "maplang/IUvLoopRunnerFactory.h"
