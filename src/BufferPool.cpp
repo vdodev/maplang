@@ -27,15 +27,15 @@ namespace maplang {
 struct BufferPool::Impl final {
   using QueueType = moodycamel::ConcurrentQueue<Buffer>;
 
-  Impl(const std::shared_ptr<IBufferFactory>& _bufferFactory)
+  Impl(const std::shared_ptr<const IBufferFactory>& _bufferFactory)
       : bufferFactory(_bufferFactory), bufferSize(0) {}
 
-  const std::shared_ptr<IBufferFactory> bufferFactory;
+  const std::shared_ptr<const IBufferFactory> bufferFactory;
   shared_ptr<QueueType> bufferQueue;
   size_t bufferSize;
 };
 
-BufferPool::BufferPool(const std::shared_ptr<IBufferFactory>& bufferFactory)
+BufferPool::BufferPool(const std::shared_ptr<const IBufferFactory>& bufferFactory)
     : mImpl(make_shared<BufferPool::Impl>(bufferFactory)) {}
 
 Buffer BufferPool::get(size_t bufferSize) {

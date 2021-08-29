@@ -27,7 +27,7 @@ namespace maplang {
 
 class BufferPool final {
  public:
-  BufferPool(const std::shared_ptr<IBufferFactory>& bufferFactory);
+  BufferPool(const std::shared_ptr<const IBufferFactory>& bufferFactory);
 
   Buffer get(size_t minimumSize);
 
