@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef MAPLANG_LOGGING_H__
-#define MAPLANG_LOGGING_H__
+#ifndef MAPLANG_LOGGING_H_
+#define MAPLANG_LOGGING_H_
 
 #include <stdio.h>
 
@@ -70,4 +70,4 @@ __attribute__((__format__(__printf__, 1, 2))) inline void loge(
 }
 }  // namespace maplang
 
-#endif  // MAPLANG_LOGGING_H__
+#endif  // MAPLANG_LOGGING_H_

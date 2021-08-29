@@ -14,8 +14,8 @@
  *  limitations under the License.
  */
 
-#ifndef MAPLANG__LIBUVUTILITIES_H_
-#define MAPLANG__LIBUVUTILITIES_H_
+#ifndef MAPLANG_LIBUVUTILITIES_H_
+#define MAPLANG_LIBUVUTILITIES_H_
 
 #include <string>
 
@@ -25,4 +25,4 @@ std::string uvStrError(int status);
 
 }  // namespace maplang
 
-#endif  // MAPLANG__LIBUVUTILITIES_H_
+#endif  // MAPLANG_LIBUVUTILITIES_H_

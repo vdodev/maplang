@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef MAPLANG__RINGSTREAM_INL_H_
-#define MAPLANG__RINGSTREAM_INL_H_
+#ifndef MAPLANG_RINGSTREAM_INL_H_
+#define MAPLANG_RINGSTREAM_INL_H_
 
 #include <cstring>
 
@@ -115,4 +115,4 @@ void RingStream::ResizeBuffer(size_t minimumBufferSize) {
 
 }  // namespace maplang
 
-#endif  // MAPLANG__RINGSTREAM_INL_H_
+#endif  // MAPLANG_RINGSTREAM_INL_H_

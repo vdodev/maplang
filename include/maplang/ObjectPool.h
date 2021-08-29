@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef MAPLANG_OBJECTPOOL_H__
-#define MAPLANG_OBJECTPOOL_H__
+#ifndef MAPLANG_OBJECTPOOL_H_
+#define MAPLANG_OBJECTPOOL_H_
 
 #include <stack>
 
@@ -62,4 +62,4 @@ class ObjectPool final {
 
 }  // namespace maplang
 
-#endif  // MAPLANG_OBJECTPOOL_H__
+#endif  // MAPLANG_OBJECTPOOL_H_

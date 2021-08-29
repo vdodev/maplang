@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef MAPLANG_PACKET_H__
-#define MAPLANG_PACKET_H__
+#ifndef MAPLANG_PACKET_H_
+#define MAPLANG_PACKET_H_
 
 #include "maplang/Buffer.h"
 #include "maplang/ISubgraphContext.h"
@@ -30,4 +30,4 @@ struct Packet {
 
 }  // namespace maplang
 
-#endif  // MAPLANG_PACKET_H__
+#endif  // MAPLANG_PACKET_H_

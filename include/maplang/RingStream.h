@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef MAPLANG__RINGSTREAM_H_
-#define MAPLANG__RINGSTREAM_H_
+#ifndef MAPLANG_RINGSTREAM_H_
+#define MAPLANG_RINGSTREAM_H_
 
 #include "maplang/IBufferFactory.h"
 
@@ -55,4 +55,4 @@ class RingStream final {
 
 #include "maplang/RingStream-inl.h"
 
-#endif  // MAPLANG__RINGSTREAM_H_
+#endif  // MAPLANG_RINGSTREAM_H_

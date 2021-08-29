@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef MAPLANG__BUFFERFACTORY_H_
-#define MAPLANG__BUFFERFACTORY_H_
+#ifndef MAPLANG_BUFFERFACTORY_H_
+#define MAPLANG_BUFFERFACTORY_H_
 
 #include "IBufferFactory.h"
 
@@ -30,4 +30,4 @@ class BufferFactory final : public IBufferFactory {
 };
 
 }  // namespace maplang
-#endif  // MAPLANG__BUFFERFACTORY_H_
+#endif  // MAPLANG_BUFFERFACTORY_H_

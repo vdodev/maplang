@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef MAPLANG_UVTCPCONNECTIONGROUP_H__
-#define MAPLANG_UVTCPCONNECTIONGROUP_H__
+#ifndef MAPLANG_UVTCPCONNECTIONGROUP_H_
+#define MAPLANG_UVTCPCONNECTIONGROUP_H_
 
 #include <unordered_map>
 
@@ -50,4 +50,4 @@ class UvTcpConnectionGroup : public IGroup, public IImplementation {
 
 }  // namespace maplang
 
-#endif  // MAPLANG_UVTCPCONNECTIONGROUP_H__
+#endif  // MAPLANG_UVTCPCONNECTIONGROUP_H_

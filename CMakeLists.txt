@@ -116,7 +116,6 @@ add_library(maplang
         include/maplang/IImplementationFactoryBuilder.h
         include/maplang/ImplementationFactoryBuilder.h
         src/ImplementationFactoryBuilder.cpp
-        include/maplang/WrappedFactories.h
         )
 
 target_include_directories(maplang SYSTEM PUBLIC /usr/local/include)

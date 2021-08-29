@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef MAPLANG__STREAM_UTIL_H_
-#define MAPLANG__STREAM_UTIL_H_
+#ifndef MAPLANG_STREAM_UTIL_H_
+#define MAPLANG_STREAM_UTIL_H_
 
 #include <sstream>
 
@@ -23,4 +23,4 @@
 
 #define THROW(x) throw std::runtime_error(STREAM_STRING(x))
 
-#endif  // MAPLANG__STREAM_UTIL_H_
+#endif  // MAPLANG_STREAM_UTIL_H_

@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef MAPLANG__IBUFFERFACTORY_H_
-#define MAPLANG__IBUFFERFACTORY_H_
+#ifndef MAPLANG_IBUFFERFACTORY_H_
+#define MAPLANG_IBUFFERFACTORY_H_
 
 #include <cstdint>
 #include <memory>
@@ -32,4 +32,4 @@ class IBufferFactory {
 
 }  // namespace maplang
 
-#endif  // MAPLANG__IBUFFERFACTORY_H_
+#endif  // MAPLANG_IBUFFERFACTORY_H_

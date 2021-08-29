@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef MAPLANG_DATA_GRAPH_H__
-#define MAPLANG_DATA_GRAPH_H__
+#ifndef MAPLANG_DATA_GRAPH_H_
+#define MAPLANG_DATA_GRAPH_H_
 
 #include <memory>
 #include <unordered_map>
@@ -35,7 +35,7 @@ class DataGraph final : public IGroup {
   static const std::string kDefaultThreadGroupName;
 
  public:
-  DataGraph(const Factories& factories);
+  explicit DataGraph(const Factories& factories);
   ~DataGraph() override = default;
 
   std::shared_ptr<GraphNode>
@@ -116,4 +116,4 @@ class DataGraph final : public IGroup {
 
 }  // namespace maplang
 
-#endif  // MAPLANG_DATA_GRAPH_H__
+#endif  // MAPLANG_DATA_GRAPH_H_

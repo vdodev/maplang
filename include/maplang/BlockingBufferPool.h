@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef MAPLANG__BLOCKINGBUFFERPOOL_H_
-#define MAPLANG__BLOCKINGBUFFERPOOL_H_
+#ifndef MAPLANG_BLOCKINGBUFFERPOOL_H_
+#define MAPLANG_BLOCKINGBUFFERPOOL_H_
 
 #include <functional>
 #include <memory>
@@ -40,4 +40,4 @@ class BlockingBufferPool final {
 
 }  // namespace maplang
 
-#endif  // MAPLANG__BLOCKINGBUFFERPOOL_H_
+#endif  // MAPLANG_BLOCKINGBUFFERPOOL_H_

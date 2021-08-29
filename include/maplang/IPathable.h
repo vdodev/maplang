@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef MAPLANG_IPATHABLE_H__
-#define MAPLANG_IPATHABLE_H__
+#ifndef MAPLANG_IPATHABLE_H_
+#define MAPLANG_IPATHABLE_H_
 
 #include "maplang/PathablePacket.h"
 
@@ -30,4 +30,4 @@ class IPathable {
 
 }  // namespace maplang
 
-#endif  // MAPLANG_IPATHABLE_H__
+#endif  // MAPLANG_IPATHABLE_H_

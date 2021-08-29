@@ -27,7 +27,7 @@ namespace maplang {
 
 class LambdaPacketPusher : public IPacketPusher {
  public:
-  LambdaPacketPusher(
+  explicit LambdaPacketPusher(
       std::function<void(const Packet& packet, const std::string& channel)>&&
           onPacket)
       : mOnPacket(move(onPacket)) {}

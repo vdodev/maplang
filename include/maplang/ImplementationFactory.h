@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef MAPLANG_IMPLEMENTATIONFACTORY_H__
-#define MAPLANG_IMPLEMENTATIONFACTORY_H__
+#ifndef MAPLANG_IMPLEMENTATIONFACTORY_H_
+#define MAPLANG_IMPLEMENTATIONFACTORY_H_
 
 #include <future>
 #include <memory>
@@ -58,12 +58,13 @@ class ImplementationFactory final
   std::unordered_map<std::string, FactoryFunction> mFactoryFunctionMap;
 
  private:
-  ImplementationFactory(const std::shared_future<Factories>&
-                            factoriesFutureWhichDeadlocksInConstructor);
+  explicit ImplementationFactory(
+      const std::shared_future<Factories>&
+          factoriesFutureWhichDeadlocksInConstructor);
 
   void RegisterImplementations();
 };
 
 }  // namespace maplang
 
-#endif  // MAPLANG_IMPLEMENTATIONFACTORY_H__
+#endif  // MAPLANG_IMPLEMENTATIONFACTORY_H_

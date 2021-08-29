@@ -14,8 +14,8 @@
  *  limitations under the License.
  */
 
-#ifndef MAPLANG__ERRORS_H_
-#define MAPLANG__ERRORS_H_
+#ifndef MAPLANG_ERRORS_H_
+#define MAPLANG_ERRORS_H_
 
 #include <string>
 
@@ -64,4 +64,4 @@ inline void sendErrorPacket(
 }
 
 }  // namespace maplang
-#endif  // MAPLANG__ERRORS_H_
+#endif  // MAPLANG_ERRORS_H_

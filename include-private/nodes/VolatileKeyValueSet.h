@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef MAPLANG_VOLATILE_KEY_VALUE_SET_H__
-#define MAPLANG_VOLATILE_KEY_VALUE_SET_H__
+#ifndef MAPLANG_VOLATILE_KEY_VALUE_SET_H_
+#define MAPLANG_VOLATILE_KEY_VALUE_SET_H_
 
 #include "maplang/Factories.h"
 #include "maplang/IGroup.h"
@@ -50,4 +50,4 @@ class VolatileKeyValueSet : public IGroup, public IImplementation {
 
 }  // namespace maplang
 
-#endif  // MAPLANG_VOLATILE_KEY_VALUE_SET_H__
+#endif  // MAPLANG_VOLATILE_KEY_VALUE_SET_H_

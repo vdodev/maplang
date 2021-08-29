@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef MAPLANG_JSONGRAPHBUILDER_H__
-#define MAPLANG_JSONGRAPHBUILDER_H__
+#ifndef MAPLANG_JSONGRAPHBUILDER_H_
+#define MAPLANG_JSONGRAPHBUILDER_H_
 
 #include <memory>
 
@@ -30,4 +30,4 @@ class JsonGraphBuilder {
 
 }  // namespace maplang
 
-#endif  // MAPLANG_JSONGRAPHBUILDER_H__
+#endif  // MAPLANG_JSONGRAPHBUILDER_H_

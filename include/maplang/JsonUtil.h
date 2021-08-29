@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef MAPLANG__JSONUTIL_H_
-#define MAPLANG__JSONUTIL_H_
+#ifndef MAPLANG_JSONUTIL_H_
+#define MAPLANG_JSONUTIL_H_
 
 #include <string>
 
@@ -57,4 +57,4 @@ std::optional<T> jsonGet(const nlohmann::json& j, const std::string& key) {
 
 }  // namespace maplang
 
-#endif  // MAPLANG__JSONUTIL_H_
+#endif  // MAPLANG_JSONUTIL_H_

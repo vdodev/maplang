@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef MAPLANG__BUFFERPOOL_H_
-#define MAPLANG__BUFFERPOOL_H_
+#ifndef MAPLANG_BUFFERPOOL_H_
+#define MAPLANG_BUFFERPOOL_H_
 
 #include <functional>
 #include <memory>
@@ -27,7 +27,8 @@ namespace maplang {
 
 class BufferPool final {
  public:
-  BufferPool(const std::shared_ptr<const IBufferFactory>& bufferFactory);
+  explicit BufferPool(
+      const std::shared_ptr<const IBufferFactory>& bufferFactory);
 
   Buffer get(size_t minimumSize);
 
@@ -38,4 +39,4 @@ class BufferPool final {
 
 }  // namespace maplang
 
-#endif  // MAPLANG__BUFFERPOOL_H_
+#endif  // MAPLANG_BUFFERPOOL_H_

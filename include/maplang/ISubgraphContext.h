@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef MAPLANG_ISUBGRAPHCONTEXT_H__
-#define MAPLANG_ISUBGRAPHCONTEXT_H__
+#ifndef MAPLANG_ISUBGRAPHCONTEXT_H_
+#define MAPLANG_ISUBGRAPHCONTEXT_H_
 
 #include <memory>
 
@@ -34,4 +34,4 @@ class ISubgraphContext {
 
 }  // namespace maplang
 
-#endif  // MAPLANG_ISUBGRAPHCONTEXT_H__
+#endif  // MAPLANG_ISUBGRAPHCONTEXT_H_

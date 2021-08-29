@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef MAPLANG_IIMPLEMENTATION_H__
-#define MAPLANG_IIMPLEMENTATION_H__
+#ifndef MAPLANG_IIMPLEMENTATION_H_
+#define MAPLANG_IIMPLEMENTATION_H_
 
 #include <functional>
 
@@ -42,4 +42,4 @@ class IImplementation {
 
 }  // namespace maplang
 
-#endif  // MAPLANG_IIMPLEMENTATION_H__
+#endif  // MAPLANG_IIMPLEMENTATION_H_

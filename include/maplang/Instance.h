@@ -27,7 +27,7 @@ class ThreadGroup;
 
 class Instance final {
  public:
-  Instance(const Factories& factories);
+  explicit Instance(const Factories& factories);
 
   void setType(const std::string& typeName);
 

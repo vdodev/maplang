@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef MAPLANG_SEND_ONCE_H__
-#define MAPLANG_SEND_ONCE_H__
+#ifndef MAPLANG_SEND_ONCE_H_
+#define MAPLANG_SEND_ONCE_H_
 
 #include "maplang/Factories.h"
 #include "maplang/IImplementation.h"
@@ -41,4 +41,4 @@ class SendOnce : public IImplementation, public ISource {
 
 }  // namespace maplang
 
-#endif  // MAPLANG_SEND_ONCE_H__
+#endif  // MAPLANG_SEND_ONCE_H_

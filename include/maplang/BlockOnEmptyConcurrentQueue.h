@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef MAPLANG__BLOCKONEMPTYCONCURRENTQUEUE_H_
-#define MAPLANG__BLOCKONEMPTYCONCURRENTQUEUE_H_
+#ifndef MAPLANG_BLOCKONEMPTYCONCURRENTQUEUE_H_
+#define MAPLANG_BLOCKONEMPTYCONCURRENTQUEUE_H_
 
 #include <condition_variable>
 #include <mutex>
@@ -100,4 +100,4 @@ bool BlockOnEmptyConcurrentQueue<T>::pop(T& item) {
 
 }  // namespace maplang
 
-#endif  // MAPLANG__BLOCKONEMPTYCONCURRENTQUEUE_H_
+#endif  // MAPLANG_BLOCKONEMPTYCONCURRENTQUEUE_H_

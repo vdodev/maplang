@@ -26,7 +26,8 @@ namespace maplang {
 
 class LambdaPathable : public IImplementation, public IPathable {
  public:
-  LambdaPathable(std::function<void(const PathablePacket& packet)>&& onPacket)
+  explicit LambdaPathable(
+      std::function<void(const PathablePacket& packet)>&& onPacket)
       : mOnPacket(move(onPacket)) {}
 
   void handlePacket(const PathablePacket& packet) override {

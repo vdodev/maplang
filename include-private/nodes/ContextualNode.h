@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef MAPLANG_CONTEXTUAL_NODE_H__
-#define MAPLANG_CONTEXTUAL_NODE_H__
+#ifndef MAPLANG_CONTEXTUAL_NODE_H_
+#define MAPLANG_CONTEXTUAL_NODE_H_
 
 #include "maplang/Factories.h"
 #include "maplang/IGroup.h"
@@ -44,7 +44,7 @@ class ContextualNode final : public IGroup, public IImplementation {
 
 }  // namespace maplang
 
-#endif  // MAPLANG_CONTEXTUAL_NODE_H__
+#endif  // MAPLANG_CONTEXTUAL_NODE_H_
 
 /*
  * How is instance-deletion handled?

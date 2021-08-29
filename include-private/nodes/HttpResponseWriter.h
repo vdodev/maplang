@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef MAPLANG_RESPONSE_WRITER_H__
-#define MAPLANG_RESPONSE_WRITER_H__
+#ifndef MAPLANG_RESPONSE_WRITER_H_
+#define MAPLANG_RESPONSE_WRITER_H_
 
 #include "maplang/Factories.h"
 #include "maplang/IImplementation.h"
@@ -43,4 +43,4 @@ class HttpResponseWriter : public IImplementation, public IPathable {
 
 }  // namespace maplang
 
-#endif  // MAPLANG_RESPONSE_WRITER_H__
+#endif  // MAPLANG_RESPONSE_WRITER_H_

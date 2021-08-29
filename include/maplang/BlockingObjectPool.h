@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef MAPLANG__BLOCKINGOBJECTPOOL_H_
-#define MAPLANG__BLOCKINGOBJECTPOOL_H_
+#ifndef MAPLANG_BLOCKINGOBJECTPOOL_H_
+#define MAPLANG_BLOCKINGOBJECTPOOL_H_
 
 #include <functional>
 #include <memory>
@@ -30,7 +30,7 @@ class BlockingObjectPool final {
   using Allocator = std::function<std::shared_ptr<T>()>;
 
  public:
-  BlockingObjectPool(size_t objectsInPool);
+  explicit BlockingObjectPool(size_t objectsInPool);
 
   void setAllocator(Allocator&& allocator);
   void setAllocator(const Allocator& allocator);
@@ -101,4 +101,4 @@ std::shared_ptr<T> BlockingObjectPool<T>::get() {
 
 }  // namespace maplang
 
-#endif  // MAPLANG__BLOCKINGOBJECTPOOL_H_
+#endif  // MAPLANG_BLOCKINGOBJECTPOOL_H_

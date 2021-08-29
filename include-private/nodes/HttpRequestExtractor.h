@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef MAPLANG_HTTP_REQUEST_EXTRACTOR_H__
-#define MAPLANG_HTTP_REQUEST_EXTRACTOR_H__
+#ifndef MAPLANG_HTTP_REQUEST_EXTRACTOR_H_
+#define MAPLANG_HTTP_REQUEST_EXTRACTOR_H_
 
 #include <list>
 #include <random>
@@ -65,4 +65,4 @@ class HttpRequestExtractor final : public IImplementation, public IPathable {
 
 }  // namespace maplang
 
-#endif  // MAPLANG_HTTP_REQUEST_EXTRACTOR_H__
+#endif  // MAPLANG_HTTP_REQUEST_EXTRACTOR_H_

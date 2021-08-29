@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef MAPLANG__IRINGSTREAMFACTORY_H_
-#define MAPLANG__IRINGSTREAMFACTORY_H_
+#ifndef MAPLANG_IRINGSTREAMFACTORY_H_
+#define MAPLANG_IRINGSTREAMFACTORY_H_
 
 #include "maplang/RingStream.h"
 
@@ -29,4 +29,4 @@ class IRingStreamFactory {
 
 }  // namespace maplang
 
-#endif  // MAPLANG__IRINGSTREAMFACTORY_H_
+#endif  // MAPLANG_IRINGSTREAMFACTORY_H_

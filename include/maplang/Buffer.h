@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
-#ifndef MAPLANG_BUFFER_H__
-#define MAPLANG_BUFFER_H__
+#ifndef MAPLANG_BUFFER_H_
+#define MAPLANG_BUFFER_H_
 
-#include <stddef.h>
-#include <stdint.h>
-
+#include <cstddef>
+#include <cstdint>
 #include <memory>
 
 namespace maplang {
 
 struct Buffer {
   Buffer() : data(nullptr), length(0) {}
-  Buffer(std::shared_ptr<uint8_t[]> data, size_t length)
+  Buffer(const std::shared_ptr<uint8_t[]>& data, size_t length)
       : data(data), length(length) {}
-  Buffer(const std::string& str) {
+  explicit Buffer(const std::string& str) {
     data = std::shared_ptr<uint8_t[]>(new uint8_t[str.length()]);
     length = str.length();
 
@@ -40,4 +39,4 @@ struct Buffer {
 };
 
 }  // namespace maplang
-#endif  // MAPLANG_BUFFER_H__
+#endif  // MAPLANG_BUFFER_H_
