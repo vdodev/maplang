@@ -17,6 +17,7 @@
 #ifndef MAPLANG_HTTP_RESPONSE_WITH_ADDRESS_AS_BODY_H_
 #define MAPLANG_HTTP_RESPONSE_WITH_ADDRESS_AS_BODY_H_
 
+#include "maplang/Factories.h"
 #include "maplang/IImplementation.h"
 #include "maplang/IPathable.h"
 
@@ -25,6 +26,9 @@ namespace maplang {
 class HttpResponseWithAddressAsBody final : public IImplementation,
                                             public IPathable {
  public:
+  HttpResponseWithAddressAsBody(
+      const Factories& factories,
+      const nlohmann::json& initParameters);
   ~HttpResponseWithAddressAsBody() override = default;
 
   void handlePacket(const PathablePacket& incomingPacket) override;
@@ -32,6 +36,10 @@ class HttpResponseWithAddressAsBody final : public IImplementation,
   IPathable* asPathable() override { return this; }
   ISource* asSource() override { return nullptr; }
   IGroup* asGroup() override { return nullptr; }
+
+ private:
+  const Factories mFactories;
+  const nlohmann::json mInitParameters;
 };
 
 }  // namespace maplang

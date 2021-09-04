@@ -31,7 +31,7 @@ static void registerNodes(const shared_ptr<ImplementationFactoryBuilder>&
   implementationFactoryBuilder->WithFactoryForName(
       "HTTP Response With Remote Address As Body",
       [](const Factories& factories, const json& initParameters) {
-        return make_shared<HttpResponseWithAddressAsBody>();
+        return make_shared<HttpResponseWithAddressAsBody>(factories, initParameters);
       });
 }
 

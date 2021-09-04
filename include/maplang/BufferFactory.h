@@ -24,7 +24,9 @@ class BufferFactory final : public IBufferFactory {
  public:
   Buffer Create(size_t bufferSize) const override {
     return Buffer(
-        std::shared_ptr<uint8_t[]>(new uint8_t[bufferSize]),
+        std::shared_ptr<uint8_t>(
+            new uint8_t[bufferSize],
+            std::default_delete<uint8_t[]>()),
         bufferSize);
   }
 };

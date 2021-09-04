@@ -17,24 +17,22 @@
 #ifndef MAPLANG_BUFFER_H_
 #define MAPLANG_BUFFER_H_
 
+#include <climits>
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <string>
 
 namespace maplang {
 
 struct Buffer {
-  Buffer() : data(nullptr), length(0) {}
-  Buffer(const std::shared_ptr<uint8_t[]>& data, size_t length)
-      : data(data), length(length) {}
-  explicit Buffer(const std::string& str) {
-    data = std::shared_ptr<uint8_t[]>(new uint8_t[str.length()]);
-    length = str.length();
+  Buffer();
+  Buffer(const std::shared_ptr<uint8_t>& data, size_t length);
+  explicit Buffer(const std::string& str);
 
-    str.copy(reinterpret_cast<char*>(data.get()), str.length());
-  }
+  Buffer slice(size_t offset, size_t length = SIZE_MAX) const;
 
-  std::shared_ptr<uint8_t[]> data;
+  std::shared_ptr<uint8_t> data;
   size_t length;
 };
 

@@ -76,9 +76,8 @@ void HttpRequestHeaderWriter::handlePacket(
     const size_t bufferLength = httpBytes.tellg();
     httpBytes.seekg(0, ios::beg);
 
-    auto bodyData = shared_ptr<uint8_t[]>(new uint8_t[bufferLength]);
-    httpBytes.read(reinterpret_cast<char*>(bodyData.get()), bufferLength);
-    Buffer bodyBuffer(bodyData, bufferLength);
+    Buffer bodyBuffer = mFactories.bufferFactory->Create(bufferLength);
+    httpBytes.read(reinterpret_cast<char*>(bodyBuffer.data.get()), bufferLength);
     httpBytesPacket.buffers.push_back(bodyBuffer);
   }
 

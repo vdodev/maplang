@@ -40,21 +40,24 @@ static uint64_t readUInt64BE(const uint8_t** where) {
   return val;
 }
 
+PacketReader::PacketReader(const Factories& factories)
+    : mFactories(factories) {}
+
 void PacketReader::handlePacket(const PathablePacket& incomingPathablePacket) {
   const Packet& incomingPacket = incomingPathablePacket.packet;
   mPendingBytes.append(incomingPacket.buffers[0]);
 
   while (mPendingBytes.size() > 0) {
-    if (mLength == 0 && mPendingBytes.size() >= sizeof(uint64_t)) {
-      uint64_t followingLengthBigEndian;
-      mPendingBytes.read(
-          0,
-          sizeof(followingLengthBigEndian),
-          &followingLengthBigEndian,
-          sizeof(followingLengthBigEndian));
+    if (mLength == 0) {
+      if (mPendingBytes.size() >= sizeof(uint64_t)) {
+        const size_t readFromOffset = 0;
+        uint64_t followingLength =
+            mPendingBytes.readBigEndian<uint64_t>(readFromOffset);
 
-      mLength =
-          sizeof(followingLengthBigEndian) + be64toh(followingLengthBigEndian);
+        mLength = sizeof(followingLength) + followingLength;
+      } else {
+        return;
+      }
     }
 
     if (mPendingBytes.size() >= mLength) {
@@ -81,23 +84,17 @@ void PacketReader::handlePacket(const PathablePacket& incomingPathablePacket) {
   }
 }
 
-Packet PacketReader::readPacket(const MemoryStream& stream) {
+Packet PacketReader::readPacket(const MemoryStream& stream) const {
   uint64_t offset = sizeof(uint64_t);
 
-  uint64_t parametersLengthBigEndian;
-  stream.read(
-      offset,
-      sizeof(parametersLengthBigEndian),
-      &parametersLengthBigEndian,
-      sizeof(parametersLengthBigEndian));
-  uint64_t parametersLength = be64toh(parametersLengthBigEndian);
+  const uint64_t parametersLength = stream.readBigEndian<uint64_t>(offset);
+
   offset += parametersLength;
 
-  auto parameterStream = stream.subStream(sizeof(parametersLengthBigEndian));
-  Buffer parameterBuffer;
-  parameterBuffer.length = parametersLength;
-  parameterBuffer.data =
-      shared_ptr<uint8_t[]>(new uint8_t[parametersLength + 1]);
+  auto parameterStream = stream.subStream(sizeof(parametersLength));
+  Buffer parameterBuffer =
+      mFactories.bufferFactory->Create(parametersLength + 1);
+
   parameterStream.read(
       2 * sizeof(uint64_t),
       parametersLength,
@@ -109,23 +106,19 @@ Packet PacketReader::readPacket(const MemoryStream& stream) {
   parameterBuffer.length = 0;
 
   while (offset < stream.size()) {
-    uint64_t bufferSizeBigEndian;
-    stream.read(
-        offset,
-        sizeof(bufferSizeBigEndian),
-        &bufferSizeBigEndian,
-        sizeof(bufferSizeBigEndian));
-    const uint64_t bufferSize = be64toh(bufferSizeBigEndian);
-    offset += sizeof(bufferSizeBigEndian);
+    const uint64_t bufferSize = stream.readBigEndian<uint64_t>(offset);
 
-    Buffer buffer;
-    buffer.length = bufferSize;
-    buffer.data = shared_ptr<uint8_t[]>(new uint8_t[bufferSize]);
-    size_t bytesRead =
+    offset += sizeof(bufferSize);
+
+    const Buffer buffer = mFactories.bufferFactory->Create(bufferSize);
+    const size_t bytesRead =
         stream.read(offset, bufferSize, buffer.data.get(), bufferSize);
+
     if (bytesRead != bufferSize) {
-      throw runtime_error(
-          "Failed to parse data. Buffer length is longer than buffer.");
+      THROW(
+          "Failed to parse data. Buffer length "
+          << bufferSize << " is longer than available byte count " << bytesRead
+          << ".");
     }
 
     parsedPacket.buffers.push_back(buffer);

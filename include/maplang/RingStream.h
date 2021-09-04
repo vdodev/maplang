@@ -16,6 +16,8 @@
 #ifndef MAPLANG_RINGSTREAM_H_
 #define MAPLANG_RINGSTREAM_H_
 
+#include <optional>
+
 #include "maplang/IBufferFactory.h"
 
 namespace maplang {
@@ -26,19 +28,15 @@ class RingStream final {
       const std::shared_ptr<const IBufferFactory>& bufferFactory,
       std::optional<size_t> initialSize = {});
 
-  RingStream(RingStream&&) = default;
-
   size_t Read(void* buffer, size_t bufferSize);
   void Write(const void* buffer, size_t bufferSize);
   void Clear();
   size_t GetAvailableByteCount() const;
 
-  RingStream& operator=(RingStream&&) = default;
-
  private:
   static const size_t kDefaultInitialBufferSize;
 
-  const std::shared_ptr<const IBufferFactory> mBufferFactory;
+  std::shared_ptr<const IBufferFactory> mBufferFactory;
 
   Buffer mBuffer;
   size_t mOffset;

@@ -17,6 +17,7 @@
 #ifndef MAPLANG_PACKETWRITER_H_
 #define MAPLANG_PACKETWRITER_H_
 
+#include "maplang/Factories.h"
 #include "maplang/IImplementation.h"
 #include "maplang/IPathable.h"
 
@@ -24,6 +25,7 @@ namespace maplang {
 
 class PacketWriter : public IImplementation, public IPathable {
  public:
+  PacketWriter(const Factories& factories);
   ~PacketWriter() override = default;
 
   void handlePacket(const PathablePacket& incomingPacket) override;
@@ -31,6 +33,9 @@ class PacketWriter : public IImplementation, public IPathable {
   IPathable* asPathable() override { return this; }
   ISource* asSource() override { return nullptr; }
   IGroup* asGroup() override { return nullptr; }
+
+ private:
+  const Factories mFactories;
 };
 
 }  // namespace maplang

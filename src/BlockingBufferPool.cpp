@@ -32,7 +32,7 @@ struct BlockingBufferPool::Impl final {
       const shared_ptr<const IBufferFactory>& _bufferFactory,
       size_t maxAllocatedBuffers)
       : maxAllocatedBuffers(maxAllocatedBuffers), bufferSize(0),
-        bufferFactory(bufferFactory), totalAllocatedBuffers(0) {}
+        bufferFactory(_bufferFactory), totalAllocatedBuffers(0) {}
 
   const size_t maxAllocatedBuffers;
 
@@ -77,7 +77,7 @@ Buffer BlockingBufferPool::get(size_t bufferSize) {
   Buffer poolBuffer;
   const weak_ptr<Impl::QueueType> weakBufferQueue = mImpl->bufferQueue;
   poolBuffer.length = bufferSize;
-  poolBuffer.data = shared_ptr<uint8_t[]>(
+  poolBuffer.data = shared_ptr<uint8_t>(
       sourceBuffer.data.get(),
       [weakBufferQueue, origBuffer {sourceBuffer}](uint8_t* data) {
         const auto bufferQueue = weakBufferQueue.lock();

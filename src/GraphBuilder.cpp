@@ -16,9 +16,8 @@
 
 #include "maplang/GraphBuilder.h"
 
-#include <graphviz/cgraph.h>
+#include <cgraph.h>
 
-#include <fstream>
 #include <memory>
 #include <sstream>
 

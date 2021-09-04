@@ -441,11 +441,7 @@ void MemoryStream::visitBuffers(
       bufferEndOffset = lastBufferEndOffset;
     }
 
-    Buffer sendBuffer;
-    sendBuffer.data = shared_ptr<uint8_t[]>(
-        buffer.data,
-        buffer.data.get() + bufferStartOffset);
-    sendBuffer.length = bufferEndOffset - bufferStartOffset;
+    Buffer sendBuffer = buffer.slice(bufferStartOffset);
 
     if (!onBuffer(bufferIndex, move(sendBuffer))) {
       break;

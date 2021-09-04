@@ -19,7 +19,7 @@
 #include <sstream>
 
 #define STREAM_STRING(x) \
-  reinterpret_cast<std::ostringstream*>(&(std::ostringstream() << x))->str()
+  static_cast<std::ostringstream&&>((std::ostringstream() << x)).str()
 
 #define THROW(x) throw std::runtime_error(STREAM_STRING(x))
 

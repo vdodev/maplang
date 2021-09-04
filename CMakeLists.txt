@@ -9,7 +9,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 find_package(PkgConfig)
 
 set(ENV{PKG_CONFIG_PATH} "/usr/local/lib/pkgconfig")
-pkg_check_modules(libcgraph REQUIRED libcgraph)
+pkg_search_module(libcgraph REQUIRED libcgraph)
+pkg_search_module(LIBUV REQUIRED libuv)
 
 add_library(maplang
         include-private/logging.h
@@ -116,15 +117,16 @@ add_library(maplang
         include/maplang/IImplementationFactoryBuilder.h
         include/maplang/ImplementationFactoryBuilder.h
         src/ImplementationFactoryBuilder.cpp
-        )
+        src/Buffer.cpp)
 
-target_include_directories(maplang SYSTEM PUBLIC /usr/local/include)
-target_include_directories(maplang SYSTEM PRIVATE ${libcgraph_INCLUDE_DIRS})
+message("cgraph inc '${LIBUV_INCLUDE_DIRS}'")
+target_include_directories(maplang SYSTEM PUBLIC ${libcgraph_INCLUDE_DIRS} ${LIBUV_INCLUDE_DIRS})
 target_include_directories(maplang PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_include_directories(maplang PRIVATE ${PROJECT_SOURCE_DIR}/include-private)
 set_target_properties(maplang PROPERTIES maplang_MODULE_DIRECTORY ${PROJECT_SOURCE_DIR}/include)
 
-target_link_libraries(maplang /usr/local/lib/libuv_a.a dl pthread ${libcgraph_LIBRARIES})
+target_link_directories(maplang PUBLIC ${libcgraph_LIBRARY_DIRS} ${LIBUV_LIBRARY_DIRS})
+target_link_libraries(maplang PUBLIC ${libcgraph_LIBRARIES} ${LIBUV_LIBRARIES})
 
 add_executable(http-ip-echo
         ip-echo-demo/ip-echo-main.cpp

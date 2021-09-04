@@ -34,9 +34,12 @@ static void writeUInt64BE(uint64_t val, uint8_t** where) {
   **where++ = 0xFF & val;
 }
 
+PacketWriter::PacketWriter(const Factories& factories)
+    : mFactories(factories) {}
+
 void PacketWriter::handlePacket(const PathablePacket& incomingPathablePacket) {
   const Packet& incomingPacket = incomingPathablePacket.packet;
-  basic_stringstream<uint8_t> parameterStream;
+  stringstream parameterStream;
   json::to_msgpack(incomingPacket.parameters, parameterStream);
 
   parameterStream.seekg(0, ios::end);
@@ -51,14 +54,12 @@ void PacketWriter::handlePacket(const PathablePacket& incomingPathablePacket) {
     totalLength += incomingPacket.buffers[i].length;
   }
 
-  Buffer buffer;
-  buffer.data = shared_ptr<uint8_t[]>(new uint8_t[totalLength]);
-  buffer.length = totalLength;
+  Buffer buffer = mFactories.bufferFactory->Create(totalLength);
 
   uint8_t* writeTo = buffer.data.get();
   writeUInt64BE(totalLength, &writeTo);
   writeUInt64BE(parametersLength, &writeTo);
-  parameterStream.read(writeTo, parametersLength);
+  parameterStream.read(reinterpret_cast<char*>(writeTo), parametersLength);
   writeTo += parametersLength;
 
   for (size_t i = 0; i < incomingPacket.buffers.size(); i++) {

@@ -63,7 +63,7 @@ Buffer BufferPool::get(size_t bufferSize) {
   Buffer poolBuffer;
   const weak_ptr<Impl::QueueType> weakBufferQueue = mImpl->bufferQueue;
   poolBuffer.length = bufferSize;
-  poolBuffer.data = shared_ptr<uint8_t[]>(
+  poolBuffer.data = shared_ptr<uint8_t>(
       sourceBuffer.data.get(),
       [weakBufferQueue, origBuffer {sourceBuffer}](uint8_t* data) {
         const auto bufferQueue = weakBufferQueue.lock();

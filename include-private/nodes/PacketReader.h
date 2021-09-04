@@ -20,11 +20,13 @@
 #include "maplang/IImplementation.h"
 #include "maplang/IPathable.h"
 #include "maplang/MemoryStream.h"
+#include "maplang/Factories.h"
 
 namespace maplang {
 
 class PacketReader : public IImplementation, public IPathable {
  public:
+  PacketReader(const Factories& factories);
   ~PacketReader() override = default;
 
   void handlePacket(const PathablePacket& incomingPacket) override;
@@ -34,10 +36,12 @@ class PacketReader : public IImplementation, public IPathable {
   IGroup* asGroup() override { return nullptr; }
 
  private:
+  const Factories mFactories;
+
   uint64_t mLength = 0;
   MemoryStream mPendingBytes;
 
-  static Packet readPacket(const MemoryStream& stream);
+  Packet readPacket(const MemoryStream& stream) const;
 };
 
 }  // namespace maplang

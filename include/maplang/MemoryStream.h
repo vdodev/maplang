@@ -26,6 +26,7 @@
 #include <vector>
 
 #include "maplang/Buffer.h"
+#include "maplang/stream-util.h"
 
 namespace maplang {
 
@@ -157,6 +158,28 @@ class MemoryStream final {
   void clear();
 
   std::string asString() const;
+
+  template <class IntType>
+  IntType readBigEndian(size_t streamOffset) const {
+    IntType value = 0;
+    uint8_t buffer[sizeof(IntType)];
+
+    if (streamOffset + sizeof(IntType) > mSize) {
+      THROW(
+          "Cannot read " << sizeof(IntType) << "-byte value at offset "
+                         << streamOffset
+                         << " - buffer too small. Size of stream is " << mSize
+                         << ".");
+    }
+    read(streamOffset, sizeof(IntType), buffer, sizeof(IntType));
+
+    for (size_t i = 0; i < sizeof(IntType); i++) {
+      value <<= 8;
+      value |= buffer[i];
+    }
+
+    return value;
+  }
 
  private:
   std::vector<Buffer> mBuffers;

@@ -20,7 +20,7 @@ namespace maplang {
 RingStreamFactory::RingStreamFactory(
     const std::shared_ptr<const IBufferFactory>& bufferFactory,
     std::optional<size_t> initialRingBufferSize)
-    : mBufferFactory(bufferFactory), mInitialSize(mInitialSize) {}
+    : mBufferFactory(bufferFactory), mInitialSize(initialRingBufferSize) {}
 
 std::shared_ptr<RingStream> RingStreamFactory::Create() const {
   return std::make_shared<RingStream>(mBufferFactory, mInitialSize);

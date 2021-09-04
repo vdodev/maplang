@@ -109,19 +109,10 @@ void HttpResponseExtractor::handlePacket(const PathablePacket& pathablePacket) {
     if (availableBodyLength > 0) {
       const size_t offsetOfBodyInLastBuffer =
           bodyStart - bufferSizeBeforeAppending;
-      uint8_t* body =
-          incomingPacket.buffers[0].data.get() + offsetOfBodyInLastBuffer;
-
-      Buffer bodyBuffer;
-      bodyBuffer.data =
-          shared_ptr<uint8_t[]>(incomingPacket.buffers[0].data, body);
-
-      const size_t bodyLength = availableBodyLength < contentLength
-                                    ? availableBodyLength
-                                    : contentLength;
-      bodyBuffer.length = bodyLength;
-
+      Buffer bodyBuffer =
+          incomingPacket.buffers[0].slice(offsetOfBodyInLastBuffer);
       Packet bodyPacket = createBodyPacket(bodyBuffer);
+
       mPacketPusher->pushPacket(move(bodyPacket), kChannel_BodyData);
       mSentBodyDataByteCount += bodyBuffer.length;
     }

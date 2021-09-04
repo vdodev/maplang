@@ -550,7 +550,7 @@ class UvTcpImpl final {
 
     connection.connectionId =
         remoteAddress + ":" + to_string(remotePort) + " "
-        + to_string(atomic_fetch_add(&atomicConnectionIndex, 1));
+        + to_string(atomic_fetch_add(&atomicConnectionIndex, 1ULL));
     connection.localAddress = localAddress;
     connection.localPort = localPort;
     connection.remoteAddress = remoteAddress;
@@ -625,7 +625,7 @@ class UvTcpImpl final {
 
     const string connectionId =
         remoteAddress + ":" + to_string(remotePort) + " "
-        + to_string(atomic_fetch_add(&atomicConnectionIndex, 1));
+        + to_string(atomic_fetch_add(&atomicConnectionIndex, 1ULL));
 
     UvTcpConnection connection;
     connection.uvSocket = client;
@@ -674,7 +674,7 @@ class UvTcpImpl final {
 
     Buffer buffer;
     if (buf->base) {
-      buffer.data = shared_ptr<uint8_t[]>(
+      buffer.data = shared_ptr<uint8_t>(
           reinterpret_cast<uint8_t*>(buf->base),
           [this](uint8_t* rawBuffer) { mBufferPool.returnToPool(rawBuffer); });
     }
@@ -824,7 +824,7 @@ class UvTcpImpl final {
   }
 
  private:
-  static atomic_uint64_t atomicConnectionIndex;
+  static std::atomic<uint64_t> atomicConnectionIndex;
   static once_flag initAtomicConnectionIndexOnce;
 
   shared_ptr<uv_loop_t> mUvLoop;
@@ -1039,7 +1039,7 @@ class UvTcpAsyncEvents : public ISource, public IImplementation {
  public:
   UvTcpAsyncEvents(const shared_ptr<UvTcpImpl>& tcp) : mTcp(tcp) {}
 
-  void setPacketPusher(const shared_ptr<IPacketPusher>& packetPusher) {
+  void setPacketPusher(const shared_ptr<IPacketPusher>& packetPusher) override {
     mTcp->setAsyncEventsPacketPusher(packetPusher);
   }
 

@@ -25,6 +25,11 @@ namespace maplang {
 
 static const char* const kParameter_RemoteAddress = "RemoteAddress";
 
+HttpResponseWithAddressAsBody::HttpResponseWithAddressAsBody(
+    const Factories& factories,
+    const nlohmann::json& initParameters)
+    : mFactories(factories), mInitParameters(initParameters) {}
+
 void HttpResponseWithAddressAsBody::handlePacket(
     const PathablePacket& incomingPathablePacket) {
   const Packet& incomingPacket = incomingPathablePacket.packet;
@@ -35,9 +40,9 @@ void HttpResponseWithAddressAsBody::handlePacket(
     address = incomingPacket.parameters[kParameter_RemoteAddress];
   }
 
-  auto body = shared_ptr<uint8_t[]>(new uint8_t[address.length()]);
+  auto body = mFactories.bufferFactory->Create(address.length());
 
-  address.copy(reinterpret_cast<char*>(body.get()), address.length());
+  address.copy(reinterpret_cast<char*>(body.data.get()), body.length);
   Packet response;
   response.parameters = incomingPacket.parameters;
   json httpHeaders;
@@ -45,7 +50,7 @@ void HttpResponseWithAddressAsBody::handlePacket(
   response.parameters[http::kParameter_HttpHeaders] = httpHeaders;
   response.parameters[http::kParameter_HttpStatusCode] = http::kHttpStatus_Ok;
 
-  response.buffers.push_back(Buffer(body, address.length()));
+  response.buffers.push_back(body);
 
   incomingPathablePacket.packetPusher->pushPacket(
       move(response),
