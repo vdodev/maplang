@@ -29,6 +29,7 @@ class RingStream final {
       std::optional<size_t> initialSize = {});
 
   size_t Read(void* buffer, size_t bufferSize);
+  size_t Peek(void* buffer, size_t bufferSize) const;
   size_t Skip(size_t skipByteCount);
   void Write(const void* buffer, size_t bufferSize);
   void Clear();

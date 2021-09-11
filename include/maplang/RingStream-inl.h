@@ -31,26 +31,34 @@ RingStream::RingStream(
       mOffset(0), mLength(0) {}
 
 size_t RingStream::Read(void* buffer, size_t bufferSize) {
+  size_t readByteCount = Peek(buffer, bufferSize);
+  mOffset = (mOffset + readByteCount) % mBuffer.length;
+  mLength -= readByteCount;
+
+  return readByteCount;
+}
+
+size_t RingStream::Peek(void* buffer, size_t bufferSize) const {
   uint8_t* __restrict destination = reinterpret_cast<uint8_t*>(buffer);
-  uint8_t* __restrict source = mBuffer.data.get() + mOffset;
 
   const size_t byteCountToRead = std::min(mLength, bufferSize);
   size_t remainingByteCountToRead = byteCountToRead;
 
+  size_t readFromOffset = mOffset;
   while (remainingByteCountToRead > 0) {
     size_t byteCountToEndOfBuffer = mBuffer.length - mOffset;
 
     const size_t byteCountToCopy =
         std::min(byteCountToEndOfBuffer, remainingByteCountToRead);
 
+    const uint8_t *const __restrict source = mBuffer.data.get() + readFromOffset;
+
     memcpy(destination, source, byteCountToCopy);
 
     destination += byteCountToCopy;
-    mOffset = (mOffset + byteCountToCopy) % mBuffer.length;
-    mLength -= byteCountToCopy;
+    readFromOffset = (readFromOffset + byteCountToCopy) % mBuffer.length;
     remainingByteCountToRead -= byteCountToCopy;
 
-    source = mBuffer.data.get() + mOffset;
   }
 
   return byteCountToRead;

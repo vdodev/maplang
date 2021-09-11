@@ -83,8 +83,9 @@ TEST_F(RingStreamTests, WhenAWriteWrapsTheInternalBuffer_ItIsReadyCorrectly) {
   EXPECT_EQ(5, ringStream.GetAvailableByteCount());
 
   uint8_t outputBuffer[5];
-  ringStream.Read(outputBuffer, sizeof(outputBuffer));
+  const size_t readByteCount = ringStream.Read(outputBuffer, sizeof(outputBuffer));
 
+  EXPECT_EQ(sizeof(outputBuffer), readByteCount);
   EXPECT_EQ(2, outputBuffer[0]);
   EXPECT_EQ(3, outputBuffer[1]);
   EXPECT_EQ(4, outputBuffer[2]);
