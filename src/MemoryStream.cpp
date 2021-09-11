@@ -441,7 +441,8 @@ void MemoryStream::visitBuffers(
       bufferEndOffset = lastBufferEndOffset;
     }
 
-    Buffer sendBuffer = buffer.slice(bufferStartOffset);
+    const size_t bufferLength = bufferEndOffset - bufferStartOffset;
+    Buffer sendBuffer = buffer.slice(bufferStartOffset, bufferLength);
 
     if (!onBuffer(bufferIndex, move(sendBuffer))) {
       break;

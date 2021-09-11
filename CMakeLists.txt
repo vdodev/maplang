@@ -119,7 +119,6 @@ add_library(maplang
         src/ImplementationFactoryBuilder.cpp
         src/Buffer.cpp)
 
-message("cgraph inc '${LIBUV_INCLUDE_DIRS}'")
 target_include_directories(maplang SYSTEM PUBLIC ${libcgraph_INCLUDE_DIRS} ${LIBUV_INCLUDE_DIRS})
 target_include_directories(maplang PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_include_directories(maplang PRIVATE ${PROJECT_SOURCE_DIR}/include-private)
@@ -141,7 +140,7 @@ target_link_libraries(http-ip-echo maplang)
 #        http-get-demo/PrintBufferAsString.h)
 #target_link_libraries(http-get maplang)
 
-option(USE_TESTS "Enable unit testing" OFF)
+option(USE_TESTS "Enable unit testing" ON)
 if (USE_TESTS)
     message("Maplang tests enabled.")
     enable_testing()

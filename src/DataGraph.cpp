@@ -686,8 +686,8 @@ void DataGraphImpl::validateConnections(
   node->cleanUpEmptyEdges();
 
   if (!node->forwardEdges.empty() && implementation->asSource() == nullptr
+      && !node->forwardEdges.begin()->second.empty()
       && implementation->asPathable() == nullptr) {
-    !node->forwardEdges.begin()->second.empty();
     vector<GraphEdge>& channelEdges = node->forwardEdges.begin()->second;
     const GraphEdge& firstEdge = channelEdges[0];
 

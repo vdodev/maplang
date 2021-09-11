@@ -191,6 +191,7 @@ class MemoryStream final {
 
 }  // namespace maplang
 
+namespace std {
 inline std::ostream& operator<<(
     std::ostream& output,
     const maplang::MemoryStream& memoryStream) {
@@ -203,5 +204,6 @@ inline std::ostream& operator<<(
 
   return output;
 }
+} // namespace std
 
 #endif  // MAPLANG_MEMORYSTREAM_H_

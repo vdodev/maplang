@@ -40,23 +40,12 @@ TEST_F(
     WhenAnHttpRequestIsProcessed_HeaderFieldsAndBodyAreCorrect) {
   auto extractor = make_shared<HttpRequestExtractor>(mFactories, json());
 
-  Buffer buffer;
-  char bufferContents[] = "GET / HTTP/1.1\r\nheaderKey: headerValue\r\n\r\nHi";
-
-  buffer.data = shared_ptr<uint8_t[]>(
-      reinterpret_cast<uint8_t*>(bufferContents),
-      [](uint8_t*) {});
-  buffer.length = strlen(bufferContents);
+  Buffer buffer("GET / HTTP/1.1\r\nheaderKey: headerValue\r\n\r\nHi");
 
   Packet packet;
   packet.buffers.emplace_back(buffer);
 
-  Buffer bodyOnlyBuffer;
-  char bodyOnlyBufferContents[] = ", hello.";
-  bodyOnlyBuffer.data = shared_ptr<uint8_t[]>(
-      reinterpret_cast<uint8_t*>(bodyOnlyBufferContents),
-      [](uint8_t*) {});
-  bodyOnlyBuffer.length = strlen(bufferContents);
+  Buffer bodyOnlyBuffer(", hello.");
   Packet bodyOnlyPacket;
   bodyOnlyPacket.buffers.emplace_back(bodyOnlyBuffer);
 
@@ -147,12 +136,18 @@ TEST_F(
         << "Packet " << i;
   }
 
-  ASSERT_STREQ(
-      "Hi",
-      reinterpret_cast<const char*>(bodyPackets[0].buffers[0].data.get()));
-  ASSERT_STREQ(
-      ", hello.",
-      reinterpret_cast<const char*>(bodyPackets[1].buffers[0].data.get()));
+  ASSERT_TRUE(
+      0
+      == strncmp(
+          "Hi",
+          reinterpret_cast<const char*>(bodyPackets[0].buffers[0].data.get()),
+          strlen("Hi")));
+  ASSERT_TRUE(
+      0
+      == strncmp(
+          ", hello.",
+          reinterpret_cast<const char*>(bodyPackets[1].buffers[0].data.get()),
+          strlen(", hello.")));
 
   extractor.reset();
   ASSERT_EQ(1, requestEndedPacketCount);
