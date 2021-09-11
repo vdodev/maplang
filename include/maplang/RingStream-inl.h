@@ -25,8 +25,9 @@ const size_t RingStream::kDefaultInitialBufferSize = 1024;
 RingStream::RingStream(
     const std::shared_ptr<const IBufferFactory>& bufferFactory,
     std::optional<size_t> initialSize)
-    : mBuffer(
-        bufferFactory->Create(initialSize.value_or(kDefaultInitialBufferSize))),
+    : mBufferFactory(bufferFactory),
+      mBuffer(bufferFactory->Create(
+          initialSize.value_or(kDefaultInitialBufferSize))),
       mOffset(0), mLength(0) {}
 
 size_t RingStream::Read(void* buffer, size_t bufferSize) {
@@ -47,11 +48,27 @@ size_t RingStream::Read(void* buffer, size_t bufferSize) {
     destination += byteCountToCopy;
     mOffset = (mOffset + byteCountToCopy) % mBuffer.length;
     mLength -= byteCountToCopy;
+    remainingByteCountToRead -= byteCountToCopy;
 
     source = mBuffer.data.get() + mOffset;
   }
 
   return byteCountToRead;
+}
+
+size_t RingStream::Skip(size_t skipByteCount) {
+  if (skipByteCount > mLength) {
+    const size_t skippedByteCount = mLength;
+
+    mOffset = 0;
+    mLength = 0;
+
+    return skippedByteCount;
+  } else {
+    mOffset = (mOffset + skipByteCount) % mBuffer.length;
+
+    return skipByteCount;
+  }
 }
 
 void RingStream::Write(const void* buffer, size_t bufferSize) {
@@ -62,20 +79,19 @@ void RingStream::Write(const void* buffer, size_t bufferSize) {
   }
 
   const uint8_t* __restrict source = reinterpret_cast<const uint8_t*>(buffer);
-  uint8_t* __restrict destination = mBuffer.data.get();
-
   size_t remainingByteCountToWrite = bufferSize;
 
   while (remainingByteCountToWrite > 0) {
-    size_t byteCountToEndOfBuffer = mBuffer.length - mOffset;
+    size_t offsetToUnusedBuffer = (mOffset + mLength) % mBuffer.length;
+    size_t byteCountToEndOfBuffer = mBuffer.length - offsetToUnusedBuffer;
     size_t copyByteCount =
         std::min(byteCountToEndOfBuffer, remainingByteCountToWrite);
 
+    uint8_t* __restrict destination = mBuffer.data.get() + offsetToUnusedBuffer;
     memcpy(destination, source, copyByteCount);
 
     remainingByteCountToWrite -= copyByteCount;
     mLength += copyByteCount;
-    destination = mBuffer.data.get() + (mOffset + mLength) % mBuffer.length;
     source += copyByteCount;
   }
 }
@@ -108,6 +124,10 @@ void RingStream::ResizeBuffer(size_t minimumBufferSize) {
     memcpy(newTail, originalTail, tailLength);
 
     mOffset = newOffset;
+  } else {
+    memcpy(newBuffer.data.get(), mBuffer.data.get() + mOffset, mLength);
+    std::swap(newBuffer, mBuffer);
+    mOffset = 0;
   }
 
   std::swap(newBuffer, mBuffer);

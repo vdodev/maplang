@@ -30,6 +30,7 @@ add_executable(
         ParameterRouterTests.cpp
         StreamUtilTests.cpp
         BufferAccumulatorNodeTests.cpp
+        RingStreamTests.cpp
 )
 
 target_link_libraries(

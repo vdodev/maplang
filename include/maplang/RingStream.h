@@ -29,14 +29,16 @@ class RingStream final {
       std::optional<size_t> initialSize = {});
 
   size_t Read(void* buffer, size_t bufferSize);
+  size_t Skip(size_t skipByteCount);
   void Write(const void* buffer, size_t bufferSize);
   void Clear();
   size_t GetAvailableByteCount() const;
+  size_t GetCapacity() const { return mBuffer.length; }
 
  private:
   static const size_t kDefaultInitialBufferSize;
 
-  std::shared_ptr<const IBufferFactory> mBufferFactory;
+  const std::shared_ptr<const IBufferFactory> mBufferFactory;
 
   Buffer mBuffer;
   size_t mOffset;

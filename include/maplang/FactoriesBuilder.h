@@ -17,6 +17,7 @@
 #ifndef MAPLANG_INCLUDE_MAPLANG_FACTORIESBUILDER_H_
 #define MAPLANG_INCLUDE_MAPLANG_FACTORIESBUILDER_H_
 
+#include "maplang/Factories.h"
 #include "maplang/IBufferFactory.h"
 #include "maplang/IImplementationFactoryBuilder.h"
 #include "maplang/IUvLoopRunnerFactory.h"
