@@ -37,7 +37,7 @@ HttpRequestExtractor::HttpRequestExtractor(
   reset();
 }
 
-HttpRequestExtractor::~HttpRequestExtractor() noexcept {
+HttpRequestExtractor::~HttpRequestExtractor() {
   this->sendEndOfRequestPacketIfRequestPending(mLastPayloadsPacketPusher);
 }
 

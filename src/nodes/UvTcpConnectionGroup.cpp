@@ -1023,7 +1023,7 @@ class UvTcpReceiver : public ISource, public IImplementation {
  public:
   UvTcpReceiver(const shared_ptr<UvTcpImpl>& tcp) : mTcp(tcp) {}
 
-  void setPacketPusher(const shared_ptr<IPacketPusher>& packetPusher) {
+  void setPacketPusher(const shared_ptr<IPacketPusher>& packetPusher) override {
     mTcp->setReceiverPacketPusher(packetPusher);
   }
 

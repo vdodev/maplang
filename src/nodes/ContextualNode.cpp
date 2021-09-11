@@ -143,7 +143,7 @@ class SingleNodeRouter : public IImplementation,
 
   ~SingleNodeRouter() override = default;
 
-  shared_ptr<IImplementation> asINode() { return shared_from_this(); }
+  shared_ptr<IImplementation> asINode() override { return shared_from_this(); }
 
   void addNode(
       const string& contextLookup,
@@ -187,7 +187,7 @@ class SingleNodeRouter : public IImplementation,
     mOriginalSubgraphContext = context;
   }
 
-  bool removeNode(const string& contextLookup) {
+  bool removeNode(const string& contextLookup) override {
     auto nodeIt = mNodes.find(contextLookup);
     if (nodeIt == mNodes.end()) {
       return false;

@@ -22,16 +22,40 @@
 #include <sstream>
 
 #include "logging.h"
+#include "maplang/stream-util.h"
 
 using namespace std;
 
 namespace maplang {
 
+Agsym_t* getAttributeSymbol(void* object, const char* attributeName) {
+  static constexpr size_t kAttributeNameFixedBufferSize = 512;
+  char attributeNameMutable[kAttributeNameFixedBufferSize];
+  shared_ptr<char> longNameDeleter;
+
+  char* useAttributeName = nullptr;
+
+  const size_t attributeNameLength = strlen(attributeName);
+  if (attributeNameLength + 1 > kAttributeNameFixedBufferSize) {
+    longNameDeleter = shared_ptr<char>(
+        new char[attributeNameLength + 1],
+        std::default_delete<char[]>());
+
+    useAttributeName = longNameDeleter.get();
+  } else {
+    useAttributeName = attributeNameMutable;
+  }
+
+  strncpy(useAttributeName, attributeName, attributeNameLength + 1);
+
+  return agattrsym(object, useAttributeName);
+}
+
 static optional<bool> getOptionalBoolAttribute(
-    void* obj,
-    char* attributeName,
+    void* object,
+    const char* attributeName,
     string* notSetReason = nullptr) {
-  Agsym_t* attributeSym = agattrsym(obj, attributeName);
+  Agsym_t* attributeSym = getAttributeSymbol(object, attributeName);
 
   if (attributeSym == nullptr) {
     if (notSetReason != nullptr) {
@@ -41,7 +65,7 @@ static optional<bool> getOptionalBoolAttribute(
     return {};
   }
 
-  const string value = agxget(obj, attributeSym);
+  const string value = agxget(object, attributeSym);
   if (value == "true") {
     return true;
   } else if (value == "false") {
@@ -59,27 +83,23 @@ static optional<bool> getOptionalBoolAttribute(
 }
 
 static optional<string> getOptionalStringAttribute(
-    void* obj,
-    char* attributeName) {
-  Agsym_t* attributeSym = agattrsym(obj, attributeName);
+    void* object,
+    const char* attributeName) {
+  Agsym_t* attributeSym = getAttributeSymbol(object, attributeName);
 
   if (attributeSym == nullptr) {
     return {};
   }
 
-  return agxget(obj, attributeSym);
+  return agxget(object, attributeSym);
 }
 
-static string getStringAttribute(void* obj, char* attributeName) {
+static string getStringAttribute(void* obj, const char* attributeName) {
   optional<string> attributeValue =
       getOptionalStringAttribute(obj, attributeName);
 
   if (!attributeValue || attributeValue->empty()) {
-    ostringstream errorStream;
-
-    errorStream << "Could not find attribute '" << attributeName << "'";
-
-    throw runtime_error(errorStream.str());
+    THROW("Could not find attribute '" << attributeName << "'");
   }
 
   return *attributeValue;
@@ -87,7 +107,7 @@ static string getStringAttribute(void* obj, char* attributeName) {
 
 static optional<bool> getOptionalNodeBoolAttribute(
     Agnode_t* node,
-    char* attributeName,
+    const char* attributeName,
     string* notSetReason = nullptr) {
   string innerNotSetReason;
   optional<bool> value =
@@ -127,7 +147,9 @@ static bool getEdgeBoolAttribute(
   return {};
 }
 
-static string getNodeStringAttribute(Agnode_t* node, char* attributeName) {
+static string getNodeStringAttribute(
+    Agnode_t* node,
+    const char* attributeName) {
   try {
     return getStringAttribute(node, attributeName);
   } catch (const exception& e) {
@@ -140,7 +162,7 @@ static string getNodeStringAttribute(Agnode_t* node, char* attributeName) {
 static string getEdgeStringAttribute(
     Agnode_t* fromNode,
     Agedge_t* edge,
-    char* attributeName) {
+    const char* attributeName) {
   try {
     return getStringAttribute(edge, attributeName);
   } catch (const exception& e) {
@@ -270,9 +292,9 @@ shared_ptr<DataGraph> buildDataGraph(
       const string channel = getEdgeStringAttribute(fromNode, edge, "label");
 
       if (channel.empty()) {
-        throw runtime_error(
+        THROW(
             "label (i.e. output channel) cannot be empty in edge from node '"
-            + fromNodeName + "' to '" + toNodeName + "'");
+            << fromNodeName << "' to '" << toNodeName << "'");
       }
 
       dataGraph->connect(fromNodeName, channel, toNodeName);
@@ -300,9 +322,7 @@ static nlohmann::json getJson(
     const string& containingKey,
     const string& key) {
   if (!containingObject.contains(key)) {
-    ostringstream errorStream;
-    errorStream << "'" << key << "' is missing in '" << containingKey << "'";
-    throw runtime_error(errorStream.str());
+    THROW("'" << key << "' is missing in '" << containingKey << "'");
   }
 
   return containingObject[key];
@@ -315,20 +335,14 @@ static string getNonEmptyStringOrThrow(
   const nlohmann::json& value = getJson(containingObject, containingKey, key);
 
   if (!value.is_string()) {
-    ostringstream errorStream;
-    errorStream << "'" << key << "' must be a string in '" << containingKey
-                << "'. Actual type: " << value.type_name();
-
-    throw runtime_error(errorStream.str());
+    THROW("'" << key << "' must be a string in '" << containingKey
+                << "'. Actual type: " << value.type_name());
   }
 
   string stringValue = value.get<string>();
   if (stringValue.empty()) {
-    ostringstream errorStream;
-    errorStream << "'" << key << "' cannot be an empty string in '"
-                << containingKey << "'";
-
-    throw runtime_error(errorStream.str());
+    THROW("'" << key << "' cannot be an empty string in '"
+                << containingKey << "'");
   }
 
   return stringValue;
@@ -341,11 +355,8 @@ static nlohmann::json getObjectOrThrow(
   const nlohmann::json& value = getJson(containingObject, containingKey, key);
 
   if (!value.is_object()) {
-    ostringstream errorStream;
-    errorStream << "'" << key << "' must be an object in '" << containingKey
-                << "'. Actual type: " << value.type_name();
-
-    throw runtime_error(errorStream.str());
+    THROW("'" << key << "' must be an object in '" << containingKey
+                << "'. Actual type: " << value.type_name());
   }
 
   return value;
